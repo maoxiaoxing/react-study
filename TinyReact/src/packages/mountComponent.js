@@ -8,7 +8,7 @@ export default function mountComponent(virtualDOM, container) {
   if (isFunctionComponent(virtualDOM)) {
     nextVirtualDOM = buildFunctionComponent(virtualDOM)
   } else {
-
+    nextVirtualDOM = buildClassComponent(virtualDOM)
   }
   // 如果编译后的组件返回一个组件，那么就接着编译这个组件
   if (isFunction(nextVirtualDOM)) {
@@ -21,4 +21,10 @@ export default function mountComponent(virtualDOM, container) {
 
 function buildFunctionComponent (virtualDOM) {
   return virtualDOM.type(virtualDOM.props || {})
+}
+
+function buildClassComponent(virtualDOM) {
+  const component = new virtualDOM.type()
+  const nextVirtualDOM = component.render()
+  return nextVirtualDOM
 }
