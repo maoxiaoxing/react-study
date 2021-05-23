@@ -27,7 +27,7 @@ function Demo() {
 function Heart(props) {
   return (
     <div>
-      {/* {props.title} */}
+      {props.title}
       &hearts; <Demo></Demo>
     </div>
   )
