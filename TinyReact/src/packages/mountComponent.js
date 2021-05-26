@@ -12,7 +12,7 @@ export default function mountComponent(virtualDOM, container, oldDOM) {
   }
   // 如果编译后的组件返回一个组件，那么就接着编译这个组件
   if (isFunction(nextVirtualDOM)) {
-    mountComponent(nextVirtualDOM, container)
+    mountComponent(nextVirtualDOM, container, oldDOM)
   } else {
     // 否则直接渲染节点即可
     mounNativeElement(nextVirtualDOM, container, oldDOM)
