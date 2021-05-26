@@ -2,7 +2,7 @@ import isFunction from "./isFunction";
 import isFunctionComponent from "./isFunctionComponent";
 import mounNativeElement from "./mounNativeElement";
 
-export default function mountComponent(virtualDOM, container) {
+export default function mountComponent(virtualDOM, container, oldDOM) {
   let nextVirtualDOM = null
   // 判断罪案是类组件还是函数组件
   if (isFunctionComponent(virtualDOM)) {
@@ -15,7 +15,7 @@ export default function mountComponent(virtualDOM, container) {
     mountComponent(nextVirtualDOM, container)
   } else {
     // 否则直接渲染节点即可
-    mounNativeElement(nextVirtualDOM, container)
+    mounNativeElement(nextVirtualDOM, container, oldDOM)
   }
 }
 

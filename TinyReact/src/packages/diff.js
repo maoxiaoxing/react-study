@@ -3,17 +3,28 @@ import mountElement from './mountElement'
 import updateNodeElement from './updateNodeElement'
 import updateTextNode from './updateTextNode'
 import unmountNode from './unmountNode'
+import diffComponent from './diffComponent'
 
+/**
+ * @description 比较新老DOM
+ * @param {*} virtualDOM 
+ * @param {*} container 
+ * @param {*} oldDOM 
+ */
 export default function diff(virtualDOM, container, oldDOM) {
   const oldVirtualDOM = oldDOM && oldDOM._virtualDOM
+  const oldComponent = oldVirtualDOM && oldVirtualDOM.component
   // 判断 oldDOM 是否存在
   if (!oldDOM) {
     mountElement(virtualDOM, container)
-  } else if (virtualDOM.type !== oldVirtualDOM.type && typeof virtualDOM !== 'function') { 
-    // 如果新旧 DOM 不相等，那么就直接替换
+  } else if (virtualDOM.type !== oldVirtualDOM.type && typeof virtualDOM.type !== 'function') { 
+    // 如果新旧 DOM 不相等 且节点类型不是一个组件，那么就直接替换
     const newElement = createDOMElement(virtualDOM)
     oldDOM.parentNode.replaceChild(newElement, oldDOM)
-  } else if (oldVirtualDOM && virtualDOM.type === oldVirtualDOM.type) {
+  } else if (typeof virtualDOM.type === 'function') { // 如果是一个组件的话
+    // 比较新老组件
+    diffComponent(virtualDOM, oldComponent, oldDOM, container)
+  }  else if (oldVirtualDOM && virtualDOM.type === oldVirtualDOM.type) {
     if (virtualDOM.type === 'text') {
       // 更新内容
       updateTextNode(virtualDOM, oldVirtualDOM, oldDOM)
