@@ -33,11 +33,6 @@ export default function diff(virtualDOM, container, oldDOM) {
       updateNodeElement(oldDOM, virtualDOM, oldVirtualDOM)
     }
 
-    // 对比子节点
-    virtualDOM.children.forEach((child, index) => {
-      diff(child, oldDOM, oldDOM.childNodes[index])
-    })
-
     // 1. 将有key属性的子元素放置在一个单独的对象中
     let keyedElements = {}
     const childNodesLen = oldDOM.childNodes.length
