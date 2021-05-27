@@ -64,6 +64,8 @@ export default function diff(virtualDOM, container, oldDOM) {
               // 如果不是，就将 domElement 插入老元素前边，
               oldDOM.insertBefore(domElement, oldDOM.childNodes[index])
             }
+          } else {
+            mountElement(child, oldDOM, oldDOM.childNodes[index])
           }
         }
       })
