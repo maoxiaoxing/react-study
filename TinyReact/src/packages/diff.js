@@ -44,7 +44,7 @@ export default function diff(virtualDOM, container, oldDOM) {
     for(let i = 0; i < childNodesLen; i++) {
       const domElement = oldDOM.childNodes[i]
       if (domElement.nodeType === 1) {
-        let key = document.getAttribute('key')
+        let key = domElement.getAttribute('key')
         if (key) {
           keyedElements[key] = domElement
         }
