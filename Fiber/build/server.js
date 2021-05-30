@@ -16,7 +16,7 @@
   \*******************/
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
-eval("__webpack_require__.r(__webpack_exports__);\n/* harmony import */ var express__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! express */ \"express\");\n/* harmony import */ var express__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(express__WEBPACK_IMPORTED_MODULE_0__);\n\nvar app = express__WEBPACK_IMPORTED_MODULE_0___default()();\nvar template = \"\\n  <html>\\n    <head>\\n      <title>React Fiber</title>\\n    </head>\\n    <body>\\n      <div id=\\\"root\\\"></div>\\n    </body>\\n  </html>\\n\";\napp.get('*', function (req, res) {\n  res.send(template);\n});\napp.listen(3000, function () {\n  return console.log('server is running');\n});\n\n//# sourceURL=webpack://fiber/./server.js?");
+eval("__webpack_require__.r(__webpack_exports__);\n/* harmony import */ var express__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! express */ \"express\");\n/* harmony import */ var express__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(express__WEBPACK_IMPORTED_MODULE_0__);\n\nvar app = express__WEBPACK_IMPORTED_MODULE_0___default()();\napp.use(express__WEBPACK_IMPORTED_MODULE_0___default().static('dist'));\nvar template = \"\\n  <html>\\n    <head>\\n      <title>React Fiber</title>\\n    </head>\\n    <body>\\n      <div id=\\\"root\\\"></div>\\n      <script src=\\\"bundle.js\\\"></script>\\n    </body>\\n  </html>\\n\";\napp.get('*', function (req, res) {\n  res.send(template);\n});\napp.listen(3000, function () {\n  return console.log('server is running');\n});\n\n//# sourceURL=webpack://fiber/./server.js?");
 
 /***/ }),
 
