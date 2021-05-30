@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+  <style>
+    #box {
+      padding: 20px;
+      background: palegoldenrod;
+    }
+  </style>
+</head>
+<body>
+  <div id="box"></div>
+  <button id="btn1">执行计算任务</button>
+  <button id="btn2">更改背景颜色</button>
+  <script>
+    const box = document.getElementById('box')
+    const btn1 = document.getElementById('btn1')
+    const btn2 = document.getElementById('btn2')
+
+    let number = 99999
+    let value = 0
+
+    function calc(deadline) {
+      while (number > 0 && deadline.timeRemaining() > 1) {
+        value = Math.random() < 0.5 ? Math.random() : Math.random()
+        console.log(value)
+        number--
+      }
+      requestIdleCallback(calc)
+    }
+
+    btn1.onclick = function () {
+      requestIdleCallback(calc)
+    }
+
+    btn2.onclick = function () {
+      box.style.background = 'green'
+    }
+  </script>
+</body>
+</html>
