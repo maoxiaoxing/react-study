@@ -1,5 +1,4 @@
-import { createTaskQueue } from "../Misc"
-import arrified from '../Misc/Arrified'
+import { createTaskQueue, arrified, createStateNode } from "../Misc"
 
 const taskQueue = createTaskQueue()
 let subTask = null
@@ -29,16 +28,17 @@ const reconcileChildren = (fiber, children) => {
 
   while (index < numberOfEelments) {
     element = arrifiedChildren[index]
-    console.log(element)
+    // 子级 fiber 对象
     newFiber = {
       type: element.type,
       props: element.props,
       tag: 'host_component',
       effects: [],
       effectTag: 'placement',
-      stateNode: null,
       parent: fiber,
     }
+
+    newFiber.stateNode = createStateNode(newFiber)
 
     // 只有第一个子节点才是子节点 其他的是子节点的兄弟节点
     if (index === 0) {
