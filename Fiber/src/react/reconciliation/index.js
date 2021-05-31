@@ -16,6 +16,11 @@ const getFirstTask = () =>{
   }
 }
 
+/**
+ * 构建子级 fiber 对象
+ * @param {*} fiber 
+ * @param {*} children 
+ */
 const reconcileChildren = (fiber, children) => {
   // children 可能是对象也可能是数组 是对象的话，需要将对象转成数组
   const arrifiedChildren = arrified(children)
@@ -55,6 +60,9 @@ const reconcileChildren = (fiber, children) => {
 const executeTask = (fiber) => {
   reconcileChildren(fiber, fiber.props.children)
   console.log(fiber)
+  if (fiber.child) {
+    return fiber.child
+  }
 }
 
 const workLoop = (deadline) => {
