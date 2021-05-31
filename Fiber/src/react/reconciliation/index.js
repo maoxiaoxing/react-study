@@ -1,4 +1,4 @@
-import { createTaskQueue, arrified, createStateNode } from "../Misc"
+import { createTaskQueue, arrified, createStateNode, getTag } from "../Misc"
 
 const taskQueue = createTaskQueue()
 let subTask = null
@@ -32,7 +32,7 @@ const reconcileChildren = (fiber, children) => {
     newFiber = {
       type: element.type,
       props: element.props,
-      tag: 'host_component',
+      tag: getTag(element),
       effects: [],
       effectTag: 'placement',
       parent: fiber,
