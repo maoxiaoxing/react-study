@@ -9,6 +9,9 @@ module.exports = {
     path: path.resolve(__dirname, "build"),
     filename: "server.js",
   },
+  devServer: {
+    open: true,
+  },
   module: {
     rules: [
       {
