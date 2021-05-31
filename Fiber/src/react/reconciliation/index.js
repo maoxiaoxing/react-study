@@ -1,4 +1,5 @@
 import { createTaskQueue } from "../Misc"
+import arrified from '../Misc/Arrified'
 
 const taskQueue = createTaskQueue()
 let subTask = null
@@ -16,18 +17,54 @@ const getFirstTask = () =>{
   }
 }
 
-const executeTask = (fiber) => {
+const reconcileChildren = (fiber, children) => {
+  // children 可能是对象也可能是数组 是对象的话，需要将对象转成数组
+  const arrifiedChildren = arrified(children)
 
+  let index = 0
+  let numberOfEelments = arrifiedChildren.length
+  let element = null
+  let newFiber = null
+  let prevFiber = null
+
+  while (index < numberOfEelments) {
+    element = arrifiedChildren[index]
+    console.log(element)
+    newFiber = {
+      type: element.type,
+      props: element.props,
+      tag: 'host_component',
+      effects: [],
+      effectTag: 'placement',
+      stateNode: null,
+      parent: fiber,
+    }
+
+    // 只有第一个子节点才是子节点 其他的是子节点的兄弟节点
+    if (index === 0) {
+      fiber.child = newFiber
+    } else {
+      prevFiber.silbing = newFiber
+    }
+
+    prevFiber = newFiber
+    index++
+  }
 }
 
-const workLoop = () => {
+const executeTask = (fiber) => {
+  reconcileChildren(fiber, fiber.props.children)
+  console.log(fiber)
+}
+
+const workLoop = (deadline) => {
   // 如果子任务不存在 就去获取子任务
   if (!subTask) {
     subTask = getFirstTask()
   }
 
   // 当有任务的时候 且 延迟时间大于1
-  while (subTask && deadline.timeRamaining() > 1) {
+  while (subTask && deadline.timeRemaining() > 1) {
     subTask = executeTask(subTask)
   }
 }
