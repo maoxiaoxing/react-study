@@ -1,12 +1,20 @@
 import { createTaskQueue, arrified, createStateNode, getTag } from "../Misc"
 
+// 任务队列
 const taskQueue = createTaskQueue()
+// 要执行的子任务
 let subTask = null
+// 等待提交
 let pendingCommit = null
 
+/**
+ * 
+ * @param {*} fiber 
+ */
 const commitAllWork = (fiber) => {
   fiber.effects.forEach((item) => {
     if (item.effectTag === 'placement') {
+      // 为父级添加节点
       item.parent.stateNode.appendChild(item.stateNode)
     }
   })
@@ -88,6 +96,7 @@ const executeTask = (fiber) => {
     currentExecutelyFiber = currentExecutelyFiber.parent
   }
 
+  // 所有任务执行完毕，等待提交
   pendingCommit = currentExecutelyFiber
 
   console.log(currentExecutelyFiber)
