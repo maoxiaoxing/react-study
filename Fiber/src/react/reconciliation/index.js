@@ -70,6 +70,9 @@ const executeTask = (fiber) => {
   // 没有同级的话，返回当前 fiber 对象的父级
   // 一直循环，直到遍历完所有的节点
   while(currentExecutelyFiber.parent) {
+    currentExecutelyFiber.parent.effects = currentExecutelyFiber.parent.effects.concat(
+      currentExecutelyFiber.effects.concat([currentExecutelyFiber])
+    )
     if (currentExecutelyFiber.sibling) {
       return currentExecutelyFiber.sibling
     }
