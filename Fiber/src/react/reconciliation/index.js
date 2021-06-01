@@ -49,7 +49,7 @@ const reconcileChildren = (fiber, children) => {
     if (index === 0) {
       fiber.child = newFiber
     } else {
-      prevFiber.silbing = newFiber
+      prevFiber.sibling = newFiber
     }
 
     prevFiber = newFiber
@@ -59,10 +59,24 @@ const reconcileChildren = (fiber, children) => {
 
 const executeTask = (fiber) => {
   reconcileChildren(fiber, fiber.props.children)
-  console.log(fiber)
   if (fiber.child) {
     return fiber.child
   }
+
+  let currentExecutelyFiber = fiber
+
+  // 当前 fiber 对象如果有父级的话
+  // 有同级的话，返回同级 fiber 对象
+  // 没有同级的话，返回当前 fiber 对象的父级
+  // 一直循环，直到遍历完所有的节点
+  while(currentExecutelyFiber.parent) {
+    if (currentExecutelyFiber.sibling) {
+      return currentExecutelyFiber.sibling
+    }
+    currentExecutelyFiber = currentExecutelyFiber.parent
+  }
+
+  console.log(fiber)
 }
 
 const workLoop = (deadline) => {
