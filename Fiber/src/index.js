@@ -17,8 +17,17 @@ class Greating extends Component {
   }
 
   render() {
-    return <div>123</div>
+    return <div>{this.props.title} 类组件</div>
   }
 }
 
-render(<Greating />, root)
+render(<Greating title="Hello" />, root)
+
+function FnComponent(props) {
+  return (
+    <div>{props.title} 函数组件</div>
+  )
+}
+
+// render(<FnComponent title="Hello" />, root)
+

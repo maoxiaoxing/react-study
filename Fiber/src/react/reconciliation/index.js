@@ -19,7 +19,10 @@ const commitAllWork = (fiber) => {
 
       // 类组件不是有效的 DOM 元素
       // 必须向上查找，直到找到普通元素
-      while (parentFiber.tag === 'class_component') {
+      while (
+        parentFiber.tag === 'class_component' ||
+        parentFiber.tag === 'function_component'
+      ) {
         parentFiber = parentFiber.parent
       }
 
@@ -72,6 +75,7 @@ const reconcileChildren = (fiber, children) => {
     }
 
     newFiber.stateNode = createStateNode(newFiber)
+    console.log(newFiber)
 
     // 只有第一个子节点才是子节点 其他的是子节点的兄弟节点
     if (index === 0) {
@@ -88,6 +92,8 @@ const reconcileChildren = (fiber, children) => {
 const executeTask = (fiber) => {
   if (fiber.tag === 'class_component') {
     reconcileChildren(fiber, fiber.stateNode.render())
+  } else if (fiber.tag === 'function_component') {
+    reconcileChildren(fiber, fiber.stateNode(fiber.props))
   } else {
     reconcileChildren(fiber, fiber.props.children)
   }
