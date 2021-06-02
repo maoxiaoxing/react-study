@@ -14,8 +14,19 @@ let pendingCommit = null
 const commitAllWork = (fiber) => {
   fiber.effects.forEach((item) => {
     if (item.effectTag === 'placement') {
-      // 为父级添加节点
-      item.parent.stateNode.appendChild(item.stateNode)
+      let fiber = item
+      let parentFiber = item.parent
+
+      // 类组件不是有效的 DOM 元素
+      // 必须向上查找，直到找到普通元素
+      while (parentFiber.tag === 'class_component') {
+        parentFiber = parentFiber.parent
+      }
+
+      if (fiber.tag === 'host_component') {
+        // 为父级添加节点
+        parentFiber.stateNode.appendChild(fiber.stateNode)
+      }
     }
   })
 }
@@ -75,7 +86,11 @@ const reconcileChildren = (fiber, children) => {
 }
 
 const executeTask = (fiber) => {
-  reconcileChildren(fiber, fiber.props.children)
+  if (fiber.tag === 'class_component') {
+    reconcileChildren(fiber, fiber.stateNode.render())
+  } else {
+    reconcileChildren(fiber, fiber.props.children)
+  }
   if (fiber.child) {
     return fiber.child
   }
