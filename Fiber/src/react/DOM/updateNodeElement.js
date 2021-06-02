@@ -1,6 +1,25 @@
 export default function updateNodeElement(newElement, virtualDOM, oldVirtualDOM) {
   const newProps = virtualDOM.props || {}
   const oldProps = oldVirtualDOM && oldVirtualDOM.props || {}
+
+  if (virtualDOM.type === 'text') {
+    if (newProps.textContent !== oldProps.textContent) {
+      if (virtualDOM.parent.type !== oldVirtualDOM.parent.type) {
+        // 父级节点不同 将当前节点插入父级节点
+        virtualDOM.parent.stateNode.appendChild(
+          document.createTextNode(newProps.textContent),
+        )
+      } else {
+        // 父级节点相同的话，就直接替换
+        virtualDOM.parent.stateNode.replaceChild(
+          document.createTextNode(newProps.textContent),
+          oldVirtualDOM.stateNode
+        )
+      }
+    }
+    return 
+  }
+
   Object.keys(newProps).forEach((propName) => {
     const newPropsValue = newProps[propName]
     const oldPropsValue = oldProps[propName]
