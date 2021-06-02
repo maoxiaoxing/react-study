@@ -1,3 +1,4 @@
+import { updateNodeElement } from "../DOM"
 import { createTaskQueue, arrified, createStateNode, getTag } from "../Misc"
 
 // 任务队列
@@ -13,7 +14,19 @@ let pendingCommit = null
  */
 const commitAllWork = (fiber) => {
   fiber.effects.forEach((item) => {
-    if (item.effectTag === 'placement') {
+    // 更新
+    if (item.effectTag === 'update') {
+      if (item.type === item.alternate.type) {
+        // 节点类型相同
+        updateNodeElement(item.stateNode, item, item.alternate)
+      } else {
+        // 节点类型不同
+        item.parent.stateNode.replaceChild(
+          item.stateNode,
+          item.alternate.stateNode
+        )
+      }
+    } else if (item.effectTag === 'placement') {
       let fiber = item
       let parentFiber = item.parent
 
@@ -32,6 +45,9 @@ const commitAllWork = (fiber) => {
       }
     }
   })
+
+  // 备份旧的 fiber 节点对象
+  fiber.stateNode.__rootFiberContainer = fiber
 }
 
 const getFirstTask = () =>{
@@ -44,6 +60,7 @@ const getFirstTask = () =>{
     tag: 'host_root',
     effects: [],
     child: null,
+    alternate: task.dom.__rootFiberContainer, // 根节点备份对象
   }
 }
 
@@ -61,20 +78,47 @@ const reconcileChildren = (fiber, children) => {
   let element = null
   let newFiber = null
   let prevFiber = null
+  let alternate = null
+
+  if (fiber.alternate && fiber.alternate.child) {
+    // 备份节点
+    alternate = fiber.alternate.child
+  }
 
   while (index < numberOfEelments) {
     element = arrifiedChildren[index]
-    // 子级 fiber 对象
-    newFiber = {
-      type: element.type,
-      props: element.props,
-      tag: getTag(element),
-      effects: [],
-      effectTag: 'placement',
-      parent: fiber,
-    }
 
-    newFiber.stateNode = createStateNode(newFiber)
+    if (element && alternate) {
+      newFiber = {
+        type: element.type,
+        props: element.props,
+        tag: getTag(element),
+        effects: [],
+        effectTag: 'update',
+        parent: fiber,
+        alternate,
+      }
+
+      // 类型相同
+      if (element.type === alternate.type) {
+        newFiber.stateNode = alternate.stateNode
+      } else {
+        // 类型不同
+        newFiber.stateNode = createStateNode(newFiber)
+      }
+    } else if (element && !alternate) {
+      // 子级 fiber 对象
+      newFiber = {
+        type: element.type,
+        props: element.props,
+        tag: getTag(element),
+        effects: [],
+        effectTag: 'placement',
+        parent: fiber,
+      }
+
+      newFiber.stateNode = createStateNode(newFiber)
+    }
     console.log(newFiber)
 
     // 只有第一个子节点才是子节点 其他的是子节点的兄弟节点
@@ -82,6 +126,12 @@ const reconcileChildren = (fiber, children) => {
       fiber.child = newFiber
     } else {
       prevFiber.sibling = newFiber
+    }
+
+    if (alternate && alternate.sibling) {
+      alternate = alternate.sibling
+    } else {
+      alternate = null
     }
 
     prevFiber = newFiber
