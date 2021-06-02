@@ -15,7 +15,9 @@ let pendingCommit = null
 const commitAllWork = (fiber) => {
   fiber.effects.forEach((item) => {
     // 更新
-    if (item.effectTag === 'update') {
+    if (item.effectTag === 'delete') {
+      item.parent.stateNode.removeChild(item.stateNode)
+    } else if (item.effectTag === 'update') {
       if (item.type === item.alternate.type) {
         // 节点类型相同
         updateNodeElement(item.stateNode, item, item.alternate)
@@ -85,10 +87,16 @@ const reconcileChildren = (fiber, children) => {
     alternate = fiber.alternate.child
   }
 
-  while (index < numberOfEelments) {
+  // 当 arrifiedChildren 存在 或者有 备份节点 的时候
+  while (index < numberOfEelments || alternate) {
     element = arrifiedChildren[index]
 
-    if (element && alternate) {
+    if (!element && alternate) {
+      // 如果节点不存在 但是备份节点存在
+      // 就执行删除操作
+      alternate.effectTag = 'delete'
+      fiber.effects.push(alternate)
+    } else if (element && alternate) {
       newFiber = {
         type: element.type,
         props: element.props,
@@ -124,7 +132,7 @@ const reconcileChildren = (fiber, children) => {
     // 只有第一个子节点才是子节点 其他的是子节点的兄弟节点
     if (index === 0) {
       fiber.child = newFiber
-    } else {
+    } else if (element) {
       prevFiber.sibling = newFiber
     }
 
