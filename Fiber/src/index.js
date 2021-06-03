@@ -30,7 +30,6 @@ class Greating extends Component {
   }
 
   changeName() {
-    console.log(this)
     this.setState({
       name: '杨小A'
     })
