@@ -133,7 +133,7 @@ function completeUnitOfWork(workInProgressFiber) {
   const returnFiber = workInProgressFiber.return
   // 父级是否存在
   if (returnFiber) {
-    // 需要执行 DOM 操作
+    // 需要执行 DOM 操作的 Fiber
     if (workInProgressFiber.effectTag) {
       if (!returnFiber.lastEffect) {
         returnFiber.lastEffect = workInProgressFiber.lastEffect
