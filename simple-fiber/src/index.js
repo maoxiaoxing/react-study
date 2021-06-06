@@ -77,7 +77,7 @@ function performUnitOfWork(workInProgressFiber) {
   }
 
   while (workInProgressFiber) {
-    // 构建链表
+    // 向上走，构建链表
     completeUnitOfWork(workInProgressFiber)
 
     // 如果有同级
@@ -90,6 +90,7 @@ function performUnitOfWork(workInProgressFiber) {
   }
 }
 
+// 构建子集
 function beginWork(workInProgressFiber) {
   // 1. 创建 DOM 对象并将它存储在 stateNode 属性
   if (!workInProgressFiber.stateNode) {
@@ -115,8 +116,10 @@ function beginWork(workInProgressFiber) {
         return: workInProgressFiber
       }
       if (index === 0) {
+        // 构建子集，只有第一个子元素是子集
         workInProgressFiber.child = childFiber
       } else {
+        // 不是第一个，则构建子集的 兄弟级
         previousFiber.sibling = childFiber
       }
       previousFiber = childFiber
