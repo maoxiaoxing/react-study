@@ -27,7 +27,7 @@
 }
 
 .CurrentCommit {
-  margin: 0.25rem 0;
+  margin-top: 0.25rem;
   display: block;
   width: 100%;
   text-align: left;

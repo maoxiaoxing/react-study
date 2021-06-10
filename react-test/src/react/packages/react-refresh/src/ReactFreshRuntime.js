@@ -8,7 +8,7 @@
  */
 
 import type {Instance} from 'react-reconciler/src/ReactFiberHostConfig';
-import type {FiberRoot} from 'react-reconciler/src/ReactInternalTypes';
+import type {FiberRoot} from 'react-reconciler/src/ReactFiberRoot';
 import type {
   Family,
   RefreshUpdate,
@@ -62,20 +62,20 @@ WeakMap<any, Family> | Map<any, Family> = new PossiblyWeakMap();
 let pendingUpdates: Array<[Family, any]> = [];
 
 // This is injected by the renderer via DevTools global hook.
-const helpersByRendererID: Map<number, RendererHelpers> = new Map();
+let helpersByRendererID: Map<number, RendererHelpers> = new Map();
 
-const helpersByRoot: Map<FiberRoot, RendererHelpers> = new Map();
+let helpersByRoot: Map<FiberRoot, RendererHelpers> = new Map();
 
 // We keep track of mounted roots so we can schedule updates.
-const mountedRoots: Set<FiberRoot> = new Set();
+let mountedRoots: Set<FiberRoot> = new Set();
 // If a root captures an error, we remember it so we can retry on edit.
-const failedRoots: Set<FiberRoot> = new Set();
+let failedRoots: Set<FiberRoot> = new Set();
 
 // In environments that support WeakMap, we also remember the last element for every root.
 // It needs to be weak because we do this even for roots that failed to mount.
 // If there is no WeakMap, we won't attempt to do retrying.
 // $FlowIssue
-const rootElements: WeakMap<any, ReactNodeList> | null = // $FlowIssue
+let rootElements: WeakMap<any, ReactNodeList> | null = // $FlowIssue
   typeof WeakMap === 'function' ? new WeakMap() : null;
 
 let isPerformingRefresh = false;
@@ -164,28 +164,18 @@ function resolveFamily(type) {
 
 // If we didn't care about IE11, we could use new Map/Set(iterable).
 function cloneMap<K, V>(map: Map<K, V>): Map<K, V> {
-  const clone = new Map();
+  let clone = new Map();
   map.forEach((value, key) => {
     clone.set(key, value);
   });
   return clone;
 }
 function cloneSet<T>(set: Set<T>): Set<T> {
-  const clone = new Set();
+  let clone = new Set();
   set.forEach(value => {
     clone.add(value);
   });
   return clone;
-}
-
-// This is a safety mechanism to protect against rogue getters and Proxies.
-function getProperty(object, property) {
-  try {
-    return object[property];
-  } catch (err) {
-    // Intentionally ignore.
-    return undefined;
-  }
 }
 
 export function performReactRefresh(): RefreshUpdate | null {
@@ -243,9 +233,9 @@ export function performReactRefresh(): RefreshUpdate | null {
     // If we don't do this, there is a risk they will be mutated while
     // we iterate over them. For example, trying to recover a failed root
     // may cause another root to be added to the failed list -- an infinite loop.
-    const failedRootsSnapshot = cloneSet(failedRoots);
-    const mountedRootsSnapshot = cloneSet(mountedRoots);
-    const helpersByRootSnapshot = cloneMap(helpersByRoot);
+    let failedRootsSnapshot = cloneSet(failedRoots);
+    let mountedRootsSnapshot = cloneSet(mountedRoots);
+    let helpersByRootSnapshot = cloneMap(helpersByRoot);
 
     failedRootsSnapshot.forEach(root => {
       const helpers = helpersByRootSnapshot.get(root);
@@ -332,7 +322,7 @@ export function register(type: any, id: string): void {
 
     // Visit inner types because we might not have registered them.
     if (typeof type === 'object' && type !== null) {
-      switch (getProperty(type, '$$typeof')) {
+      switch (type.$$typeof) {
         case REACT_FORWARD_REF_TYPE:
           register(type.render, id + '$render');
           break;
@@ -355,25 +345,12 @@ export function setSignature(
   getCustomHooks?: () => Array<Function>,
 ): void {
   if (__DEV__) {
-    if (!allSignaturesByType.has(type)) {
-      allSignaturesByType.set(type, {
-        forceReset,
-        ownKey: key,
-        fullKey: null,
-        getCustomHooks: getCustomHooks || (() => []),
-      });
-    }
-    // Visit inner types because we might not have signed them.
-    if (typeof type === 'object' && type !== null) {
-      switch (getProperty(type, '$$typeof')) {
-        case REACT_FORWARD_REF_TYPE:
-          setSignature(type.render, key, forceReset, getCustomHooks);
-          break;
-        case REACT_MEMO_TYPE:
-          setSignature(type.type, key, forceReset, getCustomHooks);
-          break;
-      }
-    }
+    allSignaturesByType.set(type, {
+      forceReset,
+      ownKey: key,
+      fullKey: null,
+      getCustomHooks: getCustomHooks || (() => []),
+    });
   } else {
     throw new Error(
       'Unexpected call to React Refresh in a production environment.',
@@ -420,7 +397,7 @@ export function findAffectedHostInstances(
   families: Array<Family>,
 ): Set<Instance> {
   if (__DEV__) {
-    const affectedInstances = new Set();
+    let affectedInstances = new Set();
     mountedRoots.forEach(root => {
       const helpers = helpersByRoot.get(root);
       if (helpers === undefined) {
@@ -478,17 +455,6 @@ export function injectIntoGlobalHook(globalObject: any): void {
       };
     }
 
-    if (hook.isDisabled) {
-      // This isn't a real property on the hook, but it can be set to opt out
-      // of DevTools integration and associated warnings and logs.
-      // Using console['warn'] to evade Babel and ESLint
-      console['warn'](
-        'Something has shimmed the React DevTools global hook (__REACT_DEVTOOLS_GLOBAL_HOOK__). ' +
-          'Fast Refresh is not compatible with this shim and will be disabled.',
-      );
-      return;
-    }
-
     // Here, we just want to get a reference to scheduleRefresh.
     const oldInject = hook.inject;
     hook.inject = function(injected) {
@@ -541,53 +507,53 @@ export function injectIntoGlobalHook(globalObject: any): void {
       didError: boolean,
     ) {
       const helpers = helpersByRendererID.get(id);
-      if (helpers !== undefined) {
-        helpersByRoot.set(root, helpers);
+      if (helpers === undefined) {
+        return;
+      }
+      helpersByRoot.set(root, helpers);
 
-        const current = root.current;
-        const alternate = current.alternate;
+      const current = root.current;
+      const alternate = current.alternate;
 
-        // We need to determine whether this root has just (un)mounted.
-        // This logic is copy-pasted from similar logic in the DevTools backend.
-        // If this breaks with some refactoring, you'll want to update DevTools too.
+      // We need to determine whether this root has just (un)mounted.
+      // This logic is copy-pasted from similar logic in the DevTools backend.
+      // If this breaks with some refactoring, you'll want to update DevTools too.
 
-        if (alternate !== null) {
-          const wasMounted =
-            alternate.memoizedState != null &&
-            alternate.memoizedState.element != null;
-          const isMounted =
-            current.memoizedState != null &&
-            current.memoizedState.element != null;
+      if (alternate !== null) {
+        const wasMounted =
+          alternate.memoizedState != null &&
+          alternate.memoizedState.element != null;
+        const isMounted =
+          current.memoizedState != null &&
+          current.memoizedState.element != null;
 
-          if (!wasMounted && isMounted) {
-            // Mount a new root.
-            mountedRoots.add(root);
-            failedRoots.delete(root);
-          } else if (wasMounted && isMounted) {
-            // Update an existing root.
-            // This doesn't affect our mounted root Set.
-          } else if (wasMounted && !isMounted) {
-            // Unmount an existing root.
-            mountedRoots.delete(root);
-            if (didError) {
-              // We'll remount it on future edits.
-              failedRoots.add(root);
-            } else {
-              helpersByRoot.delete(root);
-            }
-          } else if (!wasMounted && !isMounted) {
-            if (didError) {
-              // We'll remount it on future edits.
-              failedRoots.add(root);
-            }
-          }
-        } else {
+        if (!wasMounted && isMounted) {
           // Mount a new root.
           mountedRoots.add(root);
+          failedRoots.delete(root);
+        } else if (wasMounted && isMounted) {
+          // Update an existing root.
+          // This doesn't affect our mounted root Set.
+        } else if (wasMounted && !isMounted) {
+          // Unmount an existing root.
+          mountedRoots.delete(root);
+          if (didError) {
+            // We'll remount it on future edits.
+            failedRoots.add(root);
+          } else {
+            helpersByRoot.delete(root);
+          }
+        } else if (!wasMounted && !isMounted) {
+          if (didError) {
+            // We'll remount it on future edits.
+            failedRoots.add(root);
+          }
         }
+      } else {
+        // Mount a new root.
+        mountedRoots.add(root);
       }
 
-      // Always call the decorated DevTools hook.
       return oldOnCommitFiberRoot.apply(this, arguments);
     };
   } else {
@@ -622,58 +588,57 @@ export function _getMountedRootCount() {
 // function Hello() {
 //   const [foo, setFoo] = useState(0);
 //   const value = useCustomHook();
-//   _s(); /* Call without arguments triggers collecting the custom Hook list.
+//   _s(); /* Second call triggers collecting the custom Hook list.
 //          * This doesn't happen during the module evaluation because we
 //          * don't want to change the module order with inline requires.
 //          * Next calls are noops. */
 //   return <h1>Hi</h1>;
 // }
 //
-// /* Call with arguments attaches the signature to the type: */
+// /* First call specifies the signature: */
 // _s(
 //   Hello,
 //   'useState{[foo, setFoo]}(0)',
 //   () => [useCustomHook], /* Lazy to avoid triggering inline requires */
 // );
+type SignatureStatus = 'needsSignature' | 'needsCustomHooks' | 'resolved';
 export function createSignatureFunctionForTransform() {
   if (__DEV__) {
+    // We'll fill in the signature in two steps.
+    // First, we'll know the signature itself. This happens outside the component.
+    // Then, we'll know the references to custom Hooks. This happens inside the component.
+    // After that, the returned function will be a fast path no-op.
+    let status: SignatureStatus = 'needsSignature';
     let savedType;
     let hasCustomHooks;
-    let didCollectHooks = false;
     return function<T>(
       type: T,
       key: string,
       forceReset?: boolean,
       getCustomHooks?: () => Array<Function>,
-    ): T | void {
-      if (typeof key === 'string') {
-        // We're in the initial phase that associates signatures
-        // with the functions. Note this may be called multiple times
-        // in HOC chains like _s(hoc1(_s(hoc2(_s(actualFunction))))).
-        if (!savedType) {
-          // We're in the innermost call, so this is the actual type.
-          savedType = type;
-          hasCustomHooks = typeof getCustomHooks === 'function';
-        }
-        // Set the signature for all types (even wrappers!) in case
-        // they have no signatures of their own. This is to prevent
-        // problems like https://github.com/facebook/react/issues/20417.
-        if (
-          type != null &&
-          (typeof type === 'function' || typeof type === 'object')
-        ) {
-          setSignature(type, key, forceReset, getCustomHooks);
-        }
-        return type;
-      } else {
-        // We're in the _s() call without arguments, which means
-        // this is the time to collect custom Hook signatures.
-        // Only do this once. This path is hot and runs *inside* every render!
-        if (!didCollectHooks && hasCustomHooks) {
-          didCollectHooks = true;
-          collectCustomHooksForSignature(savedType);
-        }
+    ): T {
+      switch (status) {
+        case 'needsSignature':
+          if (type !== undefined) {
+            // If we received an argument, this is the initial registration call.
+            savedType = type;
+            hasCustomHooks = typeof getCustomHooks === 'function';
+            setSignature(type, key, forceReset, getCustomHooks);
+            // The next call we expect is from inside a function, to fill in the custom Hooks.
+            status = 'needsCustomHooks';
+          }
+          break;
+        case 'needsCustomHooks':
+          if (hasCustomHooks) {
+            collectCustomHooksForSignature(savedType);
+          }
+          status = 'resolved';
+          break;
+        case 'resolved':
+          // Do nothing. Fast path for all future renders.
+          break;
       }
+      return type;
     };
   } else {
     throw new Error(
@@ -711,7 +676,7 @@ export function isLikelyComponentType(type: any): boolean {
       }
       case 'object': {
         if (type != null) {
-          switch (getProperty(type, '$$typeof')) {
+          switch (type.$$typeof) {
             case REACT_FORWARD_REF_TYPE:
             case REACT_MEMO_TYPE:
               // Definitely React components.

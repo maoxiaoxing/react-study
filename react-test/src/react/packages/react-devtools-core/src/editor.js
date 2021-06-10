@@ -156,12 +156,10 @@ export function launchEditor(
     return;
   }
 
-  const [editor, ...destructuredArgs] = guessEditor();
+  let [editor, ...args] = guessEditor();
   if (!editor) {
     return;
   }
-
-  let args = destructuredArgs;
 
   if (lineNumber) {
     args = args.concat(getArgumentsForLineNumber(editor, filePath, lineNumber));

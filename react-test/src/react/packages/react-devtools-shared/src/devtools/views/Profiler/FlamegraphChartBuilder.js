@@ -7,6 +7,10 @@
  * @flow
  */
 
+import {
+  ElementTypeForwardRef,
+  ElementTypeMemo,
+} from 'react-devtools-shared/src/types';
 import {formatDuration} from './utils';
 import ProfilerStore from 'react-devtools-shared/src/devtools/ProfilerStore';
 
@@ -71,13 +75,7 @@ export function getChartData({
       throw Error(`Could not find node with id "${id}" in commit tree`);
     }
 
-    const {
-      children,
-      displayName,
-      hocDisplayNames,
-      key,
-      treeBaseDuration,
-    } = node;
+    const {children, displayName, key, treeBaseDuration, type} = node;
 
     const actualDuration = fiberActualDurations.get(id) || 0;
     const selfDuration = fiberSelfDurations.get(id) || 0;
@@ -87,8 +85,10 @@ export function getChartData({
     const maybeKey = key !== null ? ` key="${key}"` : '';
 
     let maybeBadge = '';
-    if (hocDisplayNames !== null && hocDisplayNames.length > 0) {
-      maybeBadge = ` (${hocDisplayNames[0]})`;
+    if (type === ElementTypeForwardRef) {
+      maybeBadge = ' (ForwardRef)';
+    } else if (type === ElementTypeMemo) {
+      maybeBadge = ' (Memo)';
     }
 
     let label = `${name}${maybeBadge}${maybeKey}`;

@@ -28,7 +28,7 @@ describe('ReactDOMSuspensePlaceholder', () => {
     ReactCache = require('react-cache');
     ReactTestUtils = require('react-dom/test-utils');
     Scheduler = require('scheduler');
-    act = ReactTestUtils.unstable_concurrentAct;
+    act = ReactTestUtils.act;
     Suspense = React.Suspense;
     container = document.createElement('div');
     document.body.appendChild(container);
@@ -72,7 +72,7 @@ describe('ReactDOMSuspensePlaceholder', () => {
   }
 
   it('hides and unhides timed out DOM elements', async () => {
-    const divs = [
+    let divs = [
       React.createRef(null),
       React.createRef(null),
       React.createRef(null),
@@ -244,7 +244,7 @@ describe('ReactDOMSuspensePlaceholder', () => {
     let suspendOnce = Promise.resolve();
     function Suspend() {
       if (suspendOnce) {
-        const promise = suspendOnce;
+        let promise = suspendOnce;
         suspendOnce = null;
         throw promise;
       }

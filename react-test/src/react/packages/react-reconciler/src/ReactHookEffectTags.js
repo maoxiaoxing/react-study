@@ -7,9 +7,9 @@
  * @flow
  */
 
-export type HookFlags = number;
+export type HookEffectTag = number;
 
-export const NoFlags = /*  */ 0b000;
+export const NoEffect = /*  */ 0b000;
 
 // Represents whether effect should fire.
 export const HasEffect = /* */ 0b001;

@@ -128,8 +128,9 @@ describe('ReactDOMServerIntegration', () => {
             Text<span>More Text</span>
           </div>,
         );
+        let spanNode;
         expect(e.childNodes.length).toBe(2);
-        const spanNode = e.childNodes[1];
+        spanNode = e.childNodes[1];
         expectTextNode(e.childNodes[0], 'Text');
         expect(spanNode.tagName).toBe('SPAN');
         expect(spanNode.childNodes.length).toBe(1);
@@ -396,7 +397,7 @@ describe('ReactDOMServerIntegration', () => {
       });
 
       itRenders('svg child element with an attribute', async render => {
-        const e = await render(<svg viewBox="0 0 0 0" />);
+        let e = await render(<svg viewBox="0 0 0 0" />);
         expect(e.childNodes.length).toBe(0);
         expect(e.tagName).toBe('svg');
         expect(e.namespaceURI).toBe('http://www.w3.org/2000/svg');
@@ -438,14 +439,14 @@ describe('ReactDOMServerIntegration', () => {
       });
 
       itRenders('svg element with a tabIndex attribute', async render => {
-        const e = await render(<svg tabIndex="1" />);
+        let e = await render(<svg tabIndex="1" />);
         expect(e.tabIndex).toBe(1);
       });
 
       itRenders(
         'svg element with a badly cased tabIndex attribute',
         async render => {
-          const e = await render(<svg tabindex="1" />, 1);
+          let e = await render(<svg tabindex="1" />, 1);
           expect(e.tabIndex).toBe(1);
         },
       );
@@ -643,33 +644,16 @@ describe('ReactDOMServerIntegration', () => {
         checkFooDiv(await render(<ClassComponent />));
       });
 
-      if (require('shared/ReactFeatureFlags').disableModulePatternComponents) {
-        itThrowsWhenRendering(
-          'factory components',
-          async render => {
-            const FactoryComponent = () => {
-              return {
-                render: function() {
-                  return <div>foo</div>;
-                },
-              };
-            };
-            await render(<FactoryComponent />, 1);
-          },
-          'Objects are not valid as a React child (found: object with keys {render})',
-        );
-      } else {
-        itRenders('factory components', async render => {
-          const FactoryComponent = () => {
-            return {
-              render: function() {
-                return <div>foo</div>;
-              },
-            };
+      itRenders('factory components', async render => {
+        const FactoryComponent = () => {
+          return {
+            render: function() {
+              return <div>foo</div>;
+            },
           };
-          checkFooDiv(await render(<FactoryComponent />, 1));
-        });
-      }
+        };
+        checkFooDiv(await render(<FactoryComponent />, 1));
+      });
     });
 
     describe('component hierarchies', function() {
@@ -757,10 +741,11 @@ describe('ReactDOMServerIntegration', () => {
             </div>,
           );
           expect(e.id).toBe('parent');
+          let child1, child2, textNode;
           expect(e.childNodes.length).toBe(3);
-          const child1 = e.childNodes[0];
-          const textNode = e.childNodes[1];
-          const child2 = e.childNodes[2];
+          child1 = e.childNodes[0];
+          textNode = e.childNodes[1];
+          child2 = e.childNodes[2];
           expect(child1.id).toBe('child1');
           expect(child1.childNodes.length).toBe(0);
           expectTextNode(textNode, ' ');
@@ -774,10 +759,11 @@ describe('ReactDOMServerIntegration', () => {
         async render => {
           // prettier-ignore
           const e = await render(<div id="parent">  <div id="child" />   </div>); // eslint-disable-line no-multi-spaces
+          let textNode1, child, textNode2;
           expect(e.childNodes.length).toBe(3);
-          const textNode1 = e.childNodes[0];
-          const child = e.childNodes[1];
-          const textNode2 = e.childNodes[2];
+          textNode1 = e.childNodes[0];
+          child = e.childNodes[1];
+          textNode2 = e.childNodes[2];
           expect(e.id).toBe('parent');
           expectTextNode(textNode1, '  ');
           expect(child.id).toBe('child');
@@ -792,7 +778,7 @@ describe('ReactDOMServerIntegration', () => {
           <Component>{['a', 'b', [undefined], [[false, 'c']]]}</Component>,
         );
 
-        const parent = e.parentNode;
+        let parent = e.parentNode;
         if (
           render === serverRender ||
           render === clientRenderOnServerString ||

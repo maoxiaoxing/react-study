@@ -27,16 +27,16 @@ import {TreeDispatcherContext, TreeStateContext} from './TreeContext';
 import {useIsOverflowing} from '../hooks';
 import {StoreContext} from '../context';
 
-import type {SerializedElement} from './types';
+import type {Owner} from './types';
 
 import styles from './OwnersStack.css';
 
-type SelectOwner = (owner: SerializedElement | null) => void;
+type SelectOwner = (owner: Owner | null) => void;
 
 type ACTION_UPDATE_OWNER_ID = {|
   type: 'UPDATE_OWNER_ID',
   ownerID: number | null,
-  owners: Array<SerializedElement>,
+  owners: Array<Owner>,
 |};
 type ACTION_UPDATE_SELECTED_INDEX = {|
   type: 'UPDATE_SELECTED_INDEX',
@@ -47,7 +47,7 @@ type Action = ACTION_UPDATE_OWNER_ID | ACTION_UPDATE_SELECTED_INDEX;
 
 type State = {|
   ownerID: number | null,
-  owners: Array<SerializedElement>,
+  owners: Array<Owner>,
   selectedIndex: number,
 |};
 
@@ -77,7 +77,7 @@ export default function OwnerStack() {
   const {ownerID} = useContext(TreeStateContext);
   const treeDispatch = useContext(TreeDispatcherContext);
 
-  const [state, dispatch] = useReducer<State, State, Action>(dialogReducer, {
+  const [state, dispatch] = useReducer<State, Action>(dialogReducer, {
     ownerID: null,
     owners: [],
     selectedIndex: 0,
@@ -104,7 +104,7 @@ export default function OwnerStack() {
   const {owners, selectedIndex} = state;
 
   const selectOwner = useCallback<SelectOwner>(
-    (owner: SerializedElement | null) => {
+    (owner: Owner | null) => {
       if (owner !== null) {
         const index = owners.indexOf(owner);
         dispatch({
@@ -131,7 +131,7 @@ export default function OwnerStack() {
 
   useLayoutEffect(() => {
     // If we're already overflowing, then we don't need to re-measure items.
-    // That's because once the owners stack is open, it can only get larger (by drilling in).
+    // That's because once the owners stack is open, it can only get larger (by driling in).
     // A totally new stack can only be reached by exiting this mode and re-entering it.
     if (elementsBarRef.current === null || isOverflowing) {
       return () => {};
@@ -197,7 +197,7 @@ export default function OwnerStack() {
 }
 
 type ElementsDropdownProps = {
-  owners: Array<SerializedElement>,
+  owners: Array<Owner>,
   selectedIndex: number,
   selectOwner: SelectOwner,
   ...
@@ -245,7 +245,7 @@ function ElementsDropdown({
 
 type ElementViewProps = {
   isSelected: boolean,
-  owner: SerializedElement,
+  owner: Owner,
   selectOwner: SelectOwner,
   ...
 };
@@ -278,7 +278,7 @@ function ElementView({isSelected, owner, selectOwner}: ElementViewProps) {
 }
 
 type BackToOwnerButtonProps = {|
-  owners: Array<SerializedElement>,
+  owners: Array<Owner>,
   selectedIndex: number,
   selectOwner: SelectOwner,
 |};

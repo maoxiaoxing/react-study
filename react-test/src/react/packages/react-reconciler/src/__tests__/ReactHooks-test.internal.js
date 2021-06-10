@@ -26,12 +26,12 @@ describe('ReactHooks', () => {
     jest.resetModules();
 
     ReactFeatureFlags = require('shared/ReactFeatureFlags');
-
+    ReactFeatureFlags.debugRenderPhaseSideEffectsForStrictMode = false;
     React = require('react');
     ReactTestRenderer = require('react-test-renderer');
     Scheduler = require('scheduler');
     ReactDOMServer = require('react-dom/server');
-    act = ReactTestRenderer.unstable_concurrentAct;
+    act = ReactTestRenderer.act;
   });
 
   if (__DEV__) {
@@ -51,7 +51,7 @@ describe('ReactHooks', () => {
           '1. You might have mismatching versions of React and the renderer (such as React DOM)\n' +
           '2. You might be breaking the Rules of Hooks\n' +
           '3. You might have more than one copy of React in the same app\n' +
-          'See https://reactjs.org/link/invalid-hook-call for tips about how to debug and fix this problem.',
+          'See https://fb.me/react-invalid-hook-call for tips about how to debug and fix this problem.',
       );
     });
   }
@@ -782,7 +782,7 @@ describe('ReactHooks', () => {
     }
 
     const root = ReactTestRenderer.create(null);
-    act(() => {
+    ReactTestRenderer.act(() => {
       root.update(<Counter />);
     });
     expect(root).toMatchRenderedOutput('4');
@@ -806,7 +806,7 @@ describe('ReactHooks', () => {
     }
 
     const root = ReactTestRenderer.create(null);
-    act(() => {
+    ReactTestRenderer.act(() => {
       root.update(<Counter />);
     });
     expect(root).toMatchRenderedOutput('4');
@@ -829,7 +829,7 @@ describe('ReactHooks', () => {
     }
 
     const root = ReactTestRenderer.create(null);
-    act(() => {
+    ReactTestRenderer.act(() => {
       root.update(<Counter />);
     });
     expect(root).toMatchRenderedOutput('4');
@@ -906,7 +906,7 @@ describe('ReactHooks', () => {
         '1. You might have mismatching versions of React and the renderer (such as React DOM)\n' +
         '2. You might be breaking the Rules of Hooks\n' +
         '3. You might have more than one copy of React in the same app\n' +
-        'See https://reactjs.org/link/invalid-hook-call for tips about how to debug and fix this problem.',
+        'See https://fb.me/react-invalid-hook-call for tips about how to debug and fix this problem.',
     );
     // the next round, it does a fresh mount, so should render
     expect(() => root.update(<MemoApp />)).not.toThrow(
@@ -915,7 +915,7 @@ describe('ReactHooks', () => {
         '1. You might have mismatching versions of React and the renderer (such as React DOM)\n' +
         '2. You might be breaking the Rules of Hooks\n' +
         '3. You might have more than one copy of React in the same app\n' +
-        'See https://reactjs.org/link/invalid-hook-call for tips about how to debug and fix this problem.',
+        'See https://fb.me/react-invalid-hook-call for tips about how to debug and fix this problem.',
     );
     // and then again, fail
     expect(() => root.update(<MemoApp />)).toThrow(
@@ -924,7 +924,7 @@ describe('ReactHooks', () => {
         '1. You might have mismatching versions of React and the renderer (such as React DOM)\n' +
         '2. You might be breaking the Rules of Hooks\n' +
         '3. You might have more than one copy of React in the same app\n' +
-        'See https://reactjs.org/link/invalid-hook-call for tips about how to debug and fix this problem.',
+        'See https://fb.me/react-invalid-hook-call for tips about how to debug and fix this problem.',
     );
   });
 
@@ -1115,7 +1115,7 @@ describe('ReactHooks', () => {
       'Do not call Hooks inside useEffect(...), useMemo(...), or other built-in Hooks',
       'Warning: React has detected a change in the order of Hooks called by App. ' +
         'This will lead to bugs and errors if not fixed. For more information, ' +
-        'read the Rules of Hooks: https://reactjs.org/link/rules-of-hooks\n\n' +
+        'read the Rules of Hooks: https://fb.me/rules-of-hooks\n\n' +
         '   Previous render            Next render\n' +
         '   ------------------------------------------------------\n' +
         '1. useReducer                 useReducer\n' +
@@ -1237,7 +1237,6 @@ describe('ReactHooks', () => {
       'Context can only be read while React is rendering',
     );
   });
-
   it('double-invokes components with Hooks in Strict Mode', () => {
     ReactFeatureFlags.debugRenderPhaseSideEffectsForStrictMode = true;
 
@@ -1287,7 +1286,7 @@ describe('ReactHooks', () => {
       };
     }
 
-    const renderer = ReactTestRenderer.create(null);
+    let renderer = ReactTestRenderer.create(null);
 
     renderCount = 0;
     renderer.update(<NoHooks />);
@@ -1301,14 +1300,14 @@ describe('ReactHooks', () => {
         <NoHooks />
       </StrictMode>,
     );
-    expect(renderCount).toBe(__DEV__ ? 2 : 1);
+    expect(renderCount).toBe(1);
     renderCount = 0;
     renderer.update(
       <StrictMode>
         <NoHooks />
       </StrictMode>,
     );
-    expect(renderCount).toBe(__DEV__ ? 2 : 1);
+    expect(renderCount).toBe(1);
 
     renderCount = 0;
     renderer.update(<FwdRef />);
@@ -1322,14 +1321,14 @@ describe('ReactHooks', () => {
         <FwdRef />
       </StrictMode>,
     );
-    expect(renderCount).toBe(__DEV__ ? 2 : 1);
+    expect(renderCount).toBe(1);
     renderCount = 0;
     renderer.update(
       <StrictMode>
         <FwdRef />
       </StrictMode>,
     );
-    expect(renderCount).toBe(__DEV__ ? 2 : 1);
+    expect(renderCount).toBe(1);
 
     renderCount = 0;
     renderer.update(<Memo arg={1} />);
@@ -1343,44 +1342,41 @@ describe('ReactHooks', () => {
         <Memo arg={1} />
       </StrictMode>,
     );
-    expect(renderCount).toBe(__DEV__ ? 2 : 1);
+    expect(renderCount).toBe(1);
     renderCount = 0;
     renderer.update(
       <StrictMode>
         <Memo arg={2} />
       </StrictMode>,
     );
-    expect(renderCount).toBe(__DEV__ ? 2 : 1);
+    expect(renderCount).toBe(1);
 
-    if (!require('shared/ReactFeatureFlags').disableModulePatternComponents) {
-      renderCount = 0;
-      expect(() => renderer.update(<Factory />)).toErrorDev(
-        'Warning: The <Factory /> component appears to be a function component that returns a class instance. ' +
-          'Change Factory to a class that extends React.Component instead. ' +
-          "If you can't use a class try assigning the prototype on the function as a workaround. " +
-          '`Factory.prototype = React.Component.prototype`. ' +
-          "Don't use an arrow function since it cannot be called with `new` by React.",
-      );
-      expect(renderCount).toBe(1);
-      renderCount = 0;
-      renderer.update(<Factory />);
-      expect(renderCount).toBe(1);
-
-      renderCount = 0;
-      renderer.update(
-        <StrictMode>
-          <Factory />
-        </StrictMode>,
-      );
-      expect(renderCount).toBe(__DEV__ ? 2 : 1); // Treated like a class
-      renderCount = 0;
-      renderer.update(
-        <StrictMode>
-          <Factory />
-        </StrictMode>,
-      );
-      expect(renderCount).toBe(__DEV__ ? 2 : 1); // Treated like a class
-    }
+    renderCount = 0;
+    expect(() => renderer.update(<Factory />)).toErrorDev(
+      'Warning: The <Factory /> component appears to be a function component that returns a class instance. ' +
+        'Change Factory to a class that extends React.Component instead. ' +
+        "If you can't use a class try assigning the prototype on the function as a workaround. " +
+        '`Factory.prototype = React.Component.prototype`. ' +
+        "Don't use an arrow function since it cannot be called with `new` by React.",
+    );
+    expect(renderCount).toBe(1);
+    renderCount = 0;
+    renderer.update(<Factory />);
+    expect(renderCount).toBe(1);
+    renderCount = 0;
+    renderer.update(
+      <StrictMode>
+        <Factory />
+      </StrictMode>,
+    );
+    expect(renderCount).toBe(__DEV__ ? 2 : 1); // Treated like a class
+    renderCount = 0;
+    renderer.update(
+      <StrictMode>
+        <Factory />
+      </StrictMode>,
+    );
+    expect(renderCount).toBe(__DEV__ ? 2 : 1); // Treated like a class
 
     renderCount = 0;
     renderer.update(<HasHooks />);
@@ -1485,7 +1481,7 @@ describe('ReactHooks', () => {
     // We don't include useImperativeHandleHelper in this set,
     // because it generates an additional warning about the inputs length changing.
     // We test it below with its own test.
-    const orderedHooks = [
+    let orderedHooks = [
       useCallbackHelper,
       useContextHelper,
       useDebugValueHelper,
@@ -1499,7 +1495,7 @@ describe('ReactHooks', () => {
 
     // We don't include useContext or useDebugValue in this set,
     // because they aren't added to the hooks list and so won't throw.
-    const hooksInList = [
+    let hooksInList = [
       useCallbackHelper,
       useEffectHelper,
       useImperativeHandleHelper,
@@ -1511,7 +1507,7 @@ describe('ReactHooks', () => {
     ];
 
     if (__EXPERIMENTAL__) {
-      const useTransitionHelper = () => React.useTransition();
+      const useTransitionHelper = () => React.useTransition({timeoutMs: 1000});
       const useDeferredValueHelper = () =>
         React.useDeferredValue(0, {timeoutMs: 1000});
 
@@ -1573,7 +1569,7 @@ describe('ReactHooks', () => {
         }).toErrorDev([
           'Warning: React has detected a change in the order of Hooks called by App. ' +
             'This will lead to bugs and errors if not fixed. For more information, ' +
-            'read the Rules of Hooks: https://reactjs.org/link/rules-of-hooks\n\n' +
+            'read the Rules of Hooks: https://fb.me/rules-of-hooks\n\n' +
             '   Previous render            Next render\n' +
             '   ------------------------------------------------------\n' +
             `1. ${formatHookNamesToMatchErrorMessage(hookNameA, hookNameB)}\n` +
@@ -1624,7 +1620,7 @@ describe('ReactHooks', () => {
         }).toErrorDev([
           'Warning: React has detected a change in the order of Hooks called by App. ' +
             'This will lead to bugs and errors if not fixed. For more information, ' +
-            'read the Rules of Hooks: https://reactjs.org/link/rules-of-hooks\n\n' +
+            'read the Rules of Hooks: https://fb.me/rules-of-hooks\n\n' +
             '   Previous render            Next render\n' +
             '   ------------------------------------------------------\n' +
             `1. ${formatHookNamesToMatchErrorMessage(hookNameA, hookNameA)}\n` +
@@ -1692,7 +1688,7 @@ describe('ReactHooks', () => {
           return null;
           /* eslint-enable no-unused-vars */
         }
-        const root = ReactTestRenderer.create(<App update={false} />);
+        let root = ReactTestRenderer.create(<App update={false} />);
         expect(() => {
           try {
             root.update(<App update={true} />);
@@ -1704,7 +1700,7 @@ describe('ReactHooks', () => {
         }).toErrorDev([
           'Warning: React has detected a change in the order of Hooks called by App. ' +
             'This will lead to bugs and errors if not fixed. For more information, ' +
-            'read the Rules of Hooks: https://reactjs.org/link/rules-of-hooks\n\n' +
+            'read the Rules of Hooks: https://fb.me/rules-of-hooks\n\n' +
             '   Previous render            Next render\n' +
             '   ------------------------------------------------------\n' +
             `1. ${formatHookNamesToMatchErrorMessage(
@@ -1738,7 +1734,7 @@ describe('ReactHooks', () => {
         return null;
         /* eslint-enable no-unused-vars */
       }
-      const root = ReactTestRenderer.create(<App update={false} />);
+      let root = ReactTestRenderer.create(<App update={false} />);
       expect(() => {
         expect(() => root.update(<App update={true} />)).toThrow(
           'custom error',
@@ -1746,7 +1742,7 @@ describe('ReactHooks', () => {
       }).toErrorDev([
         'Warning: React has detected a change in the order of Hooks called by App. ' +
           'This will lead to bugs and errors if not fixed. For more information, ' +
-          'read the Rules of Hooks: https://reactjs.org/link/rules-of-hooks\n\n' +
+          'read the Rules of Hooks: https://fb.me/rules-of-hooks\n\n' +
           '   Previous render            Next render\n' +
           '   ------------------------------------------------------\n' +
           '1. useReducer                 useState\n' +
@@ -1757,7 +1753,7 @@ describe('ReactHooks', () => {
 
   // Regression test for #14674
   it('does not swallow original error when updating another component in render phase', async () => {
-    const {useState} = React;
+    let {useState} = React;
     spyOnDev(console, 'error');
 
     let _setState;
@@ -1795,7 +1791,7 @@ describe('ReactHooks', () => {
 
   // Regression test for https://github.com/facebook/react/issues/15057
   it('does not fire a false positive warning when previous effect unmounts the component', () => {
-    const {useState, useEffect} = React;
+    let {useState, useEffect} = React;
     let globalListener;
 
     function A() {
@@ -1830,7 +1826,7 @@ describe('ReactHooks', () => {
       return null;
     }
 
-    act(() => {
+    ReactTestRenderer.act(() => {
       ReactTestRenderer.create(<A />);
     });
 

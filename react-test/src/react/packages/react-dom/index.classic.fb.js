@@ -7,7 +7,9 @@
  * @flow
  */
 
+import {addUserTimingListener} from 'shared/ReactFeatureFlags';
 import {isEnabled} from './src/events/ReactDOMEventListener';
+import {getClosestInstanceFromNode} from './src/client/ReactDOMComponentTree';
 
 import {__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED} from './src/client/ReactDOM';
 
@@ -16,24 +18,29 @@ Object.assign((__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED: any), {
   ReactBrowserEventEmitter: {
     isEnabled,
   },
+  ReactDOMComponentTree: {
+    getClosestInstanceFromNode,
+  },
+  // Perf experiment
+  addUserTimingListener,
 });
 
 export {
-  __SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED,
   createPortal,
-  createRoot,
-  createRoot as unstable_createRoot, // TODO Remove once callsites use createRoot
-  findDOMNode,
+  unstable_batchedUpdates,
   flushSync,
+  __SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED,
+  version,
+  findDOMNode,
   hydrate,
   render,
   unmountComponentAtNode,
-  unstable_batchedUpdates,
-  unstable_createEventHandle,
+  createRoot,
+  createBlockingRoot,
+  unstable_discreteUpdates,
+  unstable_flushDiscreteUpdates,
   unstable_flushControlled,
-  unstable_isNewReconciler,
-  unstable_renderSubtreeIntoContainer,
-  unstable_runWithPriority, // DO NOT USE: Temporarily exposed to migrate off of Scheduler.runWithPriority.
   unstable_scheduleHydration,
-  version,
+  unstable_renderSubtreeIntoContainer,
+  unstable_createPortal,
 } from './src/client/ReactDOM';

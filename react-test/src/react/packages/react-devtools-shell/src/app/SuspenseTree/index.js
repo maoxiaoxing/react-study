@@ -20,13 +20,8 @@ function SuspenseTree() {
       <PrimaryFallbackTest initialSuspend={true} />
       <NestedSuspenseTest />
       <SuspenseListTest />
-      <EmptySuspense />
     </Fragment>
   );
-}
-
-function EmptySuspense() {
-  return <Suspense />;
 }
 
 function PrimaryFallbackTest({initialSuspend}) {
@@ -52,13 +47,13 @@ function PrimaryFallbackTest({initialSuspend}) {
 }
 
 function useTestSequence(label, T1, T2) {
-  const [step, setStep] = useState(0);
-  const next = (
+  let [step, setStep] = useState(0);
+  let next = (
     <button onClick={() => setStep(s => (s + 1) % allSteps.length)}>
       next {label} content
     </button>
   );
-  const allSteps = [
+  let allSteps = [
     <Fragment>{next}</Fragment>,
     <Fragment>
       {next} <T1 prop={step}>mount</T1>
@@ -133,7 +128,7 @@ function SuspenseListTest() {
 }
 
 function LoadLater() {
-  const [loadChild, setLoadChild] = useState(false);
+  const [loadChild, setLoadChild] = useState(0);
   return (
     <Suspense
       fallback={

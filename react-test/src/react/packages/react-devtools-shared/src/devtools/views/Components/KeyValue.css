@@ -2,12 +2,8 @@
   display: flex;
 }
 
-.DisabledItem {
-  opacity: 0.5;
-}
-
 .Name {
-  color: var(--color-attribute-name-not-editable);
+  color: var(--color-dim);
   flex: 0 0 auto;
   cursor: default;
 }
@@ -16,19 +12,19 @@
   flex: 0 0 auto;
   cursor: default;
 }
-
-.AfterName {
+.EditableName:after,
+.Name:after {
+  content: ': ';
   color: var(--color-text);
   margin-right: 0.5rem;
 }
 
 .Value {
   color: var(--color-attribute-value);
-  white-space: pre;
+  white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   cursor: default;
-  flex: 1;
 }
 
 .None {
@@ -43,9 +39,4 @@
 
 .Empty {
   color: var(--color-dimmer);
-}
-
-.DeleteArrayItemButton {
-  padding: 0;
-  margin-right: 0.125rem;
 }

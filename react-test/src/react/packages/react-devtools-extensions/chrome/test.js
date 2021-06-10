@@ -4,20 +4,10 @@
 
 const chromeLaunch = require('chrome-launch');
 const {resolve} = require('path');
-const {argv} = require('yargs');
 
 const EXTENSION_PATH = resolve('./chrome/build/unpacked');
-const START_URL = argv.url || 'https://reactjs.org/';
+const START_URL = 'https://facebook.github.io/react/';
 
 chromeLaunch(START_URL, {
-  args: [
-    // Load the React DevTools extension
-    `--load-extension=${EXTENSION_PATH}`,
-
-    // Automatically open DevTools window
-    '--auto-open-devtools-for-tabs',
-
-    // Remembers previous session settings (e.g. DevTools size/position)
-    '--user-data-dir=./.tempUserDataDir',
-  ],
+  args: [`--load-extension=${EXTENSION_PATH}`],
 });

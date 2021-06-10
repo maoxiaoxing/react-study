@@ -5,53 +5,80 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-const hasReadOnlyValue = {
-  button: true,
-  checkbox: true,
-  image: true,
-  hidden: true,
-  radio: true,
-  reset: true,
-  submit: true,
+import checkPropTypes from 'prop-types/checkPropTypes';
+import ReactSharedInternals from 'shared/ReactSharedInternals';
+import {enableDeprecatedFlareAPI} from 'shared/ReactFeatureFlags';
+
+let ReactDebugCurrentFrame = null;
+
+const ReactControlledValuePropTypes = {
+  checkPropTypes: null,
 };
 
-export function checkControlledValueProps(
-  tagName: string,
-  props: Object,
-): void {
-  if (__DEV__) {
-    if (
-      !(
+if (__DEV__) {
+  ReactDebugCurrentFrame = ReactSharedInternals.ReactDebugCurrentFrame;
+
+  const hasReadOnlyValue = {
+    button: true,
+    checkbox: true,
+    image: true,
+    hidden: true,
+    radio: true,
+    reset: true,
+    submit: true,
+  };
+
+  const propTypes = {
+    value: function(props, propName, componentName) {
+      if (
         hasReadOnlyValue[props.type] ||
         props.onChange ||
-        props.onInput ||
         props.readOnly ||
         props.disabled ||
-        props.value == null
-      )
-    ) {
-      console.error(
+        props[propName] == null ||
+        (enableDeprecatedFlareAPI && props.DEPRECATED_flareListeners)
+      ) {
+        return null;
+      }
+      return new Error(
         'You provided a `value` prop to a form field without an ' +
           '`onChange` handler. This will render a read-only field. If ' +
           'the field should be mutable use `defaultValue`. Otherwise, ' +
           'set either `onChange` or `readOnly`.',
       );
-    }
-
-    if (
-      !(
+    },
+    checked: function(props, propName, componentName) {
+      if (
         props.onChange ||
         props.readOnly ||
         props.disabled ||
-        props.checked == null
-      )
-    ) {
-      console.error(
+        props[propName] == null ||
+        (enableDeprecatedFlareAPI && props.DEPRECATED_flareListeners)
+      ) {
+        return null;
+      }
+      return new Error(
         'You provided a `checked` prop to a form field without an ' +
           '`onChange` handler. This will render a read-only field. If ' +
           'the field should be mutable use `defaultChecked`. Otherwise, ' +
           'set either `onChange` or `readOnly`.',
       );
-    }
-  }
+    },
+  };
+
+  /**
+   * Provide a linked `value` attribute for controlled forms. You should not use
+   * this outside of the ReactDOM controlled form components.
+   */
+  ReactControlledValuePropTypes.checkPropTypes = function(tagName, props) {
+    checkPropTypes(
+      propTypes,
+      props,
+      'prop',
+      tagName,
+      ReactDebugCurrentFrame.getStackAddendum,
+    );
+  };
 }
+
+export default ReactControlledValuePropTypes;

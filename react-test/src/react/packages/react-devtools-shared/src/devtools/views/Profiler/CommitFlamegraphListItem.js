@@ -28,8 +28,7 @@ type Props = {
 function CommitFlamegraphListItem({data, index, style}: Props) {
   const {
     chartData,
-    onElementMouseEnter,
-    onElementMouseLeave,
+    hoverFiber,
     scaleX,
     selectedChartNode,
     selectedChartNodeIndex,
@@ -50,11 +49,11 @@ function CommitFlamegraphListItem({data, index, style}: Props) {
 
   const handleMouseEnter = (nodeData: ChartNodeType) => {
     const {id, name} = nodeData;
-    onElementMouseEnter({id, name});
+    hoverFiber({id, name});
   };
 
   const handleMouseLeave = () => {
-    onElementMouseLeave();
+    hoverFiber(null);
   };
 
   // List items are absolutely positioned using the CSS "top" attribute.
@@ -65,7 +64,7 @@ function CommitFlamegraphListItem({data, index, style}: Props) {
 
   const row = rows[index];
 
-  const selectedNodeOffset = scaleX(
+  let selectedNodeOffset = scaleX(
     selectedChartNode !== null ? selectedChartNode.offset : 0,
     width,
   );

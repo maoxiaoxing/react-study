@@ -12,8 +12,12 @@
 
 'use strict';
 
-import {type ViewConfig} from './ReactNativeTypes';
-import invariant from 'invariant';
+import type {
+  ReactNativeBaseComponentViewConfig,
+  ViewConfigGetter,
+} from './ReactNativeTypes';
+
+const invariant = require('invariant');
 
 // Event configs
 const customBubblingEventTypes: {
@@ -38,7 +42,9 @@ exports.customDirectEventTypes = customDirectEventTypes;
 const viewConfigCallbacks = new Map();
 const viewConfigs = new Map();
 
-function processEventTypes(viewConfig: ViewConfig): void {
+function processEventTypes(
+  viewConfig: ReactNativeBaseComponentViewConfig<>,
+): void {
   const {bubblingEventTypes, directEventTypes} = viewConfig;
 
   if (__DEV__) {
@@ -76,7 +82,7 @@ function processEventTypes(viewConfig: ViewConfig): void {
  * A callback is provided to load the view config from UIManager.
  * The callback is deferred until the view is actually rendered.
  */
-exports.register = function(name: string, callback: () => ViewConfig): string {
+exports.register = function(name: string, callback: ViewConfigGetter): string {
   invariant(
     !viewConfigCallbacks.has(name),
     'Tried to register two views with the same name %s',
@@ -97,7 +103,7 @@ exports.register = function(name: string, callback: () => ViewConfig): string {
  * If this is the first time the view has been used,
  * This configuration will be lazy-loaded from UIManager.
  */
-exports.get = function(name: string): ViewConfig {
+exports.get = function(name: string): ReactNativeBaseComponentViewConfig<> {
   let viewConfig;
   if (!viewConfigs.has(name)) {
     const callback = viewConfigCallbacks.get(name);

@@ -10,18 +10,18 @@
 'use strict';
 
 jest.resetModules();
-const React = require('react');
+let React = require('react');
 let ReactFreshRuntime;
 if (__DEV__) {
   ReactFreshRuntime = require('react-refresh/runtime');
   ReactFreshRuntime.injectIntoGlobalHook(global);
 }
-const ReactDOM = require('react-dom');
+let ReactDOM = require('react-dom');
 
 jest.resetModules();
-const ReactART = require('react-art');
-const ARTSVGMode = require('art/modes/svg');
-const ARTCurrentMode = require('art/modes/current');
+let ReactART = require('react-art');
+let ARTSVGMode = require('art/modes/svg');
+let ARTCurrentMode = require('art/modes/current');
 ARTCurrentMode.setCurrent(ARTSVGMode);
 
 describe('ReactFresh', () => {
@@ -41,14 +41,14 @@ describe('ReactFresh', () => {
     }
   });
 
-  it('can update components managed by different renderers independently', () => {
+  it('can update components managd by different renderers independently', () => {
     if (__DEV__) {
-      const InnerV1 = function() {
+      let InnerV1 = function() {
         return <ReactART.Shape fill="blue" />;
       };
       ReactFreshRuntime.register(InnerV1, 'Inner');
 
-      const OuterV1 = function() {
+      let OuterV1 = function() {
         return (
           <div style={{color: 'blue'}}>
             <ReactART.Surface>
@@ -66,7 +66,7 @@ describe('ReactFresh', () => {
       expect(pathEl.getAttributeNS(null, 'fill')).toBe('rgb(0, 0, 255)');
 
       // Perform a hot update to the ART-rendered component.
-      const InnerV2 = function() {
+      let InnerV2 = function() {
         return <ReactART.Shape fill="red" />;
       };
       ReactFreshRuntime.register(InnerV2, 'Inner');
@@ -78,7 +78,7 @@ describe('ReactFresh', () => {
       expect(pathEl.getAttributeNS(null, 'fill')).toBe('rgb(255, 0, 0)');
 
       // Perform a hot update to the DOM-rendered component.
-      const OuterV2 = function() {
+      let OuterV2 = function() {
         return (
           <div style={{color: 'red'}}>
             <ReactART.Surface>

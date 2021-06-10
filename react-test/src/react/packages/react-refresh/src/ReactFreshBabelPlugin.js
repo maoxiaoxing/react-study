@@ -8,9 +8,9 @@
 'use strict';
 
 export default function(babel, opts = {}) {
-  if (typeof babel.env === 'function') {
+  if (typeof babel.getEnv === 'function') {
     // Only available in Babel 7.
-    const env = babel.env();
+    const env = babel.getEnv();
     if (env !== 'development' && !opts.skipEnvCheck) {
       throw new Error(
         'React Refresh Babel transform should only be enabled in development environment. ' +
@@ -140,6 +140,9 @@ export default function(babel, opts = {}) {
             } else if (calleeType === 'MemberExpression') {
               // Could be something like React.forwardRef(...)
               // Pass through.
+            } else {
+              // More complicated call.
+              return false;
             }
             break;
           }
@@ -168,7 +171,6 @@ export default function(babel, opts = {}) {
         for (let i = 0; i < referencePaths.length; i++) {
           const ref = referencePaths[i];
           if (
-            ref.node &&
             ref.node.type !== 'JSXIdentifier' &&
             ref.node.type !== 'Identifier'
           ) {
@@ -226,8 +228,8 @@ export default function(babel, opts = {}) {
       case 'React.useRef':
       case 'useContext':
       case 'React.useContext':
-      case 'useImperativeHandle':
-      case 'React.useImperativeHandle':
+      case 'useImperativeMethods':
+      case 'React.useImperativeMethods':
       case 'useDebugValue':
       case 'React.useDebugValue':
         return true;
@@ -249,7 +251,7 @@ export default function(babel, opts = {}) {
     };
   }
 
-  const hasForceResetCommentByFile = new WeakMap();
+  let hasForceResetCommentByFile = new WeakMap();
 
   // We let user do /* @refresh reset */ to reset state in the whole file.
   function hasForceResetComment(path) {
@@ -277,7 +279,7 @@ export default function(babel, opts = {}) {
     const {key, customHooks} = signature;
 
     let forceReset = hasForceResetComment(scope.path);
-    const customHooksInScope = [];
+    let customHooksInScope = [];
     customHooks.forEach(callee => {
       // Check if a corresponding binding exists where we emit the signature.
       let bindingName;
@@ -304,7 +306,7 @@ export default function(babel, opts = {}) {
     if (typeof require === 'function' && !opts.emitFullSignatures) {
       // Prefer to hash when we can (e.g. outside of ASTExplorer).
       // This makes it deterministically compact, even if there's
-      // e.g. a useState initializer with some code inside.
+      // e.g. a useState ininitalizer with some code inside.
       // We also need it for www that has transforms like cx()
       // that don't understand if something is part of a string.
       finalKey = require('crypto')
@@ -333,43 +335,11 @@ export default function(babel, opts = {}) {
     return args;
   }
 
-  function findHOCCallPathsAbove(path) {
-    const calls = [];
-    while (true) {
-      if (!path) {
-        return calls;
-      }
-      const parentPath = path.parentPath;
-      if (!parentPath) {
-        return calls;
-      }
-      if (
-        // hoc(_c = function() { })
-        parentPath.node.type === 'AssignmentExpression' &&
-        path.node === parentPath.node.right
-      ) {
-        // Ignore registrations.
-        path = parentPath;
-        continue;
-      }
-      if (
-        // hoc1(hoc2(...))
-        parentPath.node.type === 'CallExpression' &&
-        path.node !== parentPath.node.callee
-      ) {
-        calls.push(parentPath);
-        path = parentPath;
-        continue;
-      }
-      return calls; // Stop at other types.
-    }
-  }
+  let seenForRegistration = new WeakSet();
+  let seenForSignature = new WeakSet();
+  let seenForOutro = new WeakSet();
 
-  const seenForRegistration = new WeakSet();
-  const seenForSignature = new WeakSet();
-  const seenForOutro = new WeakSet();
-
-  const hookCalls = new WeakMap();
+  let hookCalls = new WeakMap();
   const HookCallsVisitor = {
     CallExpression(path) {
       const node = path.node;
@@ -400,7 +370,7 @@ export default function(babel, opts = {}) {
       if (!hookCalls.has(fnNode)) {
         hookCalls.set(fnNode, []);
       }
-      const hookCallsForFn = hookCalls.get(fnNode);
+      let hookCallsForFn = hookCalls.get(fnNode);
       let key = '';
       if (path.parent.type === 'VariableDeclarator') {
         // TODO: if there is no LHS, consider some other heuristic.
@@ -566,7 +536,7 @@ export default function(babel, opts = {}) {
 
           // Unlike with $RefreshReg$, this needs to work for nested
           // declarations too. So we need to search for a path where
-          // we can insert a statement rather than hard coding it.
+          // we can insert a statement rather than hardcoding it.
           let insertAfterPath = null;
           path.find(p => {
             if (p.parentPath.isBlock()) {
@@ -662,16 +632,13 @@ export default function(babel, opts = {}) {
             // Result: let Foo = () => {}; __signature(Foo, ...);
           } else {
             // let Foo = hoc(() => {})
-            const paths = [path, ...findHOCCallPathsAbove(path)];
-            paths.forEach(p => {
-              p.replaceWith(
-                t.callExpression(
-                  sigCallID,
-                  createArgumentsForSignature(p.node, signature, p.scope),
-                ),
-              );
-            });
-            // Result: let Foo = __signature(hoc(__signature(() => {}, ...)), ...)
+            path.replaceWith(
+              t.callExpression(
+                sigCallID,
+                createArgumentsForSignature(node, signature, path.scope),
+              ),
+            );
+            // Result: let Foo = hoc(__signature(() => {}, ...))
           }
         },
       },
@@ -722,15 +689,16 @@ export default function(babel, opts = {}) {
               return;
             }
             const handle = createRegistration(programPath, persistentID);
-            if (targetPath.parent.type === 'VariableDeclarator') {
-              // Special case when a variable would get an inferred name:
+            if (
+              (targetExpr.type === 'ArrowFunctionExpression' ||
+                targetExpr.type === 'FunctionExpression') &&
+              targetPath.parent.type === 'VariableDeclarator'
+            ) {
+              // Special case when a function would get an inferred name:
               // let Foo = () => {}
               // let Foo = function() {}
-              // let Foo = styled.div``;
               // We'll register it on next line so that
               // we don't mess up the inferred 'Foo' function name.
-              // (eg: with @babel/plugin-transform-react-display-name or
-              // babel-plugin-styled-components)
               insertAfterPath.insertAfter(
                 t.expressionStatement(
                   t.assignmentExpression('=', handle, declPath.node.id),
@@ -742,7 +710,7 @@ export default function(babel, opts = {}) {
               targetPath.replaceWith(
                 t.assignmentExpression('=', handle, targetExpr),
               );
-              // Result: let Foo = hoc(_c1 = () => {})
+              // Result: let Foo = _c1 = hoc(() => {})
             }
           },
         );

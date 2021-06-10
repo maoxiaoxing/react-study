@@ -5,12 +5,10 @@
 const open = require('open');
 const os = require('os');
 const osName = require('os-name');
+const START_URL = 'https://facebook.github.io/react/';
 const {resolve} = require('path');
-const {argv} = require('yargs');
 
 const EXTENSION_PATH = resolve('./edge/build/unpacked');
-const START_URL = argv.url || 'https://reactjs.org/';
-
 const extargs = `--load-extension=${EXTENSION_PATH}`;
 
 const osname = osName(os.platform());

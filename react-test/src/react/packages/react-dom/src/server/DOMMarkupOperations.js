@@ -8,6 +8,8 @@
  */
 
 import {
+  ID_ATTRIBUTE_NAME,
+  ROOT_ATTRIBUTE_NAME,
   BOOLEAN,
   OVERLOADED_BOOLEAN,
   getPropertyInfo,
@@ -21,6 +23,20 @@ import quoteAttributeValueForBrowser from './quoteAttributeValueForBrowser';
 /**
  * Operations for dealing with DOM properties.
  */
+
+/**
+ * Creates markup for the ID property.
+ *
+ * @param {string} id Unescaped ID.
+ * @return {string} Markup string.
+ */
+export function createMarkupForID(id: string): string {
+  return ID_ATTRIBUTE_NAME + '=' + quoteAttributeValueForBrowser(id);
+}
+
+export function createMarkupForRoot(): string {
+  return ROOT_ATTRIBUTE_NAME + '=""';
+}
 
 /**
  * Creates markup for a property.
@@ -66,12 +82,7 @@ export function createMarkupForCustomAttribute(
   name: string,
   value: mixed,
 ): string {
-  if (
-    !isAttributeNameSafe(name) ||
-    value == null ||
-    typeof value === 'function' ||
-    typeof value === 'symbol'
-  ) {
+  if (!isAttributeNameSafe(name) || value == null) {
     return '';
   }
   return name + '=' + quoteAttributeValueForBrowser(value);

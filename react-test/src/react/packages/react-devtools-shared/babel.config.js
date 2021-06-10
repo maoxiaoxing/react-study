@@ -25,13 +25,8 @@ module.exports = api => {
     targets.chrome = minChromeVersion.toString();
     targets.firefox = minFirefoxVersion.toString();
 
-    let additionalTargets = process.env.BABEL_CONFIG_ADDITIONAL_TARGETS;
-    if (additionalTargets) {
-      additionalTargets = JSON.parse(additionalTargets);
-      for (const target in additionalTargets) {
-        targets[target] = additionalTargets[target];
-      }
-    }
+    // This targets RN/Hermes.
+    targets.ie = '11';
   }
   const plugins = [
     ['@babel/plugin-transform-flow-strip-types'],

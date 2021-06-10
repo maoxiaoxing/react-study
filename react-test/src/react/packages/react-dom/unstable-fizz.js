@@ -7,4 +7,6 @@
  * @flow
  */
 
-export * from './unstable-fizz.node';
+'use strict';
+
+module.exports = require('./unstable-fizz.node');

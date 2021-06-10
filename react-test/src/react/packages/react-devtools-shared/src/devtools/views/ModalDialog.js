@@ -21,17 +21,13 @@ import {useModalDismissSignal} from './hooks';
 
 import styles from './ModalDialog.css';
 
-type ID = any;
-
 type DIALOG_ACTION_HIDE = {|
   type: 'HIDE',
-  id: ID,
 |};
 type DIALOG_ACTION_SHOW = {|
   type: 'SHOW',
   canBeDismissed?: boolean,
   content: React$Node,
-  id: ID,
   title?: React$Node | null,
 |};
 
@@ -39,15 +35,11 @@ type Action = DIALOG_ACTION_HIDE | DIALOG_ACTION_SHOW;
 
 type Dispatch = (action: Action) => void;
 
-type Dialog = {|
+type State = {|
   canBeDismissed: boolean,
   content: React$Node | null,
-  id: ID,
+  isVisible: boolean,
   title: React$Node | null,
-|};
-
-type State = {|
-  dialogs: Array<Dialog>,
 |};
 
 type ModalDialogContextType = {|
@@ -64,19 +56,17 @@ function dialogReducer(state, action) {
   switch (action.type) {
     case 'HIDE':
       return {
-        dialogs: state.dialogs.filter(dialog => dialog.id !== action.id),
+        canBeDismissed: true,
+        content: null,
+        isVisible: false,
+        title: null,
       };
     case 'SHOW':
       return {
-        dialogs: [
-          ...state.dialogs,
-          {
-            canBeDismissed: action.canBeDismissed !== false,
-            content: action.content,
-            id: action.id,
-            title: action.title || null,
-          },
-        ],
+        canBeDismissed: action.canBeDismissed !== false,
+        content: action.content,
+        isVisible: true,
+        title: action.title || null,
       };
     default:
       throw new Error(`Invalid action "${action.type}"`);
@@ -88,13 +78,19 @@ type Props = {|
 |};
 
 function ModalDialogContextController({children}: Props) {
-  const [state, dispatch] = useReducer<State, State, Action>(dialogReducer, {
-    dialogs: [],
+  const [state, dispatch] = useReducer<State, Action>(dialogReducer, {
+    canBeDismissed: true,
+    content: null,
+    isVisible: false,
+    title: null,
   });
 
   const value = useMemo<ModalDialogContextType>(
     () => ({
-      dialogs: state.dialogs,
+      canBeDismissed: state.canBeDismissed,
+      content: state.content,
+      isVisible: state.isVisible,
+      title: state.title,
       dispatch,
     }),
     [state, dispatch],
@@ -108,44 +104,17 @@ function ModalDialogContextController({children}: Props) {
 }
 
 function ModalDialog(_: {||}) {
-  const {dialogs, dispatch} = useContext(ModalDialogContext);
-
-  if (dialogs.length === 0) {
-    return null;
-  }
-
-  return (
-    <div className={styles.Background}>
-      {dialogs.map(dialog => (
-        <ModalDialogImpl
-          key={dialog.id}
-          canBeDismissed={dialog.canBeDismissed}
-          content={dialog.content}
-          dispatch={dispatch}
-          id={dialog.id}
-          title={dialog.title}
-        />
-      ))}
-    </div>
-  );
+  const {isVisible} = useContext(ModalDialogContext);
+  return isVisible ? <ModalDialogImpl /> : null;
 }
 
-function ModalDialogImpl({
-  canBeDismissed,
-  content,
-  dispatch,
-  id,
-  title,
-}: {|
-  canBeDismissed: boolean,
-  content: React$Node | null,
-  dispatch: Dispatch,
-  id: ID,
-  title: React$Node | null,
-|}) {
+function ModalDialogImpl(_: {||}) {
+  const {canBeDismissed, content, dispatch, title} = useContext(
+    ModalDialogContext,
+  );
   const dismissModal = useCallback(() => {
     if (canBeDismissed) {
-      dispatch({type: 'HIDE', id});
+      dispatch({type: 'HIDE'});
     }
   }, [canBeDismissed, dispatch]);
   const dialogRef = useRef<HTMLDivElement | null>(null);
@@ -166,19 +135,24 @@ function ModalDialogImpl({
   };
 
   return (
-    <div ref={dialogRef} className={styles.Dialog} onClick={handleDialogClick}>
-      {title !== null && <div className={styles.Title}>{title}</div>}
-      {content}
-      {canBeDismissed && (
-        <div className={styles.Buttons}>
-          <Button
-            autoFocus={true}
-            className={styles.Button}
-            onClick={dismissModal}>
-            Okay
-          </Button>
-        </div>
-      )}
+    <div className={styles.Background} onClick={dismissModal}>
+      <div
+        ref={dialogRef}
+        className={styles.Dialog}
+        onClick={handleDialogClick}>
+        {title !== null && <div className={styles.Title}>{title}</div>}
+        {content}
+        {canBeDismissed && (
+          <div className={styles.Buttons}>
+            <Button
+              autoFocus={true}
+              className={styles.Button}
+              onClick={dismissModal}>
+              Okay
+            </Button>
+          </div>
+        )}
+      </div>
     </div>
   );
 }

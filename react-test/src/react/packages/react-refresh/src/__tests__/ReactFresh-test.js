@@ -29,7 +29,7 @@ describe('ReactFresh', () => {
       ReactFreshRuntime.injectIntoGlobalHook(global);
       ReactDOM = require('react-dom');
       Scheduler = require('scheduler');
-      act = require('react-dom/test-utils').unstable_concurrentAct;
+      act = require('react-dom/test-utils').act;
       createReactClass = require('create-react-class/factory')(
         React.Component,
         React.isValidElement,
@@ -75,22 +75,9 @@ describe('ReactFresh', () => {
     return type;
   }
 
-  // Note: This is based on a similar component we use in www. We can delete
-  // once the extra div wrapper is no longer necessary.
-  function LegacyHiddenDiv({children, mode}) {
-    return (
-      <div hidden={mode === 'hidden'}>
-        <React.unstable_LegacyHidden
-          mode={mode === 'hidden' ? 'unstable-defer-without-hiding' : mode}>
-          {children}
-        </React.unstable_LegacyHidden>
-      </div>
-    );
-  }
-
   it('can preserve state for compatible types', () => {
     if (__DEV__) {
-      const HelloV1 = render(() => {
+      let HelloV1 = render(() => {
         function Hello() {
           const [val, setVal] = React.useState(0);
           return (
@@ -113,7 +100,7 @@ describe('ReactFresh', () => {
       expect(el.textContent).toBe('1');
 
       // Perform a hot update.
-      const HelloV2 = patch(() => {
+      let HelloV2 = patch(() => {
         function Hello() {
           const [val, setVal] = React.useState(0);
           return (
@@ -180,7 +167,7 @@ describe('ReactFresh', () => {
 
   it('can preserve state for forwardRef', () => {
     if (__DEV__) {
-      const OuterV1 = render(() => {
+      let OuterV1 = render(() => {
         function Hello() {
           const [val, setVal] = React.useState(0);
           return (
@@ -206,7 +193,7 @@ describe('ReactFresh', () => {
       expect(el.textContent).toBe('1');
 
       // Perform a hot update.
-      const OuterV2 = patch(() => {
+      let OuterV2 = patch(() => {
         function Hello() {
           const [val, setVal] = React.useState(0);
           return (
@@ -270,7 +257,7 @@ describe('ReactFresh', () => {
 
   it('should not consider two forwardRefs around the same type to be equivalent', () => {
     if (__DEV__) {
-      const ParentV1 = render(
+      let ParentV1 = render(
         () => {
           function Hello() {
             const [val, setVal] = React.useState(0);
@@ -287,9 +274,9 @@ describe('ReactFresh', () => {
           }
           // Both of these are wrappers around the same inner function.
           // They should be treated as distinct types across reloads.
-          const ForwardRefA = React.forwardRef(renderInner);
+          let ForwardRefA = React.forwardRef(renderInner);
           $RefreshReg$(ForwardRefA, 'ForwardRefA');
-          const ForwardRefB = React.forwardRef(renderInner);
+          let ForwardRefB = React.forwardRef(renderInner);
           $RefreshReg$(ForwardRefB, 'ForwardRefB');
 
           function Parent({cond}) {
@@ -337,7 +324,7 @@ describe('ReactFresh', () => {
       expect(el.textContent).toBe('1');
 
       // Patch to change the color.
-      const ParentV2 = patch(() => {
+      let ParentV2 = patch(() => {
         function Hello() {
           const [val, setVal] = React.useState(0);
           return (
@@ -353,9 +340,9 @@ describe('ReactFresh', () => {
         }
         // Both of these are wrappers around the same inner function.
         // They should be treated as distinct types across reloads.
-        const ForwardRefA = React.forwardRef(renderInner);
+        let ForwardRefA = React.forwardRef(renderInner);
         $RefreshReg$(ForwardRefA, 'ForwardRefA');
-        const ForwardRefB = React.forwardRef(renderInner);
+        let ForwardRefB = React.forwardRef(renderInner);
         $RefreshReg$(ForwardRefB, 'ForwardRefB');
 
         function Parent({cond}) {
@@ -506,7 +493,7 @@ describe('ReactFresh', () => {
 
   it('can preserve state for simple memo', () => {
     if (__DEV__) {
-      const OuterV1 = render(() => {
+      let OuterV1 = render(() => {
         function Hello() {
           const [val, setVal] = React.useState(0);
           return (
@@ -532,7 +519,7 @@ describe('ReactFresh', () => {
       expect(el.textContent).toBe('1');
 
       // Perform a hot update.
-      const OuterV2 = patch(() => {
+      let OuterV2 = patch(() => {
         function Hello() {
           const [val, setVal] = React.useState(0);
           return (
@@ -596,7 +583,7 @@ describe('ReactFresh', () => {
 
   it('can preserve state for memo with custom comparison', () => {
     if (__DEV__) {
-      const OuterV1 = render(() => {
+      let OuterV1 = render(() => {
         function Hello() {
           const [val, setVal] = React.useState(0);
           return (
@@ -621,7 +608,7 @@ describe('ReactFresh', () => {
       expect(el.textContent).toBe('1');
 
       // Perform a hot update.
-      const OuterV2 = patch(() => {
+      let OuterV2 = patch(() => {
         function Hello() {
           const [val, setVal] = React.useState(0);
           return (
@@ -731,7 +718,7 @@ describe('ReactFresh', () => {
 
   it('can preserve state for memo(forwardRef)', () => {
     if (__DEV__) {
-      const OuterV1 = render(() => {
+      let OuterV1 = render(() => {
         function Hello() {
           const [val, setVal] = React.useState(0);
           return (
@@ -757,7 +744,7 @@ describe('ReactFresh', () => {
       expect(el.textContent).toBe('1');
 
       // Perform a hot update.
-      const OuterV2 = patch(() => {
+      let OuterV2 = patch(() => {
         function Hello() {
           const [val, setVal] = React.useState(0);
           return (
@@ -821,7 +808,7 @@ describe('ReactFresh', () => {
 
   it('can preserve state for lazy after resolution', async () => {
     if (__DEV__) {
-      const AppV1 = render(() => {
+      let AppV1 = render(() => {
         function Hello() {
           const [val, setVal] = React.useState(0);
           return (
@@ -868,7 +855,7 @@ describe('ReactFresh', () => {
       expect(el.textContent).toBe('1');
 
       // Perform a hot update.
-      const AppV2 = patch(() => {
+      let AppV2 = patch(() => {
         function Hello() {
           const [val, setVal] = React.useState(0);
           return (
@@ -1640,7 +1627,7 @@ describe('ReactFresh', () => {
 
   it('can force remount by changing signature', () => {
     if (__DEV__) {
-      const HelloV1 = render(() => {
+      let HelloV1 = render(() => {
         function Hello() {
           const [val, setVal] = React.useState(0);
           return (
@@ -1665,7 +1652,7 @@ describe('ReactFresh', () => {
       expect(el.textContent).toBe('1');
 
       // Perform a hot update.
-      const HelloV2 = patch(() => {
+      let HelloV2 = patch(() => {
         function Hello() {
           const [val, setVal] = React.useState(0);
           return (
@@ -1686,7 +1673,7 @@ describe('ReactFresh', () => {
       expect(el.style.color).toBe('red');
 
       // Perform a hot update.
-      const HelloV3 = patch(() => {
+      let HelloV3 = patch(() => {
         function Hello() {
           const [val, setVal] = React.useState(0);
           return (
@@ -1771,7 +1758,7 @@ describe('ReactFresh', () => {
 
   it('keeps a valid tree when forcing remount', () => {
     if (__DEV__) {
-      const HelloV1 = prepare(() => {
+      let HelloV1 = prepare(() => {
         function Hello() {
           return null;
         }
@@ -1786,7 +1773,7 @@ describe('ReactFresh', () => {
 
       // Each of those renders three instances of HelloV1,
       // but in different ways.
-      const trees = [
+      let trees = [
         <div>
           <HelloV1 />
           <div>
@@ -2409,7 +2396,7 @@ describe('ReactFresh', () => {
     }
   });
 
-  it('can hot reload offscreen components', async () => {
+  it('can hot reload offscreen components', () => {
     if (__DEV__ && __EXPERIMENTAL__) {
       const AppV1 = prepare(() => {
         function Hello() {
@@ -2430,9 +2417,9 @@ describe('ReactFresh', () => {
             Scheduler.unstable_yieldValue('App#layout');
           });
           return (
-            <LegacyHiddenDiv mode={offscreen ? 'hidden' : 'visible'}>
+            <div hidden={offscreen}>
               <Hello />
-            </LegacyHiddenDiv>
+            </div>
           );
         };
       });
@@ -2471,15 +2458,10 @@ describe('ReactFresh', () => {
       expect(el.firstChild.textContent).toBe('0');
       expect(el.firstChild.style.color).toBe('red');
 
-      await act(async () => {
-        el.firstChild.dispatchEvent(
-          new MouseEvent('click', {
-            bubbles: true,
-          }),
-        );
-      });
-
-      expect(Scheduler).toHaveYielded(['Hello#layout']);
+      el.firstChild.dispatchEvent(new MouseEvent('click', {bubbles: true}));
+      expect(el.firstChild.textContent).toBe('0');
+      expect(el.firstChild.style.color).toBe('red');
+      expect(Scheduler).toFlushAndYieldThrough(['Hello#layout']);
       expect(el.firstChild.textContent).toBe('1');
       expect(el.firstChild.style.color).toBe('red');
 
@@ -2932,7 +2914,7 @@ describe('ReactFresh', () => {
       expect(container.innerHTML).toBe('<h1>Fixed!</h1>');
 
       // Verify next hot reload doesn't remount anything.
-      const helloNode = container.firstChild;
+      let helloNode = container.firstChild;
       patch(() => {
         function Hello() {
           return <h1>Nice.</h1>;
@@ -3011,15 +2993,15 @@ describe('ReactFresh', () => {
 
   it('regression test: does not get into an infinite loop', () => {
     if (__DEV__) {
-      const containerA = document.createElement('div');
-      const containerB = document.createElement('div');
+      let containerA = document.createElement('div');
+      let containerB = document.createElement('div');
 
       // Initially, nothing interesting.
-      const RootAV1 = () => {
+      let RootAV1 = () => {
         return 'A1';
       };
       $RefreshReg$(RootAV1, 'RootA');
-      const RootBV1 = () => {
+      let RootBV1 = () => {
         return 'B1';
       };
       $RefreshReg$(RootBV1, 'RootB');
@@ -3032,7 +3014,7 @@ describe('ReactFresh', () => {
       expect(containerB.innerHTML).toBe('B1');
 
       // Then make the first root fail.
-      const RootAV2 = () => {
+      let RootAV2 = () => {
         throw new Error('A2!');
       };
       $RefreshReg$(RootAV2, 'RootA');
@@ -3043,7 +3025,7 @@ describe('ReactFresh', () => {
       // Then patch the first root, but make it fail in the commit phase.
       // This used to trigger an infinite loop due to a list of failed roots
       // being mutated while it was being iterated on.
-      const RootAV3 = () => {
+      let RootAV3 = () => {
         React.useLayoutEffect(() => {
           throw new Error('A3!');
         }, []);
@@ -3054,7 +3036,7 @@ describe('ReactFresh', () => {
       expect(containerA.innerHTML).toBe('');
       expect(containerB.innerHTML).toBe('B1');
 
-      const RootAV4 = () => {
+      let RootAV4 = () => {
         return 'A4';
       };
       $RefreshReg$(RootAV4, 'RootA');
@@ -3066,7 +3048,7 @@ describe('ReactFresh', () => {
 
   it('remounts classes on every edit', () => {
     if (__DEV__) {
-      const HelloV1 = render(() => {
+      let HelloV1 = render(() => {
         class Hello extends React.Component {
           state = {count: 0};
           handleClick = () => {
@@ -3101,7 +3083,7 @@ describe('ReactFresh', () => {
       expect(el.textContent).toBe('1');
 
       // Perform a hot update.
-      const HelloV2 = patch(() => {
+      let HelloV2 = patch(() => {
         class Hello extends React.Component {
           state = {count: 0};
           handleClick = () => {
@@ -3138,7 +3120,7 @@ describe('ReactFresh', () => {
       expect(newEl.style.color).toBe('red');
       expect(newEl.textContent).toBe('1');
 
-      const HelloV3 = patch(() => {
+      let HelloV3 = patch(() => {
         class Hello extends React.Component {
           state = {count: 0};
           handleClick = () => {
@@ -3253,7 +3235,7 @@ describe('ReactFresh', () => {
 
   it('remounts on conversion from class to function and back', () => {
     if (__DEV__) {
-      const HelloV1 = render(() => {
+      let HelloV1 = render(() => {
         function Hello() {
           const [val, setVal] = React.useState(0);
           return (
@@ -3276,7 +3258,7 @@ describe('ReactFresh', () => {
       expect(el.textContent).toBe('1');
 
       // Perform a hot update that turns it into a class.
-      const HelloV2 = patch(() => {
+      let HelloV2 = patch(() => {
         class Hello extends React.Component {
           state = {count: 0};
           handleClick = () => {
@@ -3314,7 +3296,7 @@ describe('ReactFresh', () => {
       expect(newEl.textContent).toBe('1');
 
       // Now convert it back to a function.
-      const HelloV3 = patch(() => {
+      let HelloV3 = patch(() => {
         function Hello() {
           const [val, setVal] = React.useState(0);
           return (
@@ -3497,9 +3479,9 @@ describe('ReactFresh', () => {
       ReactFreshRuntime.performReactRefresh();
 
       // Mount three roots.
-      const cont1 = document.createElement('div');
-      const cont2 = document.createElement('div');
-      const cont3 = document.createElement('div');
+      let cont1 = document.createElement('div');
+      let cont2 = document.createElement('div');
+      let cont3 = document.createElement('div');
       document.body.appendChild(cont1);
       document.body.appendChild(cont2);
       document.body.appendChild(cont3);
@@ -3617,41 +3599,20 @@ describe('ReactFresh', () => {
       const useStore = () => {};
       expect(ReactFreshRuntime.isLikelyComponentType(useStore)).toBe(false);
       expect(ReactFreshRuntime.isLikelyComponentType(useTheme)).toBe(false);
-      const rogueProxy = new Proxy(
-        {},
-        {
-          get(target, property) {
-            throw new Error();
-          },
-        },
-      );
-      expect(ReactFreshRuntime.isLikelyComponentType(rogueProxy)).toBe(false);
 
       // These seem like function components.
-      const Button = () => {};
+      let Button = () => {};
       expect(ReactFreshRuntime.isLikelyComponentType(Button)).toBe(true);
       expect(ReactFreshRuntime.isLikelyComponentType(Widget)).toBe(true);
-      const ProxyButton = new Proxy(Button, {
-        get(target, property) {
-          return target[property];
-        },
-      });
-      expect(ReactFreshRuntime.isLikelyComponentType(ProxyButton)).toBe(true);
-      const anon = (() => () => {})();
+      let anon = (() => () => {})();
       anon.displayName = 'Foo';
       expect(ReactFreshRuntime.isLikelyComponentType(anon)).toBe(true);
 
       // These seem like class components.
       class Btn extends React.Component {}
       class PureBtn extends React.PureComponent {}
-      const ProxyBtn = new Proxy(Btn, {
-        get(target, property) {
-          return target[property];
-        },
-      });
       expect(ReactFreshRuntime.isLikelyComponentType(Btn)).toBe(true);
       expect(ReactFreshRuntime.isLikelyComponentType(PureBtn)).toBe(true);
-      expect(ReactFreshRuntime.isLikelyComponentType(ProxyBtn)).toBe(true);
       expect(
         ReactFreshRuntime.isLikelyComponentType(
           createReactClass({render() {}}),
@@ -3750,39 +3711,31 @@ describe('ReactFresh', () => {
     }
   });
 
-  function initFauxDevToolsHook() {
-    const onCommitFiberRoot = jest.fn();
-    const onCommitFiberUnmount = jest.fn();
-
-    let idCounter = 0;
-    const renderers = new Map();
-
-    // This is a minimal shim for the global hook installed by DevTools.
-    // The real one is in packages/react-devtools-shared/src/hook.js.
-    global.__REACT_DEVTOOLS_GLOBAL_HOOK__ = {
-      renderers,
-      supportsFiber: true,
-      inject(renderer) {
-        const id = ++idCounter;
-        renderers.set(id, renderer);
-        return id;
-      },
-      onCommitFiberRoot,
-      onCommitFiberUnmount,
-    };
-  }
-
-  // This simulates the scenario in https://github.com/facebook/react/issues/17626
+  // This simulates the scenario in https://github.com/facebook/react/issues/17626.
   it('can inject the runtime after the renderer executes', () => {
     if (__DEV__) {
-      initFauxDevToolsHook();
+      // This is a minimal shim for the global hook installed by DevTools.
+      // The real one is in packages/react-devtools-shared/src/hook.js.
+      let idCounter = 0;
+      let renderers = new Map();
+      global.__REACT_DEVTOOLS_GLOBAL_HOOK__ = {
+        renderers,
+        supportsFiber: true,
+        inject(renderer) {
+          const id = ++idCounter;
+          renderers.set(id, renderer);
+          return id;
+        },
+        onCommitFiberRoot() {},
+        onCommitFiberUnmount() {},
+      };
 
       // Load these first, as if they're coming from a CDN.
       jest.resetModules();
       React = require('react');
       ReactDOM = require('react-dom');
       Scheduler = require('scheduler');
-      act = require('react-dom/test-utils').unstable_concurrentAct;
+      act = require('react-dom/test-utils').act;
 
       // Important! Inject into the global hook *after* ReactDOM runs:
       ReactFreshRuntime = require('react-refresh/runtime');
@@ -3831,45 +3784,6 @@ describe('ReactFresh', () => {
       expect(container.firstChild).toBe(el);
       expect(el.textContent).toBe('1');
       expect(el.style.color).toBe('red');
-    }
-  });
-
-  // This simulates the scenario in https://github.com/facebook/react/issues/20100
-  it('does not block DevTools when an unsupported renderer is injected', () => {
-    if (__DEV__) {
-      initFauxDevToolsHook();
-
-      const onCommitFiberRoot =
-        global.__REACT_DEVTOOLS_GLOBAL_HOOK__.onCommitFiberRoot;
-
-      // Redirect all React/ReactDOM requires to v16.8.0
-      // This version predates Fast Refresh support.
-      jest.mock('scheduler', () => jest.requireActual('scheduler-0-13'));
-      jest.mock('scheduler/tracing', () =>
-        jest.requireActual('scheduler-0-13/tracing'),
-      );
-      jest.mock('react', () => jest.requireActual('react-16-8'));
-      jest.mock('react-dom', () => jest.requireActual('react-dom-16-8'));
-
-      // Load React and company.
-      jest.resetModules();
-      React = require('react');
-      ReactDOM = require('react-dom');
-      Scheduler = require('scheduler');
-
-      // Important! Inject into the global hook *after* ReactDOM runs:
-      ReactFreshRuntime = require('react-refresh/runtime');
-      ReactFreshRuntime.injectIntoGlobalHook(global);
-
-      render(() => {
-        function Hello() {
-          return <div>Hi!</div>;
-        }
-        $RefreshReg$(Hello, 'Hello');
-        return Hello;
-      });
-
-      expect(onCommitFiberRoot).toHaveBeenCalled();
     }
   });
 });

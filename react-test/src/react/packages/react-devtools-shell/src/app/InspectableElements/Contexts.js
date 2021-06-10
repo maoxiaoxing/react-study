@@ -8,18 +8,10 @@
  */
 
 import * as React from 'react';
-import {createContext, Component, useContext} from 'react';
+import {createContext, Component, Fragment, useContext} from 'react';
 import PropTypes from 'prop-types';
 
 function someNamedFunction() {}
-
-function formatContextForDisplay(name, value) {
-  return (
-    <li>
-      {name}: <pre>{JSON.stringify(value, null, 2)}</pre>
-    </li>
-  );
-}
 
 const contextData = {
   array: ['first', 'second', 'third'],
@@ -69,7 +61,7 @@ class LegacyContextConsumer extends Component<any> {
   };
 
   render() {
-    return formatContextForDisplay('LegacyContextConsumer', this.context);
+    return null;
   }
 }
 
@@ -96,55 +88,34 @@ class ModernContextType extends Component<any> {
   static contextType = ModernContext;
 
   render() {
-    return formatContextForDisplay('ModernContextType', this.context);
+    return null;
   }
 }
 
 function FunctionalContextConsumer() {
-  const value = useContext(StringContext);
-  return formatContextForDisplay('FunctionalContextConsumer', value);
+  useContext(StringContext);
+  return null;
 }
 
 export default function Contexts() {
   return (
-    <div>
-      <h1>Contexts</h1>
-      <ul>
-        <LegacyContextProvider>
-          <LegacyContextConsumer />
-        </LegacyContextProvider>
-        <ModernContext.Provider value={contextData}>
-          <ModernContext.Consumer>
-            {value => formatContextForDisplay('ModernContext.Consumer', value)}
-          </ModernContext.Consumer>
-          <ModernContextType />
-        </ModernContext.Provider>
-        <FunctionalContextConsumer />
-        <ArrayContext.Consumer>
-          {value => formatContextForDisplay('ArrayContext.Consumer', value)}
-        </ArrayContext.Consumer>
-        <BoolContext.Consumer>
-          {value => formatContextForDisplay('BoolContext.Consumer', value)}
-        </BoolContext.Consumer>
-        <FuncContext.Consumer>
-          {value => formatContextForDisplay('FuncContext.Consumer', value)}
-        </FuncContext.Consumer>
-        <NumberContext.Consumer>
-          {value => formatContextForDisplay('NumberContext.Consumer', value)}
-        </NumberContext.Consumer>
-        <StringContext.Consumer>
-          {value => formatContextForDisplay('StringContext.Consumer', value)}
-        </StringContext.Consumer>
-        <SymbolContext.Consumer>
-          {value => formatContextForDisplay('SymbolContext.Consumer', value)}
-        </SymbolContext.Consumer>
-        <NullContext.Consumer>
-          {value => formatContextForDisplay('NullContext.Consumer', value)}
-        </NullContext.Consumer>
-        <UndefinedContext.Consumer>
-          {value => formatContextForDisplay('UndefinedContext.Consumer', value)}
-        </UndefinedContext.Consumer>
-      </ul>
-    </div>
+    <Fragment>
+      <LegacyContextProvider>
+        <LegacyContextConsumer />
+      </LegacyContextProvider>
+      <ModernContext.Provider value={contextData}>
+        <ModernContext.Consumer>{value => null}</ModernContext.Consumer>
+        <ModernContextType />
+      </ModernContext.Provider>
+      <FunctionalContextConsumer />
+      <ArrayContext.Consumer>{value => null}</ArrayContext.Consumer>
+      <BoolContext.Consumer>{value => null}</BoolContext.Consumer>
+      <FuncContext.Consumer>{value => null}</FuncContext.Consumer>
+      <NumberContext.Consumer>{value => null}</NumberContext.Consumer>
+      <StringContext.Consumer>{value => null}</StringContext.Consumer>
+      <SymbolContext.Consumer>{value => null}</SymbolContext.Consumer>
+      <NullContext.Consumer>{value => null}</NullContext.Consumer>
+      <UndefinedContext.Consumer>{value => null}</UndefinedContext.Consumer>
+    </Fragment>
   );
 }

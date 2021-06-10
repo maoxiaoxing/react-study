@@ -7,14 +7,24 @@
  * @flow
  */
 
-import type {Fiber} from './ReactInternalTypes';
+import type {Fiber} from './ReactFiber';
 
-import {getStackByFiberInDevAndProd} from './ReactFiberComponentStack';
+import {getStackByFiberInDevAndProd} from './ReactCurrentFiber';
 
 export type CapturedValue<T> = {|
   value: T,
   source: Fiber | null,
   stack: string | null,
+|};
+
+export type CapturedError = {|
+  componentName: ?string,
+  componentStack: string,
+  error: mixed,
+  errorBoundary: ?Object,
+  errorBoundaryFound: boolean,
+  errorBoundaryName: string | null,
+  willRetry: boolean,
 |};
 
 export function createCapturedValue<T>(

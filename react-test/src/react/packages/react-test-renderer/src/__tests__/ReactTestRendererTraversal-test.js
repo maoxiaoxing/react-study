@@ -236,7 +236,7 @@ describe('ReactTestRendererTraversal', () => {
     ).toBe(2);
     expect(
       ReactTestRenderer.create(
-        <Context.Provider value={null}>
+        <Context.Provider>
           <div />
           <div />
         </Context.Provider>,

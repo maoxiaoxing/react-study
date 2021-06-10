@@ -21,22 +21,9 @@ describe('ReactUpdates', () => {
     React = require('react');
     ReactDOM = require('react-dom');
     ReactTestUtils = require('react-dom/test-utils');
-    act = ReactTestUtils.unstable_concurrentAct;
+    act = ReactTestUtils.act;
     Scheduler = require('scheduler');
   });
-
-  // Note: This is based on a similar component we use in www. We can delete
-  // once the extra div wrapper is no longer necessary.
-  function LegacyHiddenDiv({children, mode}) {
-    return (
-      <div hidden={mode === 'hidden'}>
-        <React.unstable_LegacyHidden
-          mode={mode === 'hidden' ? 'unstable-defer-without-hiding' : mode}>
-          {children}
-        </React.unstable_LegacyHidden>
-      </div>
-    );
-  }
 
   it('should batch state when updating state twice', () => {
     let updateCount = 0;
@@ -539,6 +526,7 @@ describe('ReactUpdates', () => {
 
     const bContainer = document.createElement('div');
 
+    let a;
     let b;
 
     let aUpdated = false;
@@ -572,7 +560,7 @@ describe('ReactUpdates', () => {
       }
     }
 
-    const a = ReactTestUtils.renderIntoDocument(<A />);
+    a = ReactTestUtils.renderIntoDocument(<A />);
     ReactDOM.unstable_batchedUpdates(function() {
       a.setState({x: 1});
       b.setState({x: 1});
@@ -745,8 +733,11 @@ describe('ReactUpdates', () => {
       }
     }
 
-    const x = ReactTestUtils.renderIntoDocument(<X />);
-    const y = ReactTestUtils.renderIntoDocument(<Y />);
+    let x;
+    let y;
+
+    x = ReactTestUtils.renderIntoDocument(<X />);
+    y = ReactTestUtils.renderIntoDocument(<Y />);
     expect(ReactDOM.findDOMNode(x).textContent).toBe('0');
 
     y.forceUpdate();
@@ -1111,7 +1102,7 @@ describe('ReactUpdates', () => {
     'in legacy mode, updates in componentWillUpdate and componentDidUpdate ' +
       'should both flush in the immediately subsequent commit',
     () => {
-      const ops = [];
+      let ops = [];
       class Foo extends React.Component {
         state = {a: false, b: false};
         UNSAFE_componentWillUpdate(_, nextState) {
@@ -1154,7 +1145,7 @@ describe('ReactUpdates', () => {
     'in legacy mode, updates in componentWillUpdate and componentDidUpdate ' +
       '(on a sibling) should both flush in the immediately subsequent commit',
     () => {
-      const ops = [];
+      let ops = [];
       class Foo extends React.Component {
         state = {a: false};
         UNSAFE_componentWillUpdate(_, nextState) {
@@ -1222,7 +1213,7 @@ describe('ReactUpdates', () => {
   );
 
   it('uses correct base state for setState inside render phase', () => {
-    const ops = [];
+    let ops = [];
 
     class Foo extends React.Component {
       state = {step: 0};
@@ -1245,7 +1236,7 @@ describe('ReactUpdates', () => {
   });
 
   it('does not re-render if state update is null', () => {
-    const container = document.createElement('div');
+    let container = document.createElement('div');
 
     let instance;
     let ops = [];
@@ -1300,62 +1291,85 @@ describe('ReactUpdates', () => {
     expect(ops).toEqual(['Foo', 'Bar', 'Baz']);
   });
 
-  // @gate experimental || www
-  it('delays sync updates inside hidden subtrees in Concurrent Mode', () => {
-    const container = document.createElement('div');
+  it.experimental(
+    'delays sync updates inside hidden subtrees in Concurrent Mode',
+    () => {
+      const container = document.createElement('div');
 
-    function Baz() {
-      Scheduler.unstable_yieldValue('Baz');
-      return <p>baz</p>;
-    }
+      function Baz() {
+        Scheduler.unstable_yieldValue('Baz');
+        return <p>baz</p>;
+      }
 
-    let setCounter;
-    function Bar() {
-      const [counter, _setCounter] = React.useState(0);
-      setCounter = _setCounter;
-      Scheduler.unstable_yieldValue('Bar');
-      return <p>bar {counter}</p>;
-    }
+      let setCounter;
+      function Bar() {
+        const [counter, _setCounter] = React.useState(0);
+        setCounter = _setCounter;
+        Scheduler.unstable_yieldValue('Bar');
+        return <p>bar {counter}</p>;
+      }
 
-    function Foo() {
-      Scheduler.unstable_yieldValue('Foo');
-      React.useEffect(() => {
-        Scheduler.unstable_yieldValue('Foo#effect');
+      function Foo() {
+        Scheduler.unstable_yieldValue('Foo');
+        React.useEffect(() => {
+          Scheduler.unstable_yieldValue('Foo#effect');
+        });
+        return (
+          <div>
+            <div hidden={true}>
+              <Bar />
+            </div>
+            <Baz />
+          </div>
+        );
+      }
+
+      const root = ReactDOM.createRoot(container);
+      let hiddenDiv;
+      act(() => {
+        root.render(<Foo />);
+        if (__DEV__) {
+          expect(Scheduler).toFlushAndYieldThrough([
+            'Foo',
+            'Foo',
+            'Baz',
+            'Foo#effect',
+          ]);
+        } else {
+          expect(Scheduler).toFlushAndYieldThrough([
+            'Foo',
+            'Baz',
+            'Foo#effect',
+          ]);
+        }
+        hiddenDiv = container.firstChild.firstChild;
+        expect(hiddenDiv.hidden).toBe(true);
+        expect(hiddenDiv.innerHTML).toBe('');
+        // Run offscreen update
+        if (__DEV__) {
+          expect(Scheduler).toFlushAndYield(['Bar', 'Bar']);
+        } else {
+          expect(Scheduler).toFlushAndYield(['Bar']);
+        }
+        expect(hiddenDiv.hidden).toBe(true);
+        expect(hiddenDiv.innerHTML).toBe('<p>bar 0</p>');
       });
-      return (
-        <div>
-          <LegacyHiddenDiv mode="hidden">
-            <Bar />
-          </LegacyHiddenDiv>
-          <Baz />
-        </div>
-      );
-    }
 
-    const root = ReactDOM.createRoot(container);
-    let hiddenDiv;
-    act(() => {
-      root.render(<Foo />);
-      expect(Scheduler).toFlushAndYieldThrough(['Foo', 'Baz', 'Foo#effect']);
-      hiddenDiv = container.firstChild.firstChild;
-      expect(hiddenDiv.hidden).toBe(true);
-      expect(hiddenDiv.innerHTML).toBe('');
-      // Run offscreen update
-      expect(Scheduler).toFlushAndYield(['Bar']);
-      expect(hiddenDiv.hidden).toBe(true);
+      ReactDOM.flushSync(() => {
+        setCounter(1);
+      });
+      // Should not flush yet
       expect(hiddenDiv.innerHTML).toBe('<p>bar 0</p>');
-    });
 
-    ReactDOM.flushSync(() => {
-      setCounter(1);
-    });
-    // Should not flush yet
-    expect(hiddenDiv.innerHTML).toBe('<p>bar 0</p>');
-
-    // Run offscreen update
-    expect(Scheduler).toFlushAndYield(['Bar']);
-    expect(hiddenDiv.innerHTML).toBe('<p>bar 1</p>');
-  });
+      // Run offscreen update
+      if (__DEV__) {
+        expect(Scheduler).toFlushAndYield(['Bar', 'Bar']);
+      } else {
+        expect(Scheduler).toFlushAndYield(['Bar']);
+      }
+      expect(hiddenDiv.innerHTML).toBe('<p>bar 1</p>');
+    },
+  );
 
   it('can render ridiculously large number of roots without triggering infinite update loop error', () => {
     class Foo extends React.Component {
@@ -1611,7 +1625,7 @@ describe('ReactUpdates', () => {
 
       let error = null;
       let stack = null;
-      const originalConsoleError = console.error;
+      let originalConsoleError = console.error;
       console.error = (e, s) => {
         error = e;
         stack = s;
@@ -1626,7 +1640,7 @@ describe('ReactUpdates', () => {
               Scheduler.unstable_clearYields();
             }
             expect(error).toContain('Warning: Maximum update depth exceeded.');
-            expect(stack).toContain(' NonTerminating');
+            expect(stack).toContain('in NonTerminating');
             // rethrow error to prevent going into an infinite loop when act() exits
             throw error;
           });
@@ -1682,6 +1696,86 @@ describe('ReactUpdates', () => {
 
       expect(Scheduler).toHaveYielded(['Done']);
       expect(container.textContent).toBe('1000');
+    });
+  }
+
+  if (__DEV__) {
+    it('should properly trace interactions within batched udpates', () => {
+      const SchedulerTracing = require('scheduler/tracing');
+
+      let expectedInteraction;
+
+      const container = document.createElement('div');
+
+      const Component = jest.fn(() => {
+        expect(expectedInteraction).toBeDefined();
+
+        const interactions = SchedulerTracing.unstable_getCurrent();
+        expect(interactions.size).toBe(1);
+        expect(interactions).toContain(expectedInteraction);
+
+        return null;
+      });
+
+      ReactDOM.unstable_batchedUpdates(() => {
+        SchedulerTracing.unstable_trace(
+          'mount traced inside a batched update',
+          1,
+          () => {
+            const interactions = SchedulerTracing.unstable_getCurrent();
+            expect(interactions.size).toBe(1);
+            expectedInteraction = Array.from(interactions)[0];
+
+            ReactDOM.render(<Component />, container);
+          },
+        );
+      });
+
+      ReactDOM.unstable_batchedUpdates(() => {
+        SchedulerTracing.unstable_trace(
+          'update traced inside a batched update',
+          2,
+          () => {
+            const interactions = SchedulerTracing.unstable_getCurrent();
+            expect(interactions.size).toBe(1);
+            expectedInteraction = Array.from(interactions)[0];
+
+            ReactDOM.render(<Component />, container);
+          },
+        );
+      });
+
+      const secondContainer = document.createElement('div');
+
+      SchedulerTracing.unstable_trace(
+        'mount traced outside a batched update',
+        3,
+        () => {
+          ReactDOM.unstable_batchedUpdates(() => {
+            const interactions = SchedulerTracing.unstable_getCurrent();
+            expect(interactions.size).toBe(1);
+            expectedInteraction = Array.from(interactions)[0];
+
+            ReactDOM.render(<Component />, secondContainer);
+          });
+        },
+      );
+
+      SchedulerTracing.unstable_trace(
+        'update traced outside a batched update',
+        4,
+        () => {
+          ReactDOM.unstable_batchedUpdates(() => {
+            const interactions = SchedulerTracing.unstable_getCurrent();
+            expect(interactions.size).toBe(1);
+            expectedInteraction = Array.from(interactions)[0];
+
+            ReactDOM.render(<Component />, container);
+          });
+        },
+      );
+
+      expect(Component).toHaveBeenCalledTimes(4);
     });
   }
 });

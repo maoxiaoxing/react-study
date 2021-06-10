@@ -56,5 +56,6 @@
 
 .DevTools, .DevTools * {
   box-sizing: border-box;
+
   -webkit-font-smoothing: var(--font-smoothing);
 }

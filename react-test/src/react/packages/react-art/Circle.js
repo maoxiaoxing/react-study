@@ -7,4 +7,8 @@
  * @flow
  */
 
-export {default} from './npm/Circle';
+'use strict';
+
+const Circle = require('./npm/Circle');
+
+module.exports = Circle;

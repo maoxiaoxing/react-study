@@ -7,7 +7,7 @@
   height: 100%;
   min-width: 30px;
   margin-left: 0.25rem;
-  overflow: visible;
+  overflow: hidden;
 }
 .Commits:focus {
   outline: none;

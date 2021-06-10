@@ -7,4 +7,8 @@
  * @flow
  */
 
-export {default} from './npm/Rectangle';
+'use strict';
+
+const Rectangle = require('./npm/Rectangle');
+
+module.exports = Rectangle;

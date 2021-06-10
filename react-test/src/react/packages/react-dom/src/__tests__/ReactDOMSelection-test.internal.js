@@ -60,7 +60,7 @@ describe('ReactDOMSelection', () => {
         if (i === node.childNodes.length) {
           break;
         }
-        const n = node.childNodes[i];
+        let n = node.childNodes[i];
         traverse(n);
       }
     }

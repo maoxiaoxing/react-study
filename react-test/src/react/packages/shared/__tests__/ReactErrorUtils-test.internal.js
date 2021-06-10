@@ -82,6 +82,7 @@ describe('ReactErrorUtils', () => {
     const err1 = new Error();
     let err2;
     const err3 = new Error();
+    let err4;
     ReactErrorUtils.invokeGuardedCallback(
       'foo',
       function() {
@@ -97,7 +98,7 @@ describe('ReactErrorUtils', () => {
       },
       null,
     );
-    const err4 = ReactErrorUtils.clearCaughtError();
+    err4 = ReactErrorUtils.clearCaughtError();
 
     expect(err2).toBe(err1);
     expect(err4).toBe(err3);
@@ -132,7 +133,7 @@ describe('ReactErrorUtils', () => {
     const ReactErrorUtils2 = require('shared/ReactErrorUtils');
     expect(ReactErrorUtils1).not.toEqual(ReactErrorUtils2);
 
-    const ops = [];
+    let ops = [];
 
     ReactErrorUtils1.invokeGuardedCallback(
       null,

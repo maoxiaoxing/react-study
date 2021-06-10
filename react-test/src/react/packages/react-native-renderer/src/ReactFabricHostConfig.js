@@ -14,8 +14,7 @@ import type {
   MeasureLayoutOnSuccessCallback,
   MeasureOnSuccessCallback,
   NativeMethods,
-  ViewConfig,
-  TouchedViewDataAtPoint,
+  ReactNativeBaseComponentViewConfig,
 } from './ReactNativeTypes';
 
 import {mountSafeCallback_NOT_REALLY_SAFE} from './NativeMethodsMixinUtils';
@@ -24,8 +23,6 @@ import {create, diff} from './ReactNativeAttributePayload';
 import invariant from 'shared/invariant';
 
 import {dispatchEvent} from './ReactFabricEventEmitter';
-
-import {DefaultEventPriority} from 'react-reconciler/src/ReactEventPriorities';
 
 // Modules provided by RN:
 import {
@@ -79,19 +76,6 @@ export type UpdatePayload = Object;
 export type TimeoutHandle = TimeoutID;
 export type NoTimeout = -1;
 
-export type OpaqueIDType = void;
-
-export type RendererInspectionConfig = $ReadOnly<{|
-  // Deprecated. Replaced with getInspectorDataForViewAtPoint.
-  getInspectorDataForViewTag?: (tag: number) => Object,
-  getInspectorDataForViewAtPoint?: (
-    inspectedView: Object,
-    locationX: number,
-    locationY: number,
-    callback: (viewData: TouchedViewDataAtPoint) => mixed,
-  ) => void,
-|}>;
-
 // TODO: Remove this conditional once all changes have propagated.
 if (registerEventHandler) {
   /**
@@ -105,13 +89,13 @@ if (registerEventHandler) {
  */
 class ReactFabricHostComponent {
   _nativeTag: number;
-  viewConfig: ViewConfig;
+  viewConfig: ReactNativeBaseComponentViewConfig<>;
   currentProps: Props;
   _internalInstanceHandle: Object;
 
   constructor(
     tag: number,
-    viewConfig: ViewConfig,
+    viewConfig: ReactNativeBaseComponentViewConfig<>,
     props: Props,
     internalInstanceHandle: Object,
   ) {
@@ -181,13 +165,10 @@ class ReactFabricHostComponent {
 }
 
 // eslint-disable-next-line no-unused-expressions
-(ReactFabricHostComponent.prototype: $ReadOnly<{...NativeMethods, ...}>);
+(ReactFabricHostComponent.prototype: NativeMethods);
 
-export * from 'react-reconciler/src/ReactFiberHostConfigWithNoMutation';
-export * from 'react-reconciler/src/ReactFiberHostConfigWithNoHydration';
-export * from 'react-reconciler/src/ReactFiberHostConfigWithNoScopes';
-export * from 'react-reconciler/src/ReactFiberHostConfigWithNoTestSelectors';
-export * from 'react-reconciler/src/ReactFiberHostConfigWithNoMicrotasks';
+export * from 'shared/HostConfigWithNoMutation';
+export * from 'shared/HostConfigWithNoHydration';
 
 export function appendInitialChild(
   parentInstance: Instance,
@@ -306,9 +287,8 @@ export function getPublicInstance(instance: Instance): * {
   return instance.canonical;
 }
 
-export function prepareForCommit(containerInfo: Container): null | Object {
+export function prepareForCommit(containerInfo: Container): void {
   // Noop
-  return null;
 }
 
 export function prepareUpdate(
@@ -332,6 +312,10 @@ export function resetAfterCommit(containerInfo: Container): void {
   // Noop
 }
 
+export function shouldDeprioritizeSubtree(type: string, props: Props): boolean {
+  return false;
+}
+
 export function shouldSetTextContent(type: string, props: Props): boolean {
   // TODO (bvaughn) Revisit this decision.
   // Always returning false simplifies the createInstance() implementation,
@@ -340,10 +324,6 @@ export function shouldSetTextContent(type: string, props: Props): boolean {
   // It's not clear to me which is better so I'm deferring for now.
   // More context @ github.com/facebook/react/pull/8560#discussion_r92111303
   return false;
-}
-
-export function getCurrentEventPriority(): * {
-  return DefaultEventPriority;
 }
 
 // The Fabric renderer is secondary to the existing React Native renderer.
@@ -442,40 +422,50 @@ export function replaceContainerChildren(
   newChildren: ChildSet,
 ): void {}
 
+export function DEPRECATED_mountResponderInstance(
+  responder: any,
+  responderInstance: any,
+  props: Object,
+  state: Object,
+  instance: Instance,
+) {
+  throw new Error('Not yet implemented.');
+}
+
+export function DEPRECATED_unmountResponderInstance(
+  responderInstance: any,
+): void {
+  throw new Error('Not yet implemented.');
+}
+
+export function getFundamentalComponentInstance(fundamentalInstance: any) {
+  throw new Error('Not yet implemented.');
+}
+
+export function mountFundamentalComponent(fundamentalInstance: any) {
+  throw new Error('Not yet implemented.');
+}
+
+export function shouldUpdateFundamentalComponent(fundamentalInstance: any) {
+  throw new Error('Not yet implemented.');
+}
+
+export function updateFundamentalComponent(fundamentalInstance: any) {
+  throw new Error('Not yet implemented.');
+}
+
+export function unmountFundamentalComponent(fundamentalInstance: any) {
+  throw new Error('Not yet implemented.');
+}
+
+export function cloneFundamentalInstance(fundamentalInstance: any) {
+  throw new Error('Not yet implemented.');
+}
+
 export function getInstanceFromNode(node: any) {
   throw new Error('Not yet implemented.');
 }
 
-export function isOpaqueHydratingObject(value: mixed): boolean {
-  throw new Error('Not yet implemented');
-}
-
-export function makeOpaqueHydratingObject(
-  attemptToReadValue: () => void,
-): OpaqueIDType {
-  throw new Error('Not yet implemented.');
-}
-
-export function makeClientId(): OpaqueIDType {
-  throw new Error('Not yet implemented');
-}
-
-export function makeClientIdInDEV(warnOnAccessInDEV: () => void): OpaqueIDType {
-  throw new Error('Not yet implemented');
-}
-
-export function beforeActiveInstanceBlur(internalInstanceHandle: Object) {
-  // noop
-}
-
-export function afterActiveInstanceBlur() {
-  // noop
-}
-
-export function preparePortalMount(portalInstance: Instance): void {
-  // noop
-}
-
-export function detachDeletedInstance(node: Instance): void {
+export function beforeRemoveInstance(instance: any) {
   // noop
 }

@@ -17,7 +17,6 @@ import CustomObject from './CustomObject';
 import EdgeCaseObjects from './EdgeCaseObjects.js';
 import NestedProps from './NestedProps';
 import SimpleValues from './SimpleValues';
-import SymbolKeys from './SymbolKeys';
 
 // TODO Add Immutable JS example
 
@@ -33,7 +32,6 @@ export default function InspectableElements() {
       <CustomObject />
       <EdgeCaseObjects />
       <CircularReferences />
-      <SymbolKeys />
     </Fragment>
   );
 }

@@ -15,12 +15,14 @@ import TabBar from '../TabBar';
 import ClearProfilingDataButton from './ClearProfilingDataButton';
 import CommitFlamegraph from './CommitFlamegraph';
 import CommitRanked from './CommitRanked';
+import Interactions from './Interactions';
 import RootSelector from './RootSelector';
 import RecordToggle from './RecordToggle';
 import ReloadAndProfileButton from './ReloadAndProfileButton';
 import ProfilingImportExportButtons from './ProfilingImportExportButtons';
 import SnapshotSelector from './SnapshotSelector';
 import SidebarCommitInfo from './SidebarCommitInfo';
+import SidebarInteractions from './SidebarInteractions';
 import SidebarSelectedFiberInfo from './SidebarSelectedFiberInfo';
 import SettingsModal from 'react-devtools-shared/src/devtools/views/Settings/SettingsModal';
 import SettingsModalContextToggle from 'react-devtools-shared/src/devtools/views/Settings/SettingsModalContextToggle';
@@ -50,6 +52,9 @@ function Profiler(_: {||}) {
       case 'ranked-chart':
         view = <CommitRanked />;
         break;
+      case 'interactions':
+        view = <Interactions />;
+        break;
       default:
         break;
     }
@@ -66,6 +71,9 @@ function Profiler(_: {||}) {
   let sidebar = null;
   if (!isProfiling && !isProcessingData && didRecordCommits) {
     switch (selectedTabID) {
+      case 'interactions':
+        sidebar = <SidebarInteractions />;
+        break;
       case 'flame-chart':
       case 'ranked-chart':
         // TRICKY
@@ -139,6 +147,12 @@ const tabs = [
     label: 'Ranked',
     title: 'Ranked chart',
   },
+  {
+    id: 'interactions',
+    icon: 'interactions',
+    label: 'Interactions',
+    title: 'Profiled interactions',
+  },
 ];
 
 const NoProfilingData = () => (
@@ -161,10 +175,10 @@ const ProfilingNotSupported = () => (
       Learn more at{' '}
       <a
         className={styles.Link}
-        href="https://reactjs.org/link/profiling"
+        href="https://fb.me/react-profiling"
         rel="noopener noreferrer"
         target="_blank">
-        reactjs.org/link/profiling
+        fb.me/react-profiling
       </a>
       .
     </p>

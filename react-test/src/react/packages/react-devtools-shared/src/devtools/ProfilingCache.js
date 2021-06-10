@@ -17,12 +17,17 @@ import {
   invalidateChartData as invalidateFlamegraphChartData,
 } from 'react-devtools-shared/src/devtools/views/Profiler/FlamegraphChartBuilder';
 import {
+  getChartData as getInteractionsChartData,
+  invalidateChartData as invalidateInteractionsChartData,
+} from 'react-devtools-shared/src/devtools/views/Profiler/InteractionsChartBuilder';
+import {
   getChartData as getRankedChartData,
   invalidateChartData as invalidateRankedChartData,
 } from 'react-devtools-shared/src/devtools/views/Profiler/RankedChartBuilder';
 
 import type {CommitTree} from 'react-devtools-shared/src/devtools/views/Profiler/types';
 import type {ChartData as FlamegraphChartData} from 'react-devtools-shared/src/devtools/views/Profiler/FlamegraphChartBuilder';
+import type {ChartData as InteractionsChartData} from 'react-devtools-shared/src/devtools/views/Profiler/InteractionsChartBuilder';
 import type {ChartData as RankedChartData} from 'react-devtools-shared/src/devtools/views/Profiler/RankedChartBuilder';
 
 export default class ProfilingCache {
@@ -87,6 +92,16 @@ export default class ProfilingCache {
       rootID,
     });
 
+  getInteractionsChartData = ({
+    rootID,
+  }: {|
+    rootID: number,
+  |}): InteractionsChartData =>
+    getInteractionsChartData({
+      profilerStore: this._profilerStore,
+      rootID,
+    });
+
   getRankedChartData = ({
     commitIndex,
     commitTree,
@@ -108,6 +123,7 @@ export default class ProfilingCache {
 
     invalidateCommitTrees();
     invalidateFlamegraphChartData();
+    invalidateInteractionsChartData();
     invalidateRankedChartData();
   }
 }

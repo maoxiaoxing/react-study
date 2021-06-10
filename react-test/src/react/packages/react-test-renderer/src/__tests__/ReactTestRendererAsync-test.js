@@ -17,7 +17,6 @@ let Scheduler;
 describe('ReactTestRendererAsync', () => {
   beforeEach(() => {
     jest.resetModules();
-
     React = require('react');
     ReactTestRenderer = require('react-test-renderer');
     Scheduler = require('scheduler');
@@ -87,19 +86,9 @@ describe('ReactTestRendererAsync', () => {
         </>
       );
     }
-
-    let renderer;
-    if (gate(flags => flags.enableSyncDefaultUpdates)) {
-      React.startTransition(() => {
-        renderer = ReactTestRenderer.create(<Parent step={1} />, {
-          unstable_isConcurrent: true,
-        });
-      });
-    } else {
-      renderer = ReactTestRenderer.create(<Parent step={1} />, {
-        unstable_isConcurrent: true,
-      });
-    }
+    const renderer = ReactTestRenderer.create(<Parent step={1} />, {
+      unstable_isConcurrent: true,
+    });
 
     // Flush the first two siblings
     expect(Scheduler).toFlushAndYieldThrough(['A:1', 'B:1']);
@@ -134,18 +123,9 @@ describe('ReactTestRendererAsync', () => {
       }
     }
 
-    let renderer;
-    if (gate(flags => flags.enableSyncDefaultUpdates)) {
-      React.startTransition(() => {
-        renderer = ReactTestRenderer.create(<Example step={1} />, {
-          unstable_isConcurrent: true,
-        });
-      });
-    } else {
-      renderer = ReactTestRenderer.create(<Example step={1} />, {
-        unstable_isConcurrent: true,
-      });
-    }
+    const renderer = ReactTestRenderer.create(<Example step={1} />, {
+      unstable_isConcurrent: true,
+    });
 
     // Flush the some of the changes, but don't commit
     expect(Scheduler).toFlushAndYieldThrough(['A:1']);

@@ -171,7 +171,7 @@ function measureStyle(
 
 function shallowClone(object: Object): Object {
   const cloned = {};
-  for (const n in object) {
+  for (let n in object) {
     cloned[n] = object[n];
   }
   return cloned;
@@ -224,16 +224,14 @@ function renameStyle(
         customStyle[oldName] = undefined;
       }
 
-      agent.overrideValueAtPath({
-        type: 'props',
+      agent.overrideProps({
         id,
         rendererID,
         path: ['style', lastIndex],
         value: customStyle,
       });
     } else {
-      agent.overrideValueAtPath({
-        type: 'props',
+      agent.overrideProps({
         id,
         rendererID,
         path: ['style'],
@@ -249,16 +247,14 @@ function renameStyle(
       customStyle[oldName] = undefined;
     }
 
-    agent.overrideValueAtPath({
-      type: 'props',
+    agent.overrideProps({
       id,
       rendererID,
       path: ['style'],
       value: customStyle,
     });
   } else {
-    agent.overrideValueAtPath({
-      type: 'props',
+    agent.overrideProps({
       id,
       rendererID,
       path: ['style'],
@@ -302,16 +298,14 @@ function setStyle(
       typeof style[lastLength] === 'object' &&
       !Array.isArray(style[lastLength])
     ) {
-      agent.overrideValueAtPath({
-        type: 'props',
+      agent.overrideProps({
         id,
         rendererID,
         path: ['style', lastLength, name],
         value,
       });
     } else {
-      agent.overrideValueAtPath({
-        type: 'props',
+      agent.overrideProps({
         id,
         rendererID,
         path: ['style'],
@@ -319,8 +313,7 @@ function setStyle(
       });
     }
   } else {
-    agent.overrideValueAtPath({
-      type: 'props',
+    agent.overrideProps({
       id,
       rendererID,
       path: ['style'],

@@ -8,18 +8,27 @@
  */
 
 export {
-  __SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED,
   createPortal,
-  createRoot,
-  findDOMNode,
+  unstable_batchedUpdates,
   flushSync,
+  __SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED,
+  version,
+  // Disabled behind disableLegacyReactDOMAPIs
+  findDOMNode,
   hydrate,
   render,
   unmountComponentAtNode,
-  unstable_batchedUpdates,
+  // exposeConcurrentModeAPIs
+  createRoot,
+  createBlockingRoot,
+  unstable_discreteUpdates,
+  unstable_flushDiscreteUpdates,
   unstable_flushControlled,
-  unstable_renderSubtreeIntoContainer,
-  unstable_runWithPriority, // DO NOT USE: Temporarily exposed to migrate off of Scheduler.runWithPriority.
   unstable_scheduleHydration,
-  version,
+  // Disabled behind disableUnstableRenderSubtreeIntoContainer
+  unstable_renderSubtreeIntoContainer,
+  // Disabled behind disableUnstableCreatePortal
+  // Temporary alias since we already shipped React 16 RC with it.
+  // TODO: remove in React 17.
+  unstable_createPortal,
 } from './src/client/ReactDOM';

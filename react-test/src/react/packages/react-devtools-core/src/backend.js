@@ -24,9 +24,7 @@ type ConnectOptions = {
   host?: string,
   nativeStyleEditorValidAttributes?: $ReadOnlyArray<string>,
   port?: number,
-  useHttps?: boolean,
   resolveRNStyle?: ResolveNativeStyle,
-  retryConnectionDelay?: number,
   isAppActive?: () => boolean,
   websocket?: ?WebSocket,
   ...
@@ -57,24 +55,18 @@ export function connectToDevTools(options: ?ConnectOptions) {
   const {
     host = 'localhost',
     nativeStyleEditorValidAttributes,
-    useHttps = false,
     port = 8097,
     websocket,
     resolveRNStyle = null,
-    retryConnectionDelay = 2000,
     isAppActive = () => true,
   } = options || {};
 
-  const protocol = useHttps ? 'wss' : 'ws';
   let retryTimeoutID: TimeoutID | null = null;
 
   function scheduleRetry() {
     if (retryTimeoutID === null) {
       // Two seconds because RN had issues with quick retries.
-      retryTimeoutID = setTimeout(
-        () => connectToDevTools(options),
-        retryConnectionDelay,
-      );
+      retryTimeoutID = setTimeout(() => connectToDevTools(options), 2000);
     }
   }
 
@@ -88,7 +80,7 @@ export function connectToDevTools(options: ?ConnectOptions) {
   let bridge: BackendBridge | null = null;
 
   const messageListeners = [];
-  const uri = protocol + '://' + host + ':' + port;
+  const uri = 'ws://' + host + ':' + port;
 
   // If existing websocket is passed, use it.
   // This is necessary to support our custom integrations.

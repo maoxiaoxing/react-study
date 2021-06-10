@@ -21,21 +21,17 @@ import {
 import AutoSizer from 'react-virtualized-auto-sizer';
 import {FixedSizeList} from 'react-window';
 import {TreeDispatcherContext, TreeStateContext} from './TreeContext';
-import Icon from '../Icon';
 import {SettingsContext} from '../Settings/SettingsContext';
 import {BridgeContext, StoreContext} from '../context';
-import Element from './Element';
+import ElementView from './Element';
 import InspectHostNodesToggle from './InspectHostNodesToggle';
 import OwnersStack from './OwnersStack';
 import SearchInput from './SearchInput';
 import SettingsModalContextToggle from 'react-devtools-shared/src/devtools/views/Settings/SettingsModalContextToggle';
 import SelectedTreeHighlight from './SelectedTreeHighlight';
 import TreeFocusedContext from './TreeFocusedContext';
-import {useHighlightNativeElement, useSubscription} from '../hooks';
-import {clearErrorsAndWarnings as clearErrorsAndWarningsAPI} from 'react-devtools-shared/src/backendAPI';
+
 import styles from './Tree.css';
-import ButtonIcon from '../ButtonIcon';
-import Button from '../Button';
 
 // Never indent more than this number of pixels (even if we have the room).
 const DEFAULT_INDENTATION_SIZE = 12;
@@ -65,16 +61,12 @@ export default function Tree(props: Props) {
   const [isNavigatingWithKeyboard, setIsNavigatingWithKeyboard] = useState(
     false,
   );
-  const {
-    highlightNativeElement,
-    clearHighlightNativeElement,
-  } = useHighlightNativeElement();
   const treeRef = useRef<HTMLDivElement | null>(null);
   const focusTargetRef = useRef<HTMLDivElement | null>(null);
 
   const [treeFocused, setTreeFocused] = useState<boolean>(false);
 
-  const {lineHeight, showInlineWarningsAndErrors} = useContext(SettingsContext);
+  const {lineHeight} = useContext(SettingsContext);
 
   // Make sure a newly selected element is visible in the list.
   // This is helpful for things like the owners list and search.
@@ -133,11 +125,7 @@ export default function Tree(props: Props) {
       switch (event.key) {
         case 'ArrowDown':
           event.preventDefault();
-          if (event.altKey) {
-            dispatch({type: 'SELECT_NEXT_SIBLING_IN_TREE'});
-          } else {
-            dispatch({type: 'SELECT_NEXT_ELEMENT_IN_TREE'});
-          }
+          dispatch({type: 'SELECT_NEXT_ELEMENT_IN_TREE'});
           break;
         case 'ArrowLeft':
           event.preventDefault();
@@ -146,16 +134,10 @@ export default function Tree(props: Props) {
               ? store.getElementByID(selectedElementID)
               : null;
           if (element !== null) {
-            if (event.altKey) {
-              if (element.ownerID !== null) {
-                dispatch({type: 'SELECT_OWNER_LIST_PREVIOUS_ELEMENT_IN_TREE'});
-              }
+            if (element.children.length > 0 && !element.isCollapsed) {
+              store.toggleIsCollapsed(element.id, true);
             } else {
-              if (element.children.length > 0 && !element.isCollapsed) {
-                store.toggleIsCollapsed(element.id, true);
-              } else {
-                dispatch({type: 'SELECT_PARENT_ELEMENT_IN_TREE'});
-              }
+              dispatch({type: 'SELECT_PARENT_ELEMENT_IN_TREE'});
             }
           }
           break;
@@ -166,24 +148,16 @@ export default function Tree(props: Props) {
               ? store.getElementByID(selectedElementID)
               : null;
           if (element !== null) {
-            if (event.altKey) {
-              dispatch({type: 'SELECT_OWNER_LIST_NEXT_ELEMENT_IN_TREE'});
+            if (element.children.length > 0 && element.isCollapsed) {
+              store.toggleIsCollapsed(element.id, false);
             } else {
-              if (element.children.length > 0 && element.isCollapsed) {
-                store.toggleIsCollapsed(element.id, false);
-              } else {
-                dispatch({type: 'SELECT_CHILD_ELEMENT_IN_TREE'});
-              }
+              dispatch({type: 'SELECT_CHILD_ELEMENT_IN_TREE'});
             }
           }
           break;
         case 'ArrowUp':
           event.preventDefault();
-          if (event.altKey) {
-            dispatch({type: 'SELECT_PREVIOUS_SIBLING_IN_TREE'});
-          } else {
-            dispatch({type: 'SELECT_PREVIOUS_ELEMENT_IN_TREE'});
-          }
+          dispatch({type: 'SELECT_PREVIOUS_ELEMENT_IN_TREE'});
           break;
         default:
           return;
@@ -231,6 +205,24 @@ export default function Tree(props: Props) {
     [dispatch, selectedElementID],
   );
 
+  const highlightNativeElement = useCallback(
+    (id: number) => {
+      const element = store.getElementByID(id);
+      const rendererID = store.getRendererIDForElement(id);
+      if (element !== null && rendererID !== null) {
+        bridge.send('highlightNativeElement', {
+          displayName: element.displayName,
+          hideAfterTimeout: false,
+          id,
+          openNativeElementsPanel: false,
+          rendererID,
+          scrollIntoView: false,
+        });
+      }
+    },
+    [store, bridge],
+  );
+
   // If we switch the selected element while using the keyboard,
   // start highlighting it in the DOM instead of the last hovered node.
   const searchRef = useRef({searchIndex, searchResults});
@@ -248,7 +240,7 @@ export default function Tree(props: Props) {
       if (selectedElementID !== null) {
         highlightNativeElement(selectedElementID);
       } else {
-        clearHighlightNativeElement();
+        bridge.send('clearNativeElementHighlight');
       }
     }
   }, [
@@ -278,7 +270,9 @@ export default function Tree(props: Props) {
     setIsNavigatingWithKeyboard(false);
   }, []);
 
-  const handleMouseLeave = clearHighlightNativeElement;
+  const handleMouseLeave = useCallback(() => {
+    bridge.send('clearNativeElementHighlight');
+  }, [bridge]);
 
   // Let react-window know to re-render any time the underlying tree data changes.
   // This includes the owner context, since it controls a filtered view of the tree.
@@ -304,33 +298,6 @@ export default function Tree(props: Props) {
     [store],
   );
 
-  const handlePreviousErrorOrWarningClick = React.useCallback(() => {
-    dispatch({type: 'SELECT_PREVIOUS_ELEMENT_WITH_ERROR_OR_WARNING_IN_TREE'});
-  }, []);
-
-  const handleNextErrorOrWarningClick = React.useCallback(() => {
-    dispatch({type: 'SELECT_NEXT_ELEMENT_WITH_ERROR_OR_WARNING_IN_TREE'});
-  }, []);
-
-  const errorsOrWarningsSubscription = useMemo(
-    () => ({
-      getCurrentValue: () => ({
-        errors: store.errorCount,
-        warnings: store.warningCount,
-      }),
-      subscribe: (callback: Function) => {
-        store.addListener('mutated', callback);
-        return () => store.removeListener('mutated', callback);
-      },
-    }),
-    [store],
-  );
-  const {errors, warnings} = useSubscription(errorsOrWarningsSubscription);
-
-  const clearErrorsAndWarnings = () => {
-    clearErrorsAndWarningsAPI({bridge, store});
-  };
-
   return (
     <TreeFocusedContext.Provider value={treeFocused}>
       <div className={styles.Tree} ref={treeRef}>
@@ -345,40 +312,6 @@ export default function Tree(props: Props) {
             {ownerID !== null ? <OwnersStack /> : <SearchInput />}
           </Suspense>
           <div className={styles.VRule} />
-          {showInlineWarningsAndErrors &&
-            ownerID === null &&
-            (errors > 0 || warnings > 0) && (
-              <React.Fragment>
-                {errors > 0 && (
-                  <div className={styles.IconAndCount}>
-                    <Icon className={styles.ErrorIcon} type="error" />
-                    {errors}
-                  </div>
-                )}
-                {warnings > 0 && (
-                  <div className={styles.IconAndCount}>
-                    <Icon className={styles.WarningIcon} type="warning" />
-                    {warnings}
-                  </div>
-                )}
-                <Button
-                  onClick={handlePreviousErrorOrWarningClick}
-                  title="Scroll to previous error or warning">
-                  <ButtonIcon type="up" />
-                </Button>
-                <Button
-                  onClick={handleNextErrorOrWarningClick}
-                  title="Scroll to next error or warning">
-                  <ButtonIcon type="down" />
-                </Button>
-                <Button
-                  onClick={clearErrorsAndWarnings}
-                  title="Clear all errors and warnings">
-                  <ButtonIcon type="clear" />
-                </Button>
-                <div className={styles.VRule} />
-              </React.Fragment>
-            )}
           <SettingsModalContextToggle />
         </div>
         <div
@@ -403,7 +336,7 @@ export default function Tree(props: Props) {
                 itemSize={lineHeight}
                 ref={listCallbackRef}
                 width={width}>
-                {Element}
+                {ElementView}
               </FixedSizeList>
             )}
           </AutoSizer>
@@ -476,7 +409,7 @@ function updateIndentationSizeVar(
   let maxIndentationSize: number = indentationSizeRef.current;
 
   // eslint-disable-next-line no-for-of-loops/no-for-of-loops
-  for (const child of innerDiv.children) {
+  for (let child of innerDiv.children) {
     const depth = parseInt(child.getAttribute('data-depth'), 10) || 0;
 
     let childWidth: number = 0;
@@ -514,7 +447,7 @@ function InnerElementType({children, style, ...rest}) {
 
   // This ref tracks the current indentation size.
   // We decrease indentation to fit wider/deeper trees.
-  // We intentionally do not increase it again afterward, to avoid the perception of content "jumping"
+  // We indentionally do not increase it again afterward, to avoid the perception of content "jumping"
   // e.g. clicking to toggle/collapse a row might otherwise jump horizontally beneath your cursor,
   // e.g. scrolling a wide row off screen could cause narrower rows to jump to the right some.
   //

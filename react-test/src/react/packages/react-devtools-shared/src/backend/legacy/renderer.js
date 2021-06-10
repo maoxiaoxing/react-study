@@ -15,20 +15,8 @@ import {
   ElementTypeOtherOrUnknown,
 } from 'react-devtools-shared/src/types';
 import {getUID, utfEncodeString, printOperationsArray} from '../../utils';
-import {
-  cleanForBridge,
-  copyToClipboard,
-  copyWithDelete,
-  copyWithRename,
-  copyWithSet,
-} from '../utils';
-import {
-  deletePathInObject,
-  getDisplayName,
-  getInObject,
-  renamePathInObject,
-  setInObject,
-} from 'react-devtools-shared/src/utils';
+import {cleanForBridge, copyToClipboard, copyWithSet} from '../utils';
+import {getDisplayName, getInObject} from 'react-devtools-shared/src/utils';
 import {
   __DEBUG__,
   TREE_OPERATION_ADD,
@@ -51,7 +39,7 @@ import type {
   ComponentFilter,
   ElementType,
 } from 'react-devtools-shared/src/types';
-import type {InspectedElement, SerializedElement} from '../types';
+import type {Owner, InspectedElement} from '../types';
 
 export type InternalInstance = Object;
 type LegacyRenderer = Object;
@@ -99,7 +87,7 @@ function getElementType(internalInstance: InternalInstance): ElementType {
 }
 
 function getChildren(internalInstance: Object): Array<any> {
-  const children = [];
+  let children = [];
 
   // If the parent is a native node without rendered children, but with
   // multiple string children, then the `element` that gets passed in here is
@@ -118,7 +106,7 @@ function getChildren(internalInstance: Object): Array<any> {
     }
   } else if (internalInstance._renderedChildren) {
     const renderedChildren = internalInstance._renderedChildren;
-    for (const name in renderedChildren) {
+    for (let name in renderedChildren) {
       const child = renderedChildren[name];
       if (getElementType(child) !== ElementTypeOtherOrUnknown) {
         children.push(child);
@@ -177,7 +165,7 @@ export function attach(
   }
 
   function getID(internalInstance: InternalInstance): number {
-    if (typeof internalInstance !== 'object' || internalInstance === null) {
+    if (typeof internalInstance !== 'object') {
       throw new Error('Invalid internal instance: ' + internalInstance);
     }
     if (!internalInstanceToIDMap.has(internalInstance)) {
@@ -398,8 +386,8 @@ export function attach(
           ? getID(internalInstance._currentElement._owner)
           : 0;
 
-      const displayNameStringID = getStringID(displayName);
-      const keyStringID = getStringID(key);
+      let displayNameStringID = getStringID(displayName);
+      let keyStringID = getStringID(key);
       pushOperation(TREE_OPERATION_ADD);
       pushOperation(id);
       pushOperation(type);
@@ -459,7 +447,7 @@ export function attach(
       renderer.Mount._instancesByReactRootID ||
       renderer.Mount._instancesByContainerID;
 
-    for (const key in roots) {
+    for (let key in roots) {
       const internalInstance = roots[key];
       const id = getID(internalInstance);
       crawlAndRecordInitialMounts(id, 0, id);
@@ -467,8 +455,8 @@ export function attach(
     }
   }
 
-  const pendingOperations: Array<number> = [];
-  const pendingStringTable: Map<string, number> = new Map();
+  let pendingOperations: Array<number> = [];
+  let pendingStringTable: Map<string, number> = new Map();
   let pendingUnmountedIDs: Array<number> = [];
   let pendingStringTableLength: number = 0;
   let pendingUnmountedRootID: number | null = null;
@@ -598,10 +586,10 @@ export function attach(
     });
   }
 
-  function createIsPathAllowed(key: string) {
+  function createIsPathWhitelisted(key: string) {
     // This function helps prevent previously-inspected paths from being dehydrated in updates.
     // This is important to avoid a bad user experience where expanded toggles collapse on update.
-    return function isPathAllowed(path: Array<string | number>): boolean {
+    return function isPathWhitelisted(path: Array<string | number>): boolean {
       let current = currentlyInspectedPaths[key];
       if (!current) {
         return false;
@@ -691,9 +679,8 @@ export function attach(
   }
 
   function inspectElement(
-    requestID: number,
     id: number,
-    path: Array<string | number> | null,
+    path?: Array<string | number>,
   ): InspectedElementPayload {
     if (currentlyInspectedElementID !== id) {
       currentlyInspectedElementID = id;
@@ -704,12 +691,11 @@ export function attach(
     if (inspectedElement === null) {
       return {
         id,
-        responseID: requestID,
         type: 'not-found',
       };
     }
 
-    if (path !== null) {
+    if (path != null) {
       mergeInspectedPaths(path);
     }
 
@@ -720,20 +706,19 @@ export function attach(
 
     inspectedElement.context = cleanForBridge(
       inspectedElement.context,
-      createIsPathAllowed('context'),
+      createIsPathWhitelisted('context'),
     );
     inspectedElement.props = cleanForBridge(
       inspectedElement.props,
-      createIsPathAllowed('props'),
+      createIsPathWhitelisted('props'),
     );
     inspectedElement.state = cleanForBridge(
       inspectedElement.state,
-      createIsPathAllowed('state'),
+      createIsPathWhitelisted('state'),
     );
 
     return {
       id,
-      responseID: requestID,
       type: 'full-data',
       value: inspectedElement,
     };
@@ -746,7 +731,7 @@ export function attach(
       return null;
     }
 
-    const {displayName, key} = getData(internalInstance);
+    const {displayName} = getData(internalInstance);
     const type = getElementType(internalInstance);
 
     let context = null;
@@ -767,7 +752,6 @@ export function attach(
           owners.push({
             displayName: getData(owner).displayName || 'Unknown',
             id: getID(owner),
-            key: element.key,
             type: getElementType(owner),
           });
           if (owner._currentElement) {
@@ -783,27 +767,14 @@ export function attach(
       state = publicInstance.state || null;
     }
 
-    // Not implemented
-    const errors = [];
-    const warnings = [];
-
     return {
       id,
 
-      // Does the current renderer support editable hooks and function props?
+      // Hooks did not exist in legacy versions
       canEditHooks: false,
-      canEditFunctionProps: false,
 
-      // Does the current renderer support advanced editing interface?
-      canEditHooksAndDeletePaths: false,
-      canEditHooksAndRenamePaths: false,
-      canEditFunctionPropsDeletePaths: false,
-      canEditFunctionPropsRenamePaths: false,
-
-      // Toggle error boundary did not exist in legacy versions
-      canToggleError: false,
-      isErrored: false,
-      targetErrorBoundaryID: null,
+      // Does the current renderer support editable function props?
+      canEditFunctionProps: true,
 
       // Suspense did not exist in legacy versions
       canToggleSuspense: false,
@@ -818,25 +789,17 @@ export function attach(
 
       type: type,
 
-      key: key != null ? key : null,
-
       // Inspectable properties.
       context,
       hooks: null,
       props,
       state,
-      errors,
-      warnings,
 
       // List of owners
       owners,
 
-      // Location of component in source code.
+      // Location of component in source coude.
       source,
-
-      rootType: null,
-      rendererPackageName: null,
-      rendererVersion: null,
     };
   }
 
@@ -904,107 +867,50 @@ export function attach(
     global.$type = element.type;
   }
 
-  function deletePath(
-    type: 'context' | 'hooks' | 'props' | 'state',
-    id: number,
-    hookID: ?number,
-    path: Array<string | number>,
-  ): void {
+  function setInProps(id: number, path: Array<string | number>, value: any) {
+    const internalInstance = idToInternalInstanceMap.get(id);
+    if (internalInstance != null) {
+      const element = internalInstance._currentElement;
+      internalInstance._currentElement = {
+        ...element,
+        props: copyWithSet(element.props, path, value),
+      };
+      forceUpdate(internalInstance._instance);
+    }
+  }
+
+  function setInState(id: number, path: Array<string | number>, value: any) {
     const internalInstance = idToInternalInstanceMap.get(id);
     if (internalInstance != null) {
       const publicInstance = internalInstance._instance;
       if (publicInstance != null) {
-        switch (type) {
-          case 'context':
-            deletePathInObject(publicInstance.context, path);
-            forceUpdate(publicInstance);
-            break;
-          case 'hooks':
-            throw new Error('Hooks not supported by this renderer');
-          case 'props':
-            const element = internalInstance._currentElement;
-            internalInstance._currentElement = {
-              ...element,
-              props: copyWithDelete(element.props, path),
-            };
-            forceUpdate(publicInstance);
-            break;
-          case 'state':
-            deletePathInObject(publicInstance.state, path);
-            forceUpdate(publicInstance);
-            break;
-        }
+        setIn(publicInstance.state, path, value);
+        forceUpdate(publicInstance);
       }
     }
   }
 
-  function renamePath(
-    type: 'context' | 'hooks' | 'props' | 'state',
-    id: number,
-    hookID: ?number,
-    oldPath: Array<string | number>,
-    newPath: Array<string | number>,
-  ): void {
+  function setInContext(id: number, path: Array<string | number>, value: any) {
     const internalInstance = idToInternalInstanceMap.get(id);
     if (internalInstance != null) {
       const publicInstance = internalInstance._instance;
       if (publicInstance != null) {
-        switch (type) {
-          case 'context':
-            renamePathInObject(publicInstance.context, oldPath, newPath);
-            forceUpdate(publicInstance);
-            break;
-          case 'hooks':
-            throw new Error('Hooks not supported by this renderer');
-          case 'props':
-            const element = internalInstance._currentElement;
-            internalInstance._currentElement = {
-              ...element,
-              props: copyWithRename(element.props, oldPath, newPath),
-            };
-            forceUpdate(publicInstance);
-            break;
-          case 'state':
-            renamePathInObject(publicInstance.state, oldPath, newPath);
-            forceUpdate(publicInstance);
-            break;
-        }
+        setIn(publicInstance.context, path, value);
+        forceUpdate(publicInstance);
       }
     }
   }
 
-  function overrideValueAtPath(
-    type: 'context' | 'hooks' | 'props' | 'state',
-    id: number,
-    hookID: ?number,
-    path: Array<string | number>,
-    value: any,
-  ): void {
-    const internalInstance = idToInternalInstanceMap.get(id);
-    if (internalInstance != null) {
-      const publicInstance = internalInstance._instance;
-      if (publicInstance != null) {
-        switch (type) {
-          case 'context':
-            setInObject(publicInstance.context, path, value);
-            forceUpdate(publicInstance);
-            break;
-          case 'hooks':
-            throw new Error('Hooks not supported by this renderer');
-          case 'props':
-            const element = internalInstance._currentElement;
-            internalInstance._currentElement = {
-              ...element,
-              props: copyWithSet(element.props, path, value),
-            };
-            forceUpdate(publicInstance);
-            break;
-          case 'state':
-            setInObject(publicInstance.state, path, value);
-            forceUpdate(publicInstance);
-            break;
-        }
-      }
+  function setIn(obj: Object, path: Array<string | number>, value: any) {
+    const last = path.pop();
+    const parent = path.reduce(
+      // $FlowFixMe
+      (reduced, attr) => (reduced ? reduced[attr] : null),
+      obj,
+    );
+    if (parent) {
+      // $FlowFixMe
+      parent[last] = value;
     }
   }
 
@@ -1018,14 +924,11 @@ export function attach(
   const handleCommitFiberUnmount = () => {
     throw new Error('handleCommitFiberUnmount not supported by this renderer');
   };
-  const handlePostCommitFiberRoot = () => {
-    throw new Error('handlePostCommitFiberRoot not supported by this renderer');
-  };
-  const overrideError = () => {
-    throw new Error('overrideError not supported by this renderer');
-  };
   const overrideSuspense = () => {
     throw new Error('overrideSuspense not supported by this renderer');
+  };
+  const setInHook = () => {
+    throw new Error('setInHook not supported by this renderer');
   };
   const startProfiling = () => {
     // Do not throw, since this would break a multi-root scenario where v15 and v16 were both present.
@@ -1056,30 +959,14 @@ export function attach(
     // Not implemented.
   }
 
-  function getOwnersList(id: number): Array<SerializedElement> | null {
+  function getOwnersList(id: number): Array<Owner> | null {
     // Not implemented.
     return null;
   }
 
-  function clearErrorsAndWarnings() {
-    // Not implemented
-  }
-
-  function clearErrorsForFiberID(id: number) {
-    // Not implemented
-  }
-
-  function clearWarningsForFiberID(id: number) {
-    // Not implemented
-  }
-
   return {
-    clearErrorsAndWarnings,
-    clearErrorsForFiberID,
-    clearWarningsForFiberID,
     cleanup,
     copyElementPath,
-    deletePath,
     flushInitialOperations,
     getBestMatchForTrackedPath,
     getDisplayNameForFiberID,
@@ -1094,16 +981,16 @@ export function attach(
     getProfilingData,
     handleCommitFiberRoot,
     handleCommitFiberUnmount,
-    handlePostCommitFiberRoot,
     inspectElement,
     logElementToConsole,
-    overrideError,
     overrideSuspense,
-    overrideValueAtPath,
-    renamePath,
     prepareViewAttributeSource,
     prepareViewElementSource,
     renderer,
+    setInContext,
+    setInHook,
+    setInProps,
+    setInState,
     setTraceUpdatesEnabled,
     setTrackedPath,
     startProfiling,

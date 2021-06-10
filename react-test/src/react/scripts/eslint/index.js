@@ -64,14 +64,13 @@ function intersect(files, patterns) {
   return [...new Set(intersection)];
 }
 
-function runESLint({onlyChanged, ...options}) {
+function runESLint({onlyChanged}) {
   if (typeof onlyChanged !== 'boolean') {
     throw new Error('Pass options.onlyChanged as a boolean.');
   }
   const {errorCount, warningCount, output} = runESLintOnFilesWithOptions(
     allPaths,
-    onlyChanged,
-    options
+    onlyChanged
   );
   console.log(output);
   return errorCount === 0 && warningCount === 0;

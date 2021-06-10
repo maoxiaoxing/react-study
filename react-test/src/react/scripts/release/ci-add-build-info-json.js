@@ -7,7 +7,7 @@
 // It exists to share code between the Node release scripts and CI bash scripts.
 
 // IMPORTANT:
-// Changes below should be mirrored in ./build-release-locally-commands/add-build-info-json.js
+// Changes below should be mirrored in ./create-next-commands/add-build-info-json.js
 
 const {exec} = require('child_process');
 const {existsSync} = require('fs');
@@ -27,8 +27,7 @@ const run = async () => {
     reactVersion,
   } = await getBuildInfo();
 
-  const isExperimental = process.env.RELEASE_CHANNEL === 'experimental';
-  const packages = getPublicPackages(isExperimental);
+  const packages = getPublicPackages(join(cwd, 'packages'));
   const packagesDir = join(cwd, 'packages');
 
   const buildInfoJSON = {

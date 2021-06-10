@@ -16,12 +16,7 @@ let createReactNativeComponentClass;
 let computeComponentStackForErrorReporting;
 
 function normalizeCodeLocInfo(str) {
-  return (
-    str &&
-    str.replace(/\n +(?:at|in) ([\S]+)[^\n]*/g, function(m, name) {
-      return '\n    in ' + name + ' (at **)';
-    })
-  );
+  return str && str.replace(/\(at .+?:\d+\)/g, '(at **)');
 }
 
 describe('ReactNativeError', () => {
@@ -73,17 +68,26 @@ describe('ReactNativeError', () => {
 
     ReactNative.render(<ClassComponent />, 1);
 
-    const reactTag = ReactNative.findNodeHandle(ref.current);
+    let reactTag = ReactNative.findNodeHandle(ref.current);
 
-    const componentStack = normalizeCodeLocInfo(
+    let componentStack = normalizeCodeLocInfo(
       computeComponentStackForErrorReporting(reactTag),
     );
 
-    expect(componentStack).toBe(
-      '\n' +
-        '    in View (at **)\n' +
-        '    in FunctionComponent (at **)\n' +
-        '    in ClassComponent (at **)',
-    );
+    if (__DEV__) {
+      expect(componentStack).toBe(
+        '\n' +
+          '    in View (at **)\n' +
+          '    in FunctionComponent (at **)\n' +
+          '    in ClassComponent (at **)',
+      );
+    } else {
+      expect(componentStack).toBe(
+        '\n' +
+          '    in View\n' +
+          '    in FunctionComponent\n' +
+          '    in ClassComponent',
+      );
+    }
   });
 });

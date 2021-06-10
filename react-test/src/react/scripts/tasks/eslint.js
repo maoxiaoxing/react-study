@@ -7,7 +7,6 @@
 
 'use strict';
 
-const minimist = require('minimist');
 const runESLint = require('../eslint');
 
 console.log('Linting all files...');
@@ -16,8 +15,7 @@ if (!process.env.CI) {
   console.log('Hint: run `yarn linc` to only lint changed files.');
 }
 
-const cliOptions = minimist(process.argv.slice(2));
-if (runESLint({onlyChanged: false, ...cliOptions})) {
+if (runESLint({onlyChanged: false})) {
   console.log('Lint passed.');
 } else {
   console.log('Lint failed.');

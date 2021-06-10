@@ -32,14 +32,10 @@ export default function SnapshotSelector(_: Props) {
   const {profilerStore} = useContext(StoreContext);
   const {commitData} = profilerStore.getDataForRoot(((rootID: any): number));
 
-  const totalDurations: Array<number> = [];
+  const commitDurations: Array<number> = [];
   const commitTimes: Array<number> = [];
   commitData.forEach(commitDatum => {
-    totalDurations.push(
-      commitDatum.duration +
-        (commitDatum.effectDuration || 0) +
-        (commitDatum.passiveEffectDuration || 0),
-    );
+    commitDurations.push(commitDatum.duration);
     commitTimes.push(commitDatum.timestamp);
   });
 
@@ -155,13 +151,12 @@ export default function SnapshotSelector(_: Props) {
         tabIndex={0}>
         {numFilteredCommits > 0 && (
           <SnapshotCommitList
-            commitData={commitData}
+            commitDurations={commitDurations}
             commitTimes={commitTimes}
             filteredCommitIndices={filteredCommitIndices}
             selectedCommitIndex={selectedCommitIndex}
             selectedFilteredCommitIndex={selectedFilteredCommitIndex}
             selectCommitIndex={selectCommitIndex}
-            totalDurations={totalDurations}
           />
         )}
         {numFilteredCommits === 0 && (

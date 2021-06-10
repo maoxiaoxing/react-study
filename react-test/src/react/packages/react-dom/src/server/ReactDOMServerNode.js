@@ -13,10 +13,11 @@ import {
   renderToStaticNodeStream,
 } from './ReactDOMNodeStreamRenderer';
 
-export {
+// Note: when changing this, also consider https://github.com/facebook/react/issues/11526
+export default {
   renderToString,
   renderToStaticMarkup,
   renderToNodeStream,
   renderToStaticNodeStream,
-  ReactVersion as version,
+  version: ReactVersion,
 };

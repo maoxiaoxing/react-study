@@ -6,6 +6,11 @@
  */
 
 import {
+  registrationNameModules,
+  possibleRegistrationNames,
+} from 'legacy-events/EventPluginRegistry';
+
+import {
   ATTRIBUTE_NAME_CHAR,
   BOOLEAN,
   RESERVED,
@@ -14,18 +19,18 @@ import {
 } from './DOMProperty';
 import isCustomComponent from './isCustomComponent';
 import possibleStandardNames from './possibleStandardNames';
-import hasOwnProperty from 'shared/hasOwnProperty';
 
 let validateProperty = () => {};
 
 if (__DEV__) {
   const warnedProperties = {};
+  const hasOwnProperty = Object.prototype.hasOwnProperty;
   const EVENT_NAME_REGEX = /^on./;
   const INVALID_EVENT_NAME_REGEX = /^on[^A-Z]/;
   const rARIA = new RegExp('^(aria)-[' + ATTRIBUTE_NAME_CHAR + ']*$');
   const rARIACamel = new RegExp('^(aria)[A-Z][' + ATTRIBUTE_NAME_CHAR + ']*$');
 
-  validateProperty = function(tagName, name, value, eventRegistry) {
+  validateProperty = function(tagName, name, value, canUseEventSystem) {
     if (hasOwnProperty.call(warnedProperties, name) && warnedProperties[name]) {
       return true;
     }
@@ -42,12 +47,8 @@ if (__DEV__) {
     }
 
     // We can't rely on the event system being injected on the server.
-    if (eventRegistry != null) {
-      const {
-        registrationNameDependencies,
-        possibleRegistrationNames,
-      } = eventRegistry;
-      if (registrationNameDependencies.hasOwnProperty(name)) {
+    if (canUseEventSystem) {
+      if (registrationNameModules.hasOwnProperty(name)) {
         return true;
       }
       const registrationName = possibleRegistrationNames.hasOwnProperty(
@@ -239,11 +240,16 @@ if (__DEV__) {
   };
 }
 
-const warnUnknownProperties = function(type, props, eventRegistry) {
+const warnUnknownProperties = function(type, props, canUseEventSystem) {
   if (__DEV__) {
     const unknownProps = [];
     for (const key in props) {
-      const isValid = validateProperty(type, key, props[key], eventRegistry);
+      const isValid = validateProperty(
+        type,
+        key,
+        props[key],
+        canUseEventSystem,
+      );
       if (!isValid) {
         unknownProps.push(key);
       }
@@ -256,7 +262,7 @@ const warnUnknownProperties = function(type, props, eventRegistry) {
       console.error(
         'Invalid value for prop %s on <%s> tag. Either remove it from the element, ' +
           'or pass a string or number value to keep it in the DOM. ' +
-          'For details, see https://reactjs.org/link/attribute-behavior ',
+          'For details, see https://fb.me/react-attribute-behavior',
         unknownPropString,
         type,
       );
@@ -264,7 +270,7 @@ const warnUnknownProperties = function(type, props, eventRegistry) {
       console.error(
         'Invalid values for props %s on <%s> tag. Either remove them from the element, ' +
           'or pass a string or number value to keep them in the DOM. ' +
-          'For details, see https://reactjs.org/link/attribute-behavior ',
+          'For details, see https://fb.me/react-attribute-behavior',
         unknownPropString,
         type,
       );
@@ -272,9 +278,9 @@ const warnUnknownProperties = function(type, props, eventRegistry) {
   }
 };
 
-export function validateProperties(type, props, eventRegistry) {
+export function validateProperties(type, props, canUseEventSystem) {
   if (isCustomComponent(type, props)) {
     return;
   }
-  warnUnknownProperties(type, props, eventRegistry);
+  warnUnknownProperties(type, props, canUseEventSystem);
 }

@@ -7,7 +7,7 @@
  * @flow
  */
 
-import type {Dispatcher} from 'react-reconciler/src/ReactInternalTypes';
+import type {Dispatcher} from 'react-reconciler/src/ReactFiberHooks';
 
 /**
  * Keeps track of the current dispatcher.

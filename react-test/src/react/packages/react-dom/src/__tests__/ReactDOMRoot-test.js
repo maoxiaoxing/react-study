@@ -13,7 +13,6 @@ let React = require('react');
 let ReactDOM = require('react-dom');
 let ReactDOMServer = require('react-dom/server');
 let Scheduler = require('scheduler');
-let act;
 
 describe('ReactDOMRoot', () => {
   let container;
@@ -25,8 +24,14 @@ describe('ReactDOMRoot', () => {
     ReactDOM = require('react-dom');
     ReactDOMServer = require('react-dom/server');
     Scheduler = require('scheduler');
-    act = require('react-dom/test-utils').unstable_concurrentAct;
   });
+
+  if (!__EXPERIMENTAL__) {
+    it('createRoot is not exposed in stable build', () => {
+      expect(ReactDOM.createRoot).toBe(undefined);
+    });
+    return;
+  }
 
   it('renders children', () => {
     const root = ReactDOM.createRoot(container);
@@ -108,28 +113,7 @@ describe('ReactDOMRoot', () => {
     expect(() => Scheduler.unstable_flushAll()).toErrorDev('Extra attributes');
   });
 
-  it('clears existing children with legacy API', async () => {
-    container.innerHTML = '<div>a</div><div>b</div>';
-    ReactDOM.render(
-      <div>
-        <span>c</span>
-        <span>d</span>
-      </div>,
-      container,
-    );
-    expect(container.textContent).toEqual('cd');
-    ReactDOM.render(
-      <div>
-        <span>d</span>
-        <span>c</span>
-      </div>,
-      container,
-    );
-    Scheduler.unstable_flushAll();
-    expect(container.textContent).toEqual('dc');
-  });
-
-  it('clears existing children', async () => {
+  it('does not clear existing children', async () => {
     container.innerHTML = '<div>a</div><div>b</div>';
     const root = ReactDOM.createRoot(container);
     root.render(
@@ -139,7 +123,7 @@ describe('ReactDOMRoot', () => {
       </div>,
     );
     Scheduler.unstable_flushAll();
-    expect(container.textContent).toEqual('cd');
+    expect(container.textContent).toEqual('abcd');
     root.render(
       <div>
         <span>d</span>
@@ -147,7 +131,7 @@ describe('ReactDOMRoot', () => {
       </div>,
     );
     Scheduler.unstable_flushAll();
-    expect(container.textContent).toEqual('dc');
+    expect(container.textContent).toEqual('abdc');
   });
 
   it('throws a good message on invalid containers', () => {
@@ -236,14 +220,7 @@ describe('ReactDOMRoot', () => {
     let unmounted = false;
     expect(() => {
       unmounted = ReactDOM.unmountComponentAtNode(container);
-    }).toErrorDev(
-      [
-        'Did you mean to call root.unmount()?',
-        // This is more of a symptom but restructuring the code to avoid it isn't worth it:
-        "The node you're attempting to unmount was rendered by React and is not a top-level container.",
-      ],
-      {withoutStack: true},
-    );
+    }).toErrorDev('Did you mean to call root.unmount()?', {withoutStack: true});
     expect(unmounted).toBe(false);
     Scheduler.unstable_flushAll();
     expect(container.textContent).toEqual('Hi');
@@ -310,37 +287,5 @@ describe('ReactDOMRoot', () => {
         "root.unmount() to empty a root's container.",
       {withoutStack: true},
     );
-  });
-
-  it('opts-in to concurrent default updates', async () => {
-    const root = ReactDOM.createRoot(container, {
-      unstable_concurrentUpdatesByDefault: true,
-    });
-
-    function Foo({value}) {
-      Scheduler.unstable_yieldValue(value);
-      return <div>{value}</div>;
-    }
-
-    await act(async () => {
-      root.render(<Foo value="a" />);
-    });
-
-    expect(container.textContent).toEqual('a');
-
-    await act(async () => {
-      root.render(<Foo value="b" />);
-
-      expect(Scheduler).toHaveYielded(['a']);
-      expect(container.textContent).toEqual('a');
-
-      expect(Scheduler).toFlushAndYieldThrough(['b']);
-      if (gate(flags => flags.allowConcurrentByDefault)) {
-        expect(container.textContent).toEqual('a');
-      } else {
-        expect(container.textContent).toEqual('b');
-      }
-    });
-    expect(container.textContent).toEqual('b');
   });
 });

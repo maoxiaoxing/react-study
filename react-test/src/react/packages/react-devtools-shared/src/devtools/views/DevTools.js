@@ -13,7 +13,7 @@ import '@reach/menu-button/styles.css';
 import '@reach/tooltip/styles.css';
 
 import * as React from 'react';
-import {useEffect, useLayoutEffect, useMemo, useRef} from 'react';
+import {useEffect, useMemo, useState} from 'react';
 import Store from '../store';
 import {BridgeContext, ContextMenuContext, StoreContext} from './context';
 import Components from './Components/Components';
@@ -25,10 +25,8 @@ import ViewElementSourceContext from './Components/ViewElementSourceContext';
 import {ProfilerContextController} from './Profiler/ProfilerContext';
 import {ModalDialogContextController} from './ModalDialog';
 import ReactLogo from './ReactLogo';
-import UnsupportedBridgeProtocolDialog from './UnsupportedBridgeProtocolDialog';
 import UnsupportedVersionDialog from './UnsupportedVersionDialog';
 import WarnIfLegacyBackendDetected from './WarnIfLegacyBackendDetected';
-import {useLocalStorage} from './hooks';
 
 import styles from './DevTools.css';
 
@@ -108,15 +106,9 @@ export default function DevTools({
   viewAttributeSourceFunction,
   viewElementSourceFunction,
 }: Props) {
-  const [currentTab, setTab] = useLocalStorage<TabID>(
-    'React::DevTools::defaultTab',
-    defaultTab,
-  );
-
-  let tab = currentTab;
-
-  if (overrideTab != null) {
-    tab = overrideTab;
+  const [tab, setTab] = useState(defaultTab);
+  if (overrideTab != null && overrideTab !== tab) {
+    setTab(overrideTab);
   }
 
   const viewElementSource = useMemo(
@@ -135,45 +127,9 @@ export default function DevTools({
     [enabledInspectedElementContextMenu, viewAttributeSourceFunction],
   );
 
-  const devToolsRef = useRef<HTMLElement | null>(null);
-
   useEffect(() => {
-    if (!showTabBar) {
-      return;
-    }
-
-    const div = devToolsRef.current;
-    if (div === null) {
-      return;
-    }
-
-    const ownerWindow = div.ownerDocument.defaultView;
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.ctrlKey || event.metaKey) {
-        switch (event.key) {
-          case '1':
-            setTab(tabs[0].id);
-            event.preventDefault();
-            event.stopPropagation();
-            break;
-          case '2':
-            setTab(tabs[1].id);
-            event.preventDefault();
-            event.stopPropagation();
-            break;
-        }
-      }
-    };
-    ownerWindow.addEventListener('keydown', handleKeyDown);
-    return () => {
-      ownerWindow.removeEventListener('keydown', handleKeyDown);
-    };
-  }, [showTabBar]);
-
-  useLayoutEffect(() => {
     return () => {
       try {
-        // Shut the Bridge down synchronously (during unmount).
         bridge.shutdown();
       } catch (error) {
         // Attempting to use a disconnected port.
@@ -193,7 +149,7 @@ export default function DevTools({
               <ViewElementSourceContext.Provider value={viewElementSource}>
                 <TreeContextController>
                   <ProfilerContextController>
-                    <div className={styles.DevTools} ref={devToolsRef}>
+                    <div className={styles.DevTools}>
                       {showTabBar && (
                         <div className={styles.TabBar}>
                           <ReactLogo />
@@ -227,7 +183,6 @@ export default function DevTools({
                 </TreeContextController>
               </ViewElementSourceContext.Provider>
             </SettingsContextController>
-            <UnsupportedBridgeProtocolDialog />
             {warnIfLegacyBackendDetected && <WarnIfLegacyBackendDetected />}
             {warnIfUnsupportedVersionDetected && <UnsupportedVersionDialog />}
           </ModalDialogContextController>

@@ -1,4 +1,5 @@
 var webpack = require('webpack');
+var path = require('path');
 
 module.exports = {
   context: __dirname,
@@ -11,10 +12,10 @@ module.exports = {
         exclude: /node_modules/,
         query: {
           presets: [
-            require.resolve('@babel/preset-env'),
-            require.resolve('@babel/preset-react'),
+            require.resolve('babel-preset-es2015'),
+            require.resolve('babel-preset-react'),
           ],
-          plugins: [require.resolve('@babel/plugin-proposal-class-properties')],
+          plugins: [require.resolve('babel-plugin-transform-class-properties')],
         },
       },
     ],

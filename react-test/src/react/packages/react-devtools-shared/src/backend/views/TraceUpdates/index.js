@@ -24,7 +24,7 @@ const MAX_DISPLAY_DURATION = 3000;
 // How long should a rect be considered valid for?
 const REMEASUREMENT_AFTER_DURATION = 250;
 
-// Some environments (e.g. React Native / Hermes) don't support the performance API yet.
+// Some environments (e.g. React Native / Hermes) don't support the performace API yet.
 const getCurrentTime =
   typeof performance === 'object' && typeof performance.now === 'function'
     ? () => performance.now()
@@ -127,9 +127,7 @@ function prepareToDraw(): void {
 
   draw(nodeToData);
 
-  if (earliestExpiration !== Number.MAX_VALUE) {
-    redrawTimeoutID = setTimeout(prepareToDraw, earliestExpiration - now);
-  }
+  redrawTimeoutID = setTimeout(prepareToDraw, earliestExpiration - now);
 }
 
 function measureNode(node: Object): Rect | null {
@@ -137,7 +135,7 @@ function measureNode(node: Object): Rect | null {
     return null;
   }
 
-  const currentWindow = window.__REACT_DEVTOOLS_TARGET_WINDOW__ || window;
+  let currentWindow = window.__REACT_DEVTOOLS_TARGET_WINDOW__ || window;
 
   return getNestedBoundingClientRect(node, currentWindow);
 }

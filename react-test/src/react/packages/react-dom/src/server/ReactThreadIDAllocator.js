@@ -22,9 +22,9 @@ for (let i = 0; i < 15; i++) {
 nextAvailableThreadIDs[15] = 0;
 
 function growThreadCountAndReturnNextAvailable() {
-  const oldArray = nextAvailableThreadIDs;
-  const oldSize = oldArray.length;
-  const newSize = oldSize * 2;
+  let oldArray = nextAvailableThreadIDs;
+  let oldSize = oldArray.length;
+  let newSize = oldSize * 2;
   invariant(
     newSize <= 0x10000,
     'Maximum number of concurrent React renderers exceeded. ' +
@@ -32,7 +32,7 @@ function growThreadCountAndReturnNextAvailable() {
       'Ensure that you call .destroy() on it if you no longer want to read from it, ' +
       'and did not read to the end. If you use .pipe() this should be automatic.',
   );
-  const newArray = new Uint16Array(newSize);
+  let newArray = new Uint16Array(newSize);
   newArray.set(oldArray);
   nextAvailableThreadIDs = newArray;
   nextAvailableThreadIDs[0] = oldSize + 1;
@@ -44,7 +44,7 @@ function growThreadCountAndReturnNextAvailable() {
 }
 
 export function allocThreadID(): ThreadID {
-  const nextID = nextAvailableThreadIDs[0];
+  let nextID = nextAvailableThreadIDs[0];
   if (nextID === 0) {
     return growThreadCountAndReturnNextAvailable();
   }

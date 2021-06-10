@@ -13,11 +13,11 @@
 //
 // Changes to search state may impact tree state.
 // For example, updating the selected search result also updates the tree's selected value.
-// Search does not fundamentally change the tree though.
+// Search does not fundamanetally change the tree though.
 // It is also possible to update the selected tree value independently.
 //
 // Changes to owners state mask search and tree values.
-// When owners stack is not empty, search is temporarily disabled,
+// When owners statck is not empty, search is temporarily disabnled,
 // and tree values (e.g. num elements, selected element) are masked.
 // Both tree and search values are restored when the owners stack is cleared.
 //
@@ -34,8 +34,12 @@ import {
   useMemo,
   useReducer,
   useRef,
-  startTransition,
 } from 'react';
+import {
+  unstable_next as next,
+  unstable_runWithPriority as runWithPriority,
+  unstable_UserBlockingPriority as UserBlockingPriority,
+} from 'scheduler';
 import {createRegExp} from '../utils';
 import {BridgeContext, StoreContext} from '../context';
 import Store from '../../store';
@@ -45,7 +49,6 @@ import type {Element} from './types';
 export type StateContext = {|
   // Tree
   numElements: number,
-  ownerSubtreeLeafElementID: number | null,
   selectedElementID: number | null,
   selectedElementIndex: number | null,
 
@@ -89,33 +92,15 @@ type ACTION_SELECT_ELEMENT_BY_ID = {|
 type ACTION_SELECT_NEXT_ELEMENT_IN_TREE = {|
   type: 'SELECT_NEXT_ELEMENT_IN_TREE',
 |};
-type ACTION_SELECT_NEXT_ELEMENT_WITH_ERROR_OR_WARNING_IN_TREE = {|
-  type: 'SELECT_NEXT_ELEMENT_WITH_ERROR_OR_WARNING_IN_TREE',
-|};
-type ACTION_SELECT_NEXT_SIBLING_IN_TREE = {|
-  type: 'SELECT_NEXT_SIBLING_IN_TREE',
-|};
-type ACTION_SELECT_OWNER = {|
-  type: 'SELECT_OWNER',
-  payload: number,
-|};
 type ACTION_SELECT_PARENT_ELEMENT_IN_TREE = {|
   type: 'SELECT_PARENT_ELEMENT_IN_TREE',
 |};
 type ACTION_SELECT_PREVIOUS_ELEMENT_IN_TREE = {|
   type: 'SELECT_PREVIOUS_ELEMENT_IN_TREE',
 |};
-type ACTION_SELECT_PREVIOUS_ELEMENT_WITH_ERROR_OR_WARNING_IN_TREE = {|
-  type: 'SELECT_PREVIOUS_ELEMENT_WITH_ERROR_OR_WARNING_IN_TREE',
-|};
-type ACTION_SELECT_PREVIOUS_SIBLING_IN_TREE = {|
-  type: 'SELECT_PREVIOUS_SIBLING_IN_TREE',
-|};
-type ACTION_SELECT_OWNER_LIST_NEXT_ELEMENT_IN_TREE = {|
-  type: 'SELECT_OWNER_LIST_NEXT_ELEMENT_IN_TREE',
-|};
-type ACTION_SELECT_OWNER_LIST_PREVIOUS_ELEMENT_IN_TREE = {|
-  type: 'SELECT_OWNER_LIST_PREVIOUS_ELEMENT_IN_TREE',
+type ACTION_SELECT_OWNER = {|
+  type: 'SELECT_OWNER',
+  payload: number,
 |};
 type ACTION_SET_SEARCH_TEXT = {|
   type: 'SET_SEARCH_TEXT',
@@ -134,15 +119,9 @@ type Action =
   | ACTION_SELECT_ELEMENT_AT_INDEX
   | ACTION_SELECT_ELEMENT_BY_ID
   | ACTION_SELECT_NEXT_ELEMENT_IN_TREE
-  | ACTION_SELECT_NEXT_ELEMENT_WITH_ERROR_OR_WARNING_IN_TREE
-  | ACTION_SELECT_NEXT_SIBLING_IN_TREE
-  | ACTION_SELECT_OWNER
   | ACTION_SELECT_PARENT_ELEMENT_IN_TREE
   | ACTION_SELECT_PREVIOUS_ELEMENT_IN_TREE
-  | ACTION_SELECT_PREVIOUS_ELEMENT_WITH_ERROR_OR_WARNING_IN_TREE
-  | ACTION_SELECT_PREVIOUS_SIBLING_IN_TREE
-  | ACTION_SELECT_OWNER_LIST_NEXT_ELEMENT_IN_TREE
-  | ACTION_SELECT_OWNER_LIST_PREVIOUS_ELEMENT_IN_TREE
+  | ACTION_SELECT_OWNER
   | ACTION_SET_SEARCH_TEXT
   | ACTION_UPDATE_INSPECTED_ELEMENT_ID;
 
@@ -161,7 +140,6 @@ TreeDispatcherContext.displayName = 'TreeDispatcherContext';
 type State = {|
   // Tree
   numElements: number,
-  ownerSubtreeLeafElementID: number | null,
   selectedElementID: number | null,
   selectedElementIndex: number | null,
 
@@ -179,13 +157,7 @@ type State = {|
 |};
 
 function reduceTreeState(store: Store, state: State, action: Action): State {
-  let {
-    numElements,
-    ownerSubtreeLeafElementID,
-    selectedElementIndex,
-    selectedElementID,
-  } = state;
-  const ownerID = state.ownerID;
+  let {numElements, ownerID, selectedElementIndex, selectedElementID} = state;
 
   let lookupIDForIndex = true;
 
@@ -214,8 +186,6 @@ function reduceTreeState(store: Store, state: State, action: Action): State {
         }
         break;
       case 'SELECT_CHILD_ELEMENT_IN_TREE':
-        ownerSubtreeLeafElementID = null;
-
         if (selectedElementIndex !== null) {
           const selectedElement = store.getElementAtIndex(
             ((selectedElementIndex: any): number),
@@ -234,13 +204,9 @@ function reduceTreeState(store: Store, state: State, action: Action): State {
         }
         break;
       case 'SELECT_ELEMENT_AT_INDEX':
-        ownerSubtreeLeafElementID = null;
-
         selectedElementIndex = (action: ACTION_SELECT_ELEMENT_AT_INDEX).payload;
         break;
       case 'SELECT_ELEMENT_BY_ID':
-        ownerSubtreeLeafElementID = null;
-
         // Skip lookup in this case; it would be redundant.
         // It might also cause problems if the specified element was inside of a (not yet expanded) subtree.
         lookupIDForIndex = false;
@@ -252,8 +218,6 @@ function reduceTreeState(store: Store, state: State, action: Action): State {
             : store.getIndexOfElementID(selectedElementID);
         break;
       case 'SELECT_NEXT_ELEMENT_IN_TREE':
-        ownerSubtreeLeafElementID = null;
-
         if (
           selectedElementIndex === null ||
           selectedElementIndex + 1 >= numElements
@@ -263,80 +227,12 @@ function reduceTreeState(store: Store, state: State, action: Action): State {
           selectedElementIndex++;
         }
         break;
-      case 'SELECT_NEXT_SIBLING_IN_TREE':
-        ownerSubtreeLeafElementID = null;
-
-        if (selectedElementIndex !== null) {
-          const selectedElement = store.getElementAtIndex(
-            ((selectedElementIndex: any): number),
-          );
-          if (selectedElement !== null && selectedElement.parentID !== 0) {
-            const parent = store.getElementByID(selectedElement.parentID);
-            if (parent !== null) {
-              const {children} = parent;
-              const selectedChildIndex = children.indexOf(selectedElement.id);
-              const nextChildID =
-                selectedChildIndex < children.length - 1
-                  ? children[selectedChildIndex + 1]
-                  : children[0];
-              selectedElementIndex = store.getIndexOfElementID(nextChildID);
-            }
-          }
-        }
-        break;
-      case 'SELECT_OWNER_LIST_NEXT_ELEMENT_IN_TREE':
-        if (selectedElementIndex !== null) {
-          if (
-            ownerSubtreeLeafElementID !== null &&
-            ownerSubtreeLeafElementID !== selectedElementID
-          ) {
-            const leafElement = store.getElementByID(ownerSubtreeLeafElementID);
-            if (leafElement !== null) {
-              let currentElement = leafElement;
-              while (currentElement !== null) {
-                if (currentElement.ownerID === selectedElementID) {
-                  selectedElementIndex = store.getIndexOfElementID(
-                    currentElement.id,
-                  );
-                  break;
-                } else if (currentElement.ownerID !== 0) {
-                  currentElement = store.getElementByID(currentElement.ownerID);
-                }
-              }
-            }
-          }
-        }
-        break;
-      case 'SELECT_OWNER_LIST_PREVIOUS_ELEMENT_IN_TREE':
-        if (selectedElementIndex !== null) {
-          if (ownerSubtreeLeafElementID === null) {
-            // If this is the first time we're stepping through the owners tree,
-            // pin the current component as the owners list leaf.
-            // This will enable us to step back down to this component.
-            ownerSubtreeLeafElementID = selectedElementID;
-          }
-
-          const selectedElement = store.getElementAtIndex(
-            ((selectedElementIndex: any): number),
-          );
-          if (selectedElement !== null && selectedElement.ownerID !== 0) {
-            const ownerIndex = store.getIndexOfElementID(
-              selectedElement.ownerID,
-            );
-            if (ownerIndex !== null) {
-              selectedElementIndex = ownerIndex;
-            }
-          }
-        }
-        break;
       case 'SELECT_PARENT_ELEMENT_IN_TREE':
-        ownerSubtreeLeafElementID = null;
-
         if (selectedElementIndex !== null) {
           const selectedElement = store.getElementAtIndex(
             ((selectedElementIndex: any): number),
           );
-          if (selectedElement !== null && selectedElement.parentID !== 0) {
+          if (selectedElement !== null && selectedElement.parentID !== null) {
             const parentIndex = store.getIndexOfElementID(
               selectedElement.parentID,
             );
@@ -347,112 +243,12 @@ function reduceTreeState(store: Store, state: State, action: Action): State {
         }
         break;
       case 'SELECT_PREVIOUS_ELEMENT_IN_TREE':
-        ownerSubtreeLeafElementID = null;
-
         if (selectedElementIndex === null || selectedElementIndex === 0) {
           selectedElementIndex = numElements - 1;
         } else {
           selectedElementIndex--;
         }
         break;
-      case 'SELECT_PREVIOUS_SIBLING_IN_TREE':
-        ownerSubtreeLeafElementID = null;
-
-        if (selectedElementIndex !== null) {
-          const selectedElement = store.getElementAtIndex(
-            ((selectedElementIndex: any): number),
-          );
-          if (selectedElement !== null && selectedElement.parentID !== 0) {
-            const parent = store.getElementByID(selectedElement.parentID);
-            if (parent !== null) {
-              const {children} = parent;
-              const selectedChildIndex = children.indexOf(selectedElement.id);
-              const nextChildID =
-                selectedChildIndex > 0
-                  ? children[selectedChildIndex - 1]
-                  : children[children.length - 1];
-              selectedElementIndex = store.getIndexOfElementID(nextChildID);
-            }
-          }
-        }
-        break;
-      case 'SELECT_PREVIOUS_ELEMENT_WITH_ERROR_OR_WARNING_IN_TREE': {
-        if (store.errorCount === 0 && store.warningCount === 0) {
-          return state;
-        }
-
-        const elementIndicesWithErrorsOrWarnings = store.getElementsWithErrorsAndWarnings();
-
-        let flatIndex = 0;
-        if (selectedElementIndex !== null) {
-          // Resume from the current position in the list.
-          // Otherwise step to the previous item, relative to the current selection.
-          for (
-            let i = elementIndicesWithErrorsOrWarnings.length - 1;
-            i >= 0;
-            i--
-          ) {
-            const {index} = elementIndicesWithErrorsOrWarnings[i];
-            if (index >= selectedElementIndex) {
-              flatIndex = i;
-            } else {
-              break;
-            }
-          }
-        }
-
-        let prevEntry;
-        if (flatIndex === 0) {
-          prevEntry =
-            elementIndicesWithErrorsOrWarnings[
-              elementIndicesWithErrorsOrWarnings.length - 1
-            ];
-          selectedElementID = prevEntry.id;
-          selectedElementIndex = prevEntry.index;
-        } else {
-          prevEntry = elementIndicesWithErrorsOrWarnings[flatIndex - 1];
-          selectedElementID = prevEntry.id;
-          selectedElementIndex = prevEntry.index;
-        }
-
-        lookupIDForIndex = false;
-        break;
-      }
-      case 'SELECT_NEXT_ELEMENT_WITH_ERROR_OR_WARNING_IN_TREE': {
-        if (store.errorCount === 0 && store.warningCount === 0) {
-          return state;
-        }
-
-        const elementIndicesWithErrorsOrWarnings = store.getElementsWithErrorsAndWarnings();
-
-        let flatIndex = -1;
-        if (selectedElementIndex !== null) {
-          // Resume from the current position in the list.
-          // Otherwise step to the next item, relative to the current selection.
-          for (let i = 0; i < elementIndicesWithErrorsOrWarnings.length; i++) {
-            const {index} = elementIndicesWithErrorsOrWarnings[i];
-            if (index <= selectedElementIndex) {
-              flatIndex = i;
-            } else {
-              break;
-            }
-          }
-        }
-
-        let nextEntry;
-        if (flatIndex >= elementIndicesWithErrorsOrWarnings.length - 1) {
-          nextEntry = elementIndicesWithErrorsOrWarnings[0];
-          selectedElementID = nextEntry.id;
-          selectedElementIndex = nextEntry.index;
-        } else {
-          nextEntry = elementIndicesWithErrorsOrWarnings[flatIndex + 1];
-          selectedElementID = nextEntry.id;
-          selectedElementIndex = nextEntry.index;
-        }
-
-        lookupIDForIndex = false;
-        break;
-      }
       default:
         // React can bailout of no-op updates.
         return state;
@@ -474,7 +270,6 @@ function reduceTreeState(store: Store, state: State, action: Action): State {
     ...state,
 
     numElements,
-    ownerSubtreeLeafElementID,
     selectedElementIndex,
     selectedElementID,
   };
@@ -482,13 +277,13 @@ function reduceTreeState(store: Store, state: State, action: Action): State {
 
 function reduceSearchState(store: Store, state: State, action: Action): State {
   let {
+    ownerID,
     searchIndex,
     searchResults,
     searchText,
     selectedElementID,
     selectedElementIndex,
   } = state;
-  const ownerID = state.ownerID;
 
   const prevSearchIndex = searchIndex;
   const prevSearchText = searchText;
@@ -657,8 +452,10 @@ function reduceOwnersState(store: Store, state: State, action: Action): State {
     selectedElementIndex,
     ownerID,
     ownerFlatTree,
+    searchIndex,
+    searchResults,
+    searchText,
   } = state;
-  const {searchIndex, searchResults, searchText} = state;
 
   let prevSelectedElementIndex = selectedElementIndex;
 
@@ -857,14 +654,8 @@ function TreeContextController({
         case 'SELECT_ELEMENT_BY_ID':
         case 'SELECT_CHILD_ELEMENT_IN_TREE':
         case 'SELECT_NEXT_ELEMENT_IN_TREE':
-        case 'SELECT_NEXT_ELEMENT_WITH_ERROR_OR_WARNING_IN_TREE':
-        case 'SELECT_NEXT_SIBLING_IN_TREE':
-        case 'SELECT_OWNER_LIST_NEXT_ELEMENT_IN_TREE':
-        case 'SELECT_OWNER_LIST_PREVIOUS_ELEMENT_IN_TREE':
         case 'SELECT_PARENT_ELEMENT_IN_TREE':
         case 'SELECT_PREVIOUS_ELEMENT_IN_TREE':
-        case 'SELECT_PREVIOUS_ELEMENT_WITH_ERROR_OR_WARNING_IN_TREE':
-        case 'SELECT_PREVIOUS_SIBLING_IN_TREE':
         case 'SELECT_OWNER':
         case 'UPDATE_INSPECTED_ELEMENT_ID':
         case 'SET_SEARCH_TEXT':
@@ -897,7 +688,6 @@ function TreeContextController({
   const [state, dispatch] = useReducer(reducer, {
     // Tree
     numElements: store.numElements,
-    ownerSubtreeLeafElementID: null,
     selectedElementID:
       defaultSelectedElementID == null ? null : defaultSelectedElementID,
     selectedElementIndex:
@@ -919,10 +709,11 @@ function TreeContextController({
 
   const dispatchWrapper = useCallback(
     (action: Action) => {
-      dispatch(action);
-      startTransition(() => {
-        dispatch({type: 'UPDATE_INSPECTED_ELEMENT_ID'});
-      });
+      // Run the first update at "user-blocking" priority in case dispatch is called from a non-React event.
+      // In this case, the current (and "next") priorities would both be "normal",
+      // and suspense would potentially block both updates.
+      runWithPriority(UserBlockingPriority, () => dispatch(action));
+      next(() => dispatch({type: 'UPDATE_INSPECTED_ELEMENT_ID'}));
     },
     [dispatch],
   );
@@ -943,7 +734,7 @@ function TreeContextController({
       prevSelectedElementID.current = state.selectedElementID;
 
       if (state.selectedElementID !== null) {
-        const element = store.getElementByID(state.selectedElementID);
+        let element = store.getElementByID(state.selectedElementID);
         if (element !== null && element.parentID > 0) {
           store.toggleIsCollapsed(element.parentID, false);
         }

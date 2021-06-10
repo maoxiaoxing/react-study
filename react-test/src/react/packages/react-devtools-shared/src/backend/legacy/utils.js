@@ -29,7 +29,7 @@ export function decorateMany(
 }
 
 export function restoreMany(source: Object, olds: Object): void {
-  for (const name in olds) {
+  for (let name in olds) {
     source[name] = olds[name];
   }
 }

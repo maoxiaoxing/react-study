@@ -11,12 +11,30 @@ import {REACT_PROVIDER_TYPE, REACT_CONTEXT_TYPE} from 'shared/ReactSymbols';
 
 import type {ReactContext} from 'shared/ReactTypes';
 
-export function createContext<T>(defaultValue: T): ReactContext<T> {
-  // TODO: Second argument used to be an optional `calculateChangedBits`
-  // function. Warn to reserve for future use?
+export function createContext<T>(
+  defaultValue: T,
+  calculateChangedBits: ?(a: T, b: T) => number,
+): ReactContext<T> {
+  if (calculateChangedBits === undefined) {
+    calculateChangedBits = null;
+  } else {
+    if (__DEV__) {
+      if (
+        calculateChangedBits !== null &&
+        typeof calculateChangedBits !== 'function'
+      ) {
+        console.error(
+          'createContext: Expected the optional second argument to be a ' +
+            'function. Instead received: %s',
+          calculateChangedBits,
+        );
+      }
+    }
+  }
 
   const context: ReactContext<T> = {
     $$typeof: REACT_CONTEXT_TYPE,
+    _calculateChangedBits: calculateChangedBits,
     // As a workaround to support multiple concurrent renderers, we categorize
     // some renderers as primary and others as secondary. We only expect
     // there to be two concurrent renderers at most: React Native (primary) and
@@ -39,7 +57,6 @@ export function createContext<T>(defaultValue: T): ReactContext<T> {
 
   let hasWarnedAboutUsingNestedContextConsumers = false;
   let hasWarnedAboutUsingConsumerProvider = false;
-  let hasWarnedAboutDisplayNameOnConsumer = false;
 
   if (__DEV__) {
     // A separate object, but proxies back to the original context object for
@@ -48,6 +65,7 @@ export function createContext<T>(defaultValue: T): ReactContext<T> {
     const Consumer = {
       $$typeof: REACT_CONTEXT_TYPE,
       _context: context,
+      _calculateChangedBits: context._calculateChangedBits,
     };
     // $FlowFixMe: Flow complains about not setting a value, which is intentional here
     Object.defineProperties(Consumer, {
@@ -100,21 +118,6 @@ export function createContext<T>(defaultValue: T): ReactContext<T> {
             );
           }
           return context.Consumer;
-        },
-      },
-      displayName: {
-        get() {
-          return context.displayName;
-        },
-        set(displayName) {
-          if (!hasWarnedAboutDisplayNameOnConsumer) {
-            console.warn(
-              'Setting `displayName` on Context.Consumer has no effect. ' +
-                "You should set it directly on the context with Context.displayName = '%s'.",
-              displayName,
-            );
-            hasWarnedAboutDisplayNameOnConsumer = true;
-          }
         },
       },
     });

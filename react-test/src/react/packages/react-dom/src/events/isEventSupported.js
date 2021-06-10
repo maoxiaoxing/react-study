@@ -3,8 +3,6 @@
  *
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
- *
- * @flow
  */
 
 import {canUseDOM} from 'shared/ExecutionEnvironment';
@@ -22,7 +20,7 @@ import {canUseDOM} from 'shared/ExecutionEnvironment';
  * @internal
  * @license Modernizr 3.0.0pre (Custom Build) | MIT
  */
-function isEventSupported(eventNameSuffix: string): boolean {
+function isEventSupported(eventNameSuffix) {
   if (!canUseDOM) {
     return false;
   }
@@ -33,7 +31,7 @@ function isEventSupported(eventNameSuffix: string): boolean {
   if (!isSupported) {
     const element = document.createElement('div');
     element.setAttribute(eventName, 'return;');
-    isSupported = typeof (element: any)[eventName] === 'function';
+    isSupported = typeof element[eventName] === 'function';
   }
 
   return isSupported;

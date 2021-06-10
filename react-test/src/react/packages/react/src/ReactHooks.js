@@ -7,14 +7,13 @@
  * @flow
  */
 
-import type {Dispatcher} from 'react-reconciler/src/ReactInternalTypes';
 import type {
-  MutableSource,
-  MutableSourceGetSnapshotFn,
-  MutableSourceSubscribeFn,
   ReactContext,
+  ReactEventResponder,
+  ReactEventResponderListener,
 } from 'shared/ReactTypes';
-import type {OpaqueIDType} from 'react-reconciler/src/ReactFiberHostConfig';
+import invariant from 'shared/invariant';
+import {REACT_RESPONDER_TYPE} from 'shared/ReactSymbols';
 
 import ReactCurrentDispatcher from './ReactCurrentDispatcher';
 
@@ -23,33 +22,38 @@ type Dispatch<A> = A => void;
 
 function resolveDispatcher() {
   const dispatcher = ReactCurrentDispatcher.current;
+  invariant(
+    dispatcher !== null,
+    'Invalid hook call. Hooks can only be called inside of the body of a function component. This could happen for' +
+      ' one of the following reasons:\n' +
+      '1. You might have mismatching versions of React and the renderer (such as React DOM)\n' +
+      '2. You might be breaking the Rules of Hooks\n' +
+      '3. You might have more than one copy of React in the same app\n' +
+      'See https://fb.me/react-invalid-hook-call for tips about how to debug and fix this problem.',
+  );
+  return dispatcher;
+}
+
+export function useContext<T>(
+  Context: ReactContext<T>,
+  unstable_observedBits: number | boolean | void,
+) {
+  const dispatcher = resolveDispatcher();
   if (__DEV__) {
-    if (dispatcher === null) {
+    if (unstable_observedBits !== undefined) {
       console.error(
-        'Invalid hook call. Hooks can only be called inside of the body of a function component. This could happen for' +
-          ' one of the following reasons:\n' +
-          '1. You might have mismatching versions of React and the renderer (such as React DOM)\n' +
-          '2. You might be breaking the Rules of Hooks\n' +
-          '3. You might have more than one copy of React in the same app\n' +
-          'See https://reactjs.org/link/invalid-hook-call for tips about how to debug and fix this problem.',
+        'useContext() second argument is reserved for future ' +
+          'use in React. Passing it is not supported. ' +
+          'You passed: %s.%s',
+        unstable_observedBits,
+        typeof unstable_observedBits === 'number' && Array.isArray(arguments[2])
+          ? '\n\nDid you call array.map(useContext)? ' +
+              'Calling Hooks inside a loop is not supported. ' +
+              'Learn more at https://fb.me/rules-of-hooks'
+          : '',
       );
     }
-  }
-  // Will result in a null access error if accessed outside render phase. We
-  // intentionally don't throw our own error because this is in a hot path.
-  // Also helps ensure this is inlined.
-  return ((dispatcher: any): Dispatcher);
-}
 
-export function getCacheForType<T>(resourceType: () => T): T {
-  const dispatcher = resolveDispatcher();
-  // $FlowFixMe This is unstable, thus optional
-  return dispatcher.getCacheForType(resourceType);
-}
-
-export function useContext<T>(Context: ReactContext<T>): T {
-  const dispatcher = resolveDispatcher();
-  if (__DEV__) {
     // TODO: add a more generic warning for invalid values.
     if ((Context: any)._context !== undefined) {
       const realContext = (Context: any)._context;
@@ -68,7 +72,7 @@ export function useContext<T>(Context: ReactContext<T>): T {
       }
     }
   }
-  return dispatcher.useContext(Context);
+  return dispatcher.useContext(Context, unstable_observedBits);
 }
 
 export function useState<S>(
@@ -145,32 +149,31 @@ export function useDebugValue<T>(
 
 export const emptyObject = {};
 
-export function useTransition(): [boolean, (() => void) => void] {
+export function useResponder(
+  responder: ReactEventResponder<any, any>,
+  listenerProps: ?Object,
+): ?ReactEventResponderListener<any, any> {
   const dispatcher = resolveDispatcher();
-  return dispatcher.useTransition();
+  if (__DEV__) {
+    if (responder == null || responder.$$typeof !== REACT_RESPONDER_TYPE) {
+      console.error(
+        'useResponder: invalid first argument. Expected an event responder, but instead got %s',
+        responder,
+      );
+      return;
+    }
+  }
+  return dispatcher.useResponder(responder, listenerProps || emptyObject);
 }
 
-export function useDeferredValue<T>(value: T): T {
+export function useTransition(
+  config: ?Object,
+): [(() => void) => void, boolean] {
   const dispatcher = resolveDispatcher();
-  return dispatcher.useDeferredValue(value);
+  return dispatcher.useTransition(config);
 }
 
-export function useOpaqueIdentifier(): OpaqueIDType | void {
+export function useDeferredValue<T>(value: T, config: ?Object): T {
   const dispatcher = resolveDispatcher();
-  return dispatcher.useOpaqueIdentifier();
-}
-
-export function useMutableSource<Source, Snapshot>(
-  source: MutableSource<Source>,
-  getSnapshot: MutableSourceGetSnapshotFn<Source, Snapshot>,
-  subscribe: MutableSourceSubscribeFn<Source, Snapshot>,
-): Snapshot {
-  const dispatcher = resolveDispatcher();
-  return dispatcher.useMutableSource(source, getSnapshot, subscribe);
-}
-
-export function useCacheRefresh(): <T>(?() => T, ?T) => void {
-  const dispatcher = resolveDispatcher();
-  // $FlowFixMe This is unstable, thus optional
-  return dispatcher.useCacheRefresh();
+  return dispatcher.useDeferredValue(value, config);
 }

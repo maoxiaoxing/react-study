@@ -12,8 +12,6 @@
  * just helpers for the unit test.
  */
 
-declare let global: any;
-
 declare module 'react' {
   export class Component {
     props: any;
@@ -26,5 +24,4 @@ declare module 'react' {
   }
   export let PropTypes : any;
   export function createElement(tag : any, props ?: any, ...children : any[]) : any
-  export function createRef(): any;
 }

@@ -95,25 +95,12 @@
         text-align: center;
         margin-top: 1rem;
       }
-
-      .prompt,
-      .confirmation {
-        margin-bottom: 0.25rem;
-      }
-
-      .confirmation {
-        font-style: italic;
-      }
-
-      .hidden {
-        display: none;
-      }
     </style>
   </head>
   <body>
     <div id="container" class="container" style="-webkit-user-select: none; -webkit-app-region: drag;">
       <div class="waiting-header">Waiting for React to connect…</div>
-      <div class="boxes" style="-webkit-app-region: none;">
+      <div class="boxes">
         <div class="box">
           <div class="box-header">React Native</div>
           <div class="box-content">
@@ -121,20 +108,14 @@
               id="rn-help-link"
               class="link"
               target="_blank"
-              rel="noopener noreferrer"
-              href="https://reactnative.dev/docs/debugging#accessing-the-in-app-developer-menu"
+              href="https://facebook.github.io/react-native/docs/debugging#accessing-the-in-app-developer-menu"
             >in-app developer menu</a> to connect.
           </div>
         </div>
         <div class="box">
           <div class="box-header">React DOM</div>
           <div class="box-content">
-            <div id="box-content-prompt" class="prompt">
-              Add one of the following (click to copy):
-            </div>
-            <div id="box-content-confirmation" class="confirmation hidden">
-              Copied to clipboard.
-            </div>
+            Add one of the following:
             <span class="input" contenteditable="true" id="localhost"></span>
             <span class="input" contenteditable="true" id="byip"></span>
             to the top of the page you want to debug,
@@ -146,58 +127,18 @@
       </div>
     </div>
     <script>
-      const fs = require('fs');
-      let options;
-      let useHttps = false;
-
-      try {
-        if (process.env.KEY && process.env.CERT) {
-          options = {
-            key: fs.readFileSync(process.env.KEY),
-            cert: fs.readFileSync(process.env.CERT)
-          };
-          useHttps = true;
-        }
-      } catch (err) {
-        console.error('Failed to process SSL options - ', err);
-        options = undefined;
-      }
-
-      const {clipboard} = require("electron");
-      const host = process.env.HOST || 'localhost';
-      const protocol = useHttps ? 'https' : 'http';
-      const port = Number(process.env.PORT || 8097);
+      const port = process.env.PORT || 8097;
       const localIp = require("ip").address();
-      const defaultPort = (port === 443 && useHttps) || (port === 80 && !useHttps);
-      const server = defaultPort ? `${protocol}://${host}` : `${protocol}://${host}:${port}`;
-      const serverIp = defaultPort ? `${protocol}://${localIp}` : `${protocol}://${localIp}:${port}`;
       const $ = document.querySelector.bind(document);
-      const $promptDiv = $("#box-content-prompt");
-      const $confirmationDiv = $("#box-content-confirmation");
 
-      let timeoutID;
-
-      function selectAllAndCopy(event) {
+      function selectAll(event) {
         const element = event.target;
         if (window.getSelection) {
-          const selection = window.getSelection();
+          const selection = window.getSelection();        
           const range = document.createRange();
           range.selectNodeContents(element);
           selection.removeAllRanges();
           selection.addRange(range);
-          clipboard.writeText(event.target.textContent);
-
-          $promptDiv.classList.add('hidden');
-          $confirmationDiv.classList.remove('hidden');
-
-          if (timeoutID) {
-            clearTimeout(timeoutID);
-          }
-
-          timeoutID = setTimeout(() => {
-            $promptDiv.classList.remove('hidden');
-            $confirmationDiv.classList.add('hidden');
-          }, 1000);
         }
       }
 
@@ -208,14 +149,14 @@
       });
 
       const $localhost = $("#localhost");
-      $localhost.innerText = `<script src="${server}"></` + 'script>';
-      $localhost.addEventListener('click', selectAllAndCopy);
-      $localhost.addEventListener('focus', selectAllAndCopy);
+      $localhost.innerText = `<script src="http://localhost:${port}"></` + 'script>';
+      $localhost.addEventListener('click', selectAll);
+      $localhost.addEventListener('focus', selectAll);
 
       const $byIp = $("#byip");
-      $byIp.innerText = `<script src="${serverIp}"></` + 'script>';
-      $byIp.addEventListener('click', selectAllAndCopy);
-      $byIp.addEventListener('focus', selectAllAndCopy);
+      $byIp.innerText = `<script src="http://${localIp}:${port}"></` + 'script>';
+      $byIp.addEventListener('click', selectAll);
+      $byIp.addEventListener('focus', selectAll);
 
       let devtools;
       try {
@@ -235,7 +176,7 @@
             element.innerText = status;
           }
         })
-        .startServer(port, host, options);
+        .startServer(port);
     </script>
   </body>
 </html>

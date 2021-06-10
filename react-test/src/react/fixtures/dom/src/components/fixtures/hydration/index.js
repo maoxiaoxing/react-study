@@ -105,7 +105,7 @@ class Hydration extends React.Component {
             Version:
             <VersionPicker
               id="hydration_version"
-              name="hydration_version"
+              name="hyration_version"
               version={version}
               onChange={this.setVersion}
             />

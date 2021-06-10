@@ -7,62 +7,54 @@
  * @flow
  */
 
-import type {CommitDataFrontend} from './types';
-
 import * as React from 'react';
-import {useEffect, useMemo, useRef, useState} from 'react';
+import {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import AutoSizer from 'react-virtualized-auto-sizer';
 import {FixedSizeList} from 'react-window';
 import SnapshotCommitListItem from './SnapshotCommitListItem';
 import {minBarWidth} from './constants';
-import {formatDuration, formatTime} from './utils';
-import Tooltip from './Tooltip';
 
 import styles from './SnapshotCommitList.css';
 
 export type ItemData = {|
+  commitDurations: Array<number>,
   commitTimes: Array<number>,
   filteredCommitIndices: Array<number>,
+  isMouseDown: boolean,
   maxDuration: number,
   selectedCommitIndex: number | null,
   selectedFilteredCommitIndex: number | null,
   selectCommitIndex: (index: number) => void,
-  setHoveredCommitIndex: (index: number) => void,
-  startCommitDrag: (newDragState: DragState) => void,
-  totalDurations: Array<number>,
 |};
 
 type Props = {|
-  commitData: CommitDataFrontend,
+  commitDurations: Array<number>,
   commitTimes: Array<number>,
   filteredCommitIndices: Array<number>,
   selectedCommitIndex: number | null,
   selectedFilteredCommitIndex: number | null,
   selectCommitIndex: (index: number) => void,
-  totalDurations: Array<number>,
 |};
 
 export default function SnapshotCommitList({
-  commitData,
+  commitDurations,
   commitTimes,
   filteredCommitIndices,
   selectedCommitIndex,
   selectedFilteredCommitIndex,
   selectCommitIndex,
-  totalDurations,
 }: Props) {
   return (
     <AutoSizer>
       {({height, width}) => (
         <List
-          commitData={commitData}
+          commitDurations={commitDurations}
           commitTimes={commitTimes}
           height={height}
           filteredCommitIndices={filteredCommitIndices}
           selectedCommitIndex={selectedCommitIndex}
           selectedFilteredCommitIndex={selectedFilteredCommitIndex}
           selectCommitIndex={selectCommitIndex}
-          totalDurations={totalDurations}
           width={width}
         />
       )}
@@ -71,32 +63,24 @@ export default function SnapshotCommitList({
 }
 
 type ListProps = {|
-  commitData: CommitDataFrontend,
+  commitDurations: Array<number>,
   commitTimes: Array<number>,
   height: number,
   filteredCommitIndices: Array<number>,
   selectedCommitIndex: number | null,
   selectedFilteredCommitIndex: number | null,
   selectCommitIndex: (index: number) => void,
-  totalDurations: Array<number>,
   width: number,
 |};
 
-type DragState = {
-  commitIndex: number,
-  left: number,
-  sizeIncrement: number,
-};
-
 function List({
-  commitData,
+  commitDurations,
   selectedCommitIndex,
   commitTimes,
   height,
   filteredCommitIndices,
   selectedFilteredCommitIndex,
   selectCommitIndex,
-  totalDurations,
   width,
 }: ListProps) {
   const listRef = useRef<FixedSizeList<ItemData> | null>(null);
@@ -113,185 +97,78 @@ function List({
     }
   }, [listRef, selectedFilteredCommitIndex]);
 
+  // When the mouse is down, dragging over a commit should auto-select it.
+  // This provides a nice way for users to swipe across a range of commits to compare them.
+  const [isMouseDown, setIsMouseDown] = useState(false);
+  const handleMouseDown = useCallback(() => {
+    setIsMouseDown(true);
+  }, []);
+  const handleMouseUp = useCallback(() => {
+    setIsMouseDown(false);
+  }, []);
+  useEffect(() => {
+    if (divRef.current === null) {
+      return () => {};
+    }
+
+    // It's important to listen to the ownerDocument to support the browser extension.
+    // Here we use portals to render individual tabs (e.g. Profiler),
+    // and the root document might belong to a different window.
+    const ownerDocument = divRef.current.ownerDocument;
+    ownerDocument.addEventListener('mouseup', handleMouseUp);
+    return () => ownerDocument.removeEventListener('mouseup', handleMouseUp);
+  }, [divRef, handleMouseUp]);
+
   const itemSize = useMemo(
     () => Math.max(minBarWidth, width / filteredCommitIndices.length),
     [filteredCommitIndices, width],
   );
   const maxDuration = useMemo(
-    () => totalDurations.reduce((max, duration) => Math.max(max, duration), 0),
-    [totalDurations],
-  );
-
-  const maxCommitIndex = filteredCommitIndices.length - 1;
-
-  const [dragState, setDragState] = useState<DragState | null>(null);
-
-  const handleDragCommit = ({buttons, pageX}: any) => {
-    if (buttons === 0) {
-      setDragState(null);
-      return;
-    }
-
-    if (dragState !== null) {
-      const {commitIndex, left, sizeIncrement} = dragState;
-
-      let newCommitIndex = commitIndex;
-      let newCommitLeft = left;
-
-      if (pageX < newCommitLeft) {
-        while (pageX < newCommitLeft) {
-          newCommitLeft -= sizeIncrement;
-          newCommitIndex -= 1;
-        }
-      } else {
-        let newCommitRectRight = newCommitLeft + sizeIncrement;
-        while (pageX > newCommitRectRight) {
-          newCommitRectRight += sizeIncrement;
-          newCommitIndex += 1;
-        }
-      }
-
-      if (newCommitIndex < 0) {
-        newCommitIndex = 0;
-      } else if (newCommitIndex > maxCommitIndex) {
-        newCommitIndex = maxCommitIndex;
-      }
-
-      selectCommitIndex(newCommitIndex);
-    }
-  };
-
-  useEffect(() => {
-    if (dragState === null) {
-      return;
-    }
-
-    const element = divRef.current;
-    if (element !== null) {
-      const ownerDocument = element.ownerDocument;
-      ownerDocument.addEventListener('mousemove', handleDragCommit);
-      return () => {
-        ownerDocument.removeEventListener('mousemove', handleDragCommit);
-      };
-    }
-  }, [dragState]);
-
-  const [hoveredCommitIndex, setHoveredCommitIndex] = useState<number | null>(
-    null,
+    () => commitDurations.reduce((max, duration) => Math.max(max, duration), 0),
+    [commitDurations],
   );
 
   // Pass required contextual data down to the ListItem renderer.
   const itemData = useMemo<ItemData>(
     () => ({
+      commitDurations,
       commitTimes,
       filteredCommitIndices,
+      isMouseDown,
       maxDuration,
       selectedCommitIndex,
       selectedFilteredCommitIndex,
       selectCommitIndex,
-      setHoveredCommitIndex,
-      startCommitDrag: setDragState,
-      totalDurations,
     }),
     [
+      commitDurations,
       commitTimes,
       filteredCommitIndices,
+      isMouseDown,
       maxDuration,
       selectedCommitIndex,
       selectedFilteredCommitIndex,
       selectCommitIndex,
-      setHoveredCommitIndex,
-      totalDurations,
     ],
   );
 
-  let tooltipLabel = null;
-  if (hoveredCommitIndex !== null) {
-    const {
-      duration,
-      effectDuration,
-      passiveEffectDuration,
-      priorityLevel,
-      timestamp,
-    } = commitData[hoveredCommitIndex];
-
-    // Only some React versions include commit durations.
-    // Show a richer tooltip only for builds that have that info.
-    if (effectDuration !== null || passiveEffectDuration !== null) {
-      tooltipLabel = (
-        <ul className={styles.TooltipList}>
-          {priorityLevel !== null && (
-            <li className={styles.TooltipListItem}>
-              <label className={styles.TooltipLabel}>Priority</label>
-              <span className={styles.TooltipValue}>{priorityLevel}</span>
-            </li>
-          )}
-          <li className={styles.TooltipListItem}>
-            <label className={styles.TooltipLabel}>Committed at</label>
-            <span className={styles.TooltipValue}>
-              {formatTime(timestamp)}s
-            </span>
-          </li>
-          <li className={styles.TooltipListItem}>
-            <div className={styles.DurationsWrapper}>
-              <label className={styles.TooltipLabel}>Durations</label>
-              <ul className={styles.DurationsList}>
-                <li className={styles.DurationsListItem}>
-                  <label className={styles.DurationsLabel}>Render</label>
-                  <span className={styles.DurationsValue}>
-                    {formatDuration(duration)}ms
-                  </span>
-                </li>
-                {effectDuration !== null && (
-                  <li className={styles.DurationsListItem}>
-                    <label className={styles.DurationsLabel}>
-                      Layout effects
-                    </label>
-                    <span className={styles.DurationsValue}>
-                      {formatDuration(effectDuration)}ms
-                    </span>
-                  </li>
-                )}
-                {passiveEffectDuration !== null && (
-                  <li className={styles.DurationsListItem}>
-                    <label className={styles.DurationsLabel}>
-                      Passive effects
-                    </label>
-                    <span className={styles.DurationsValue}>
-                      {formatDuration(passiveEffectDuration)}ms
-                    </span>
-                  </li>
-                )}
-              </ul>
-            </div>
-          </li>
-        </ul>
-      );
-    } else {
-      tooltipLabel = `${formatDuration(duration)}ms at ${formatTime(
-        timestamp,
-      )}s`;
-    }
-  }
-
   return (
-    <Tooltip className={styles.Tooltip} label={tooltipLabel}>
-      <div
-        ref={divRef}
-        style={{height, width}}
-        onMouseLeave={() => setHoveredCommitIndex(null)}>
-        <FixedSizeList
-          className={styles.List}
-          layout="horizontal"
-          height={height}
-          itemCount={filteredCommitIndices.length}
-          itemData={itemData}
-          itemSize={itemSize}
-          ref={(listRef: any) /* Flow bug? */}
-          width={width}>
-          {SnapshotCommitListItem}
-        </FixedSizeList>
-      </div>
-    </Tooltip>
+    <div
+      onMouseDown={handleMouseDown}
+      onMouseUp={handleMouseUp}
+      ref={divRef}
+      style={{height, width}}>
+      <FixedSizeList
+        className={styles.List}
+        layout="horizontal"
+        height={height}
+        itemCount={filteredCommitIndices.length}
+        itemData={itemData}
+        itemSize={itemSize}
+        ref={(listRef: any) /* Flow bug? */}
+        width={width}>
+        {SnapshotCommitListItem}
+      </FixedSizeList>
+    </div>
   );
 }

@@ -13,8 +13,6 @@ import {RegistryContext} from './Contexts';
 
 import styles from './ContextMenuItem.css';
 
-import type {RegistryContextType} from './Contexts';
-
 type Props = {|
   children: React$Node,
   onClick: () => void,
@@ -22,7 +20,7 @@ type Props = {|
 |};
 
 export default function ContextMenuItem({children, onClick, title}: Props) {
-  const {hideMenu} = useContext<RegistryContextType>(RegistryContext);
+  const {hideMenu} = useContext(RegistryContext);
 
   const handleClick = event => {
     onClick();

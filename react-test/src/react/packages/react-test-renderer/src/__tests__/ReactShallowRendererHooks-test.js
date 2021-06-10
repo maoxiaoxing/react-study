@@ -10,12 +10,16 @@
 
 'use strict';
 
-import * as React from 'react';
-import ReactShallowRenderer from 'react-test-renderer/shallow';
-
-const createRenderer = ReactShallowRenderer.createRenderer;
+let createRenderer;
+let React;
 
 describe('ReactShallowRenderer with hooks', () => {
+  beforeEach(() => {
+    jest.resetModules();
+    createRenderer = require('react-test-renderer/shallow').createRenderer;
+    React = require('react');
+  });
+
   it('should work with useState', () => {
     function SomeComponent({defaultName}) {
       const [name] = React.useState(defaultName);
@@ -216,7 +220,7 @@ describe('ReactShallowRenderer with hooks', () => {
     }
 
     const shallowRenderer = createRenderer();
-    const result = shallowRenderer.render(<SomeComponent initialCount={0} />);
+    let result = shallowRenderer.render(<SomeComponent initialCount={0} />);
 
     expect(result).toEqual(
       <div>
@@ -228,7 +232,7 @@ describe('ReactShallowRenderer with hooks', () => {
   });
 
   it('should not trigger effects', () => {
-    const effectsCalled = [];
+    let effectsCalled = [];
 
     function SomeComponent({defaultName}) {
       React.useEffect(() => {
@@ -260,8 +264,8 @@ describe('ReactShallowRenderer with hooks', () => {
     }
 
     const shallowRenderer = createRenderer();
-    const firstResult = shallowRenderer.render(<SomeComponent />);
-    const secondResult = shallowRenderer.render(<SomeComponent />);
+    let firstResult = shallowRenderer.render(<SomeComponent />);
+    let secondResult = shallowRenderer.render(<SomeComponent />);
 
     expect(firstResult).toEqual(secondResult);
   });
@@ -280,8 +284,8 @@ describe('ReactShallowRenderer with hooks', () => {
     }
 
     const shallowRenderer = createRenderer();
-    const firstResult = shallowRenderer.render(<SomeComponent />);
-    const secondResult = shallowRenderer.render(<SomeComponent />);
+    let firstResult = shallowRenderer.render(<SomeComponent />);
+    let secondResult = shallowRenderer.render(<SomeComponent />);
 
     expect(firstResult).toEqual(secondResult);
   });
@@ -300,7 +304,7 @@ describe('ReactShallowRenderer with hooks', () => {
     }
 
     const shallowRenderer = createRenderer();
-    const result = shallowRenderer.render(<SomeComponent />);
+    let result = shallowRenderer.render(<SomeComponent />);
 
     expect(result).toEqual(
       <div>
@@ -368,8 +372,8 @@ describe('ReactShallowRenderer with hooks', () => {
     });
 
     const shallowRenderer = createRenderer();
-    const firstResult = shallowRenderer.render(<SomeComponent />);
-    const secondResult = shallowRenderer.render(<SomeComponent />);
+    let firstResult = shallowRenderer.render(<SomeComponent />);
+    let secondResult = shallowRenderer.render(<SomeComponent />);
 
     expect(firstResult).toEqual(secondResult);
   });

@@ -60,7 +60,7 @@ describe('ReactTestRenderer', () => {
       };
     });
 
-    it('for root Suspense components', async () => {
+    it('for root Suspense components', async done => {
       const App = ({text}) => {
         return (
           <React.Suspense fallback="fallback">
@@ -82,9 +82,11 @@ describe('ReactTestRenderer', () => {
       await Promise.resolve();
       Scheduler.unstable_flushAll();
       expect(root.toJSON()).toEqual('dynamic');
+
+      done();
     });
 
-    it('for nested Suspense components', async () => {
+    it('for nested Suspense components', async done => {
       const App = ({text}) => {
         return (
           <div>
@@ -108,6 +110,8 @@ describe('ReactTestRenderer', () => {
       await Promise.resolve();
       Scheduler.unstable_flushAll();
       expect(root.toJSON().children).toEqual(['dynamic']);
+
+      done();
     });
   });
 });

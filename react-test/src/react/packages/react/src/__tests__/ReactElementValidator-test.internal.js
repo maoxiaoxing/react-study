@@ -86,7 +86,7 @@ describe('ReactElementValidator', () => {
       ReactTestUtils.renderIntoDocument(<Anonymous>{divs}</Anonymous>);
     }).toErrorDev(
       'Warning: Each child in a list should have a unique ' +
-        '"key" prop. See https://reactjs.org/link/warning-keys for more information.\n' +
+        '"key" prop. See https://fb.me/react-warning-keys for more information.\n' +
         '    in div (at **)',
     );
   });
@@ -99,7 +99,7 @@ describe('ReactElementValidator', () => {
     }).toErrorDev(
       'Warning: Each child in a list should have a unique ' +
         '"key" prop.\n\nCheck the top-level render call using <div>. See ' +
-        'https://reactjs.org/link/warning-keys for more information.\n' +
+        'https://fb.me/react-warning-keys for more information.\n' +
         '    in div (at **)',
     );
   });
@@ -120,7 +120,7 @@ describe('ReactElementValidator', () => {
     expect(() => ReactTestUtils.renderIntoDocument(<GrandParent />)).toErrorDev(
       'Warning: Each child in a list should have a unique ' +
         '"key" prop.\n\nCheck the render method of `Component`. See ' +
-        'https://reactjs.org/link/warning-keys for more information.\n' +
+        'https://fb.me/react-warning-keys for more information.\n' +
         '    in div (at **)\n' +
         '    in Component (at **)\n' +
         '    in Parent (at **)\n' +
@@ -227,8 +227,8 @@ describe('ReactElementValidator', () => {
       'Warning: Failed prop type: ' +
         'Invalid prop `color` of type `number` supplied to `MyComp`, ' +
         'expected `string`.\n' +
-        '    in MyComp (at **)\n' +
-        '    in ParentComp (at **)',
+        '    in MyComp (created by ParentComp)\n' +
+        '    in ParentComp',
     );
   });
 
@@ -399,6 +399,7 @@ describe('ReactElementValidator', () => {
         'returned a function. You may have forgotten to pass an argument to ' +
         'the type checker creator (arrayOf, instanceOf, objectOf, oneOf, ' +
         'oneOfType, and shape all require an argument).',
+      {withoutStack: true},
     );
   });
 
@@ -531,15 +532,5 @@ describe('ReactElementValidator', () => {
         'default and named imports.\n\nCheck your code at **.',
       {withoutStack: true},
     );
-  });
-
-  it('does not call lazy initializers eagerly', () => {
-    let didCall = false;
-    const Lazy = React.lazy(() => {
-      didCall = true;
-      return {then() {}};
-    });
-    React.createElement(Lazy);
-    expect(didCall).toBe(false);
   });
 });

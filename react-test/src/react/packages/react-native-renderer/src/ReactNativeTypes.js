@@ -5,10 +5,10 @@
  * LICENSE file in the root directory of this source tree.
  *
  * @format
- * @flow strict
+ * @flow
  */
 
-import type {ElementRef, ElementType, Element, AbstractComponent} from 'react';
+import type {ElementRef, AbstractComponent} from 'react';
 
 export type MeasureOnSuccessCallback = (
   x: number,
@@ -33,68 +33,51 @@ export type MeasureLayoutOnSuccessCallback = (
   height: number,
 ) => void;
 
-type AttributeType<T, V> =
+type AttributeType =
   | true
   | $ReadOnly<{|
-      diff?: (arg1: T, arg2: T) => boolean,
-      process?: (arg1: V) => T,
+      diff?: <T>(arg1: T, arg2: T) => boolean,
+      process?: (arg1: any) => any,
     |}>;
 
-// We either force that `diff` and `process` always use mixed,
-// or we allow them to define specific types and use this hack
-type AnyAttributeType = AttributeType<$FlowFixMe, $FlowFixMe>;
-
-export type AttributeConfiguration = $ReadOnly<{
-  [propName: string]: AnyAttributeType,
-  style: $ReadOnly<{
-    [propName: string]: AnyAttributeType,
-    ...,
-  }>,
+export type AttributeConfiguration<
+  TProps = string,
+  TStyleProps = string,
+> = $ReadOnly<{
+  [propName: TProps]: AttributeType,
+  style: $ReadOnly<{[propName: TStyleProps]: AttributeType, ...}>,
   ...
 }>;
 
-type PartialAttributeConfiguration = $ReadOnly<{
-  [propName: string]: AnyAttributeType,
-  style?: $ReadOnly<{
-    [propName: string]: AnyAttributeType,
-    ...,
-  }>,
-  ...
-}>;
-
-export type ViewConfig = $ReadOnly<{
-  Commands?: $ReadOnly<{[commandName: string]: number, ...}>,
-  Constants?: $ReadOnly<{[name: string]: mixed, ...}>,
-  Manager?: string,
-  NativeProps?: $ReadOnly<{[propName: string]: string, ...}>,
-  baseModuleName?: ?string,
+export type ReactNativeBaseComponentViewConfig<
+  TProps = string,
+  TStyleProps = string,
+> = $ReadOnly<{|
+  baseModuleName?: string,
   bubblingEventTypes?: $ReadOnly<{
-    [eventName: string]: $ReadOnly<{
-      phasedRegistrationNames: $ReadOnly<{
+    [eventName: string]: $ReadOnly<{|
+      phasedRegistrationNames: $ReadOnly<{|
         captured: string,
         bubbled: string,
-      }>,
-    }>,
+      |}>,
+    |}>,
     ...,
   }>,
+  Commands?: $ReadOnly<{[commandName: string]: number, ...}>,
   directEventTypes?: $ReadOnly<{
-    [eventName: string]: $ReadOnly<{
+    [eventName: string]: $ReadOnly<{|
       registrationName: string,
-    }>,
+    |}>,
     ...,
   }>,
+  NativeProps?: $ReadOnly<{[propName: string]: string, ...}>,
   uiViewClassName: string,
-  validAttributes: AttributeConfiguration,
-}>;
+  validAttributes: AttributeConfiguration<TProps, TStyleProps>,
+|}>;
 
-export type PartialViewConfig = $ReadOnly<{
-  bubblingEventTypes?: $PropertyType<ViewConfig, 'bubblingEventTypes'>,
-  directEventTypes?: $PropertyType<ViewConfig, 'directEventTypes'>,
-  uiViewClassName: string,
-  validAttributes?: PartialAttributeConfiguration,
-}>;
+export type ViewConfigGetter = () => ReactNativeBaseComponentViewConfig<>;
 
-export type NativeMethods = $ReadOnly<{|
+export type NativeMethods = {
   blur(): void,
   focus(): void,
   measure(callback: MeasureOnSuccessCallback): void,
@@ -104,8 +87,9 @@ export type NativeMethods = $ReadOnly<{|
     onSuccess: MeasureLayoutOnSuccessCallback,
     onFail?: () => void,
   ): void,
-  setNativeProps(nativeProps: {...}): void,
-|}>;
+  setNativeProps(nativeProps: Object): void,
+  ...
+};
 
 export type HostComponent<T> = AbstractComponent<T, $ReadOnly<NativeMethods>>;
 
@@ -116,118 +100,60 @@ type SecretInternalsType = {
   ...
 };
 
-type InspectorDataProps = $ReadOnly<{
-  [propName: string]: string,
-  ...,
-}>;
-
-type InspectorDataSource = $ReadOnly<{|
-  fileName?: string,
-  lineNumber?: number,
-|}>;
-
-type InspectorDataGetter = (
-  <TElementType: ElementType>(
-    componentOrHandle: ElementRef<TElementType> | number,
-  ) => ?number,
-) => $ReadOnly<{|
-  measure: (callback: MeasureOnSuccessCallback) => void,
-  props: InspectorDataProps,
-  source: InspectorDataSource,
-|}>;
-
-export type InspectorData = $ReadOnly<{|
-  hierarchy: Array<{|
-    name: ?string,
-    getInspectorData: InspectorDataGetter,
-  |}>,
-  selectedIndex: ?number,
-  props: InspectorDataProps,
-  source: ?InspectorDataSource,
-|}>;
-
-export type TouchedViewDataAtPoint = $ReadOnly<{|
-  pointerY: number,
-  touchedViewTag?: number,
-  frame: $ReadOnly<{|
-    top: number,
-    left: number,
-    width: number,
-    height: number,
-  |}>,
-  ...InspectorData,
-|}>;
+type SecretInternalsFabricType = {...};
 
 /**
  * Flat ReactNative renderer bundles are too big for Flow to parse efficiently.
  * Provide minimal Flow typing for the high-level RN API and call it a day.
  */
 export type ReactNativeType = {
-  findHostInstance_DEPRECATED<TElementType: ElementType>(
-    componentOrHandle: ?(ElementRef<TElementType> | number),
+  findHostInstance_DEPRECATED(
+    componentOrHandle: any,
   ): ?ElementRef<HostComponent<mixed>>,
-  findNodeHandle<TElementType: ElementType>(
-    componentOrHandle: ?(ElementRef<TElementType> | number),
-  ): ?number,
-  dispatchCommand(
-    handle: ElementRef<HostComponent<mixed>>,
-    command: string,
-    args: Array<mixed>,
-  ): void,
-  sendAccessibilityEvent(
-    handle: ElementRef<HostComponent<mixed>>,
-    eventType: string,
-  ): void,
+  findNodeHandle(componentOrHandle: any): ?number,
+  dispatchCommand(handle: any, command: string, args: Array<any>): void,
   render(
-    element: Element<ElementType>,
-    containerTag: number,
-    callback: ?() => void,
-  ): ?ElementRef<ElementType>,
-  unmountComponentAtNode(containerTag: number): void,
-  unmountComponentAtNodeAndRemoveContainer(containerTag: number): void,
-  unstable_batchedUpdates: <T>(fn: (T) => void, bookkeeping: T) => void,
+    element: React$Element<any>,
+    containerTag: any,
+    callback: ?Function,
+  ): any,
+  unmountComponentAtNode(containerTag: number): any,
+  unmountComponentAtNodeAndRemoveContainer(containerTag: number): any,
+  // TODO (bvaughn) Add types
+  unstable_batchedUpdates: any,
   __SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED: SecretInternalsType,
   ...
 };
 
 export type ReactFabricType = {
-  findHostInstance_DEPRECATED<TElementType: ElementType>(
-    componentOrHandle: ?(ElementRef<TElementType> | number),
+  findHostInstance_DEPRECATED(
+    componentOrHandle: any,
   ): ?ElementRef<HostComponent<mixed>>,
-  findNodeHandle<TElementType: ElementType>(
-    componentOrHandle: ?(ElementRef<TElementType> | number),
-  ): ?number,
-  dispatchCommand(
-    handle: ElementRef<HostComponent<mixed>>,
-    command: string,
-    args: Array<mixed>,
-  ): void,
-  sendAccessibilityEvent(
-    handle: ElementRef<HostComponent<mixed>>,
-    eventType: string,
-  ): void,
+  findNodeHandle(componentOrHandle: any): ?number,
+  dispatchCommand(handle: any, command: string, args: Array<any>): void,
   render(
-    element: Element<ElementType>,
-    containerTag: number,
-    callback: ?() => void,
-  ): ?ElementRef<ElementType>,
-  unmountComponentAtNode(containerTag: number): void,
+    element: React$Element<any>,
+    containerTag: any,
+    callback: ?Function,
+  ): any,
+  unmountComponentAtNode(containerTag: number): any,
+  __SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED: SecretInternalsFabricType,
   ...
 };
 
 export type ReactNativeEventTarget = {
-  node: {...},
+  node: Object,
   canonical: {
     _nativeTag: number,
-    viewConfig: ViewConfig,
-    currentProps: {...},
-    _internalInstanceHandle: {...},
+    viewConfig: ReactNativeBaseComponentViewConfig<>,
+    currentProps: Object,
+    _internalInstanceHandle: Object,
     ...
   },
   ...
 };
 
-export type ReactFabricEventTouch = {
+export type ReactFaricEventTouch = {
   identifier: number,
   locationX: number,
   locationY: number,
@@ -241,42 +167,10 @@ export type ReactFabricEventTouch = {
   ...
 };
 
-export type ReactFabricEvent = {
-  touches: Array<ReactFabricEventTouch>,
-  changedTouches: Array<ReactFabricEventTouch>,
-  targetTouches: Array<ReactFabricEventTouch>,
+export type ReactFaricEvent = {
+  touches: Array<ReactFaricEventTouch>,
+  changedTouches: Array<ReactFaricEventTouch>,
+  targetTouches: Array<ReactFaricEventTouch>,
   target: number,
   ...
 };
-
-// Imperative LayoutAnimation API types
-//
-export type LayoutAnimationType =
-  | 'spring'
-  | 'linear'
-  | 'easeInEaseOut'
-  | 'easeIn'
-  | 'easeOut'
-  | 'keyboard';
-
-export type LayoutAnimationProperty =
-  | 'opacity'
-  | 'scaleX'
-  | 'scaleY'
-  | 'scaleXY';
-
-export type LayoutAnimationAnimationConfig = $ReadOnly<{|
-  duration?: number,
-  delay?: number,
-  springDamping?: number,
-  initialVelocity?: number,
-  type?: LayoutAnimationType,
-  property?: LayoutAnimationProperty,
-|}>;
-
-export type LayoutAnimationConfig = $ReadOnly<{|
-  duration: number,
-  create?: LayoutAnimationAnimationConfig,
-  update?: LayoutAnimationAnimationConfig,
-  delete?: LayoutAnimationAnimationConfig,
-|}>;

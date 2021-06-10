@@ -18,7 +18,6 @@
 let PropTypes;
 let React;
 let ReactDOM;
-let ReactDOMServer;
 let ReactTestUtils;
 
 describe('ReactContextValidator', () => {
@@ -28,7 +27,6 @@ describe('ReactContextValidator', () => {
     PropTypes = require('prop-types');
     React = require('react');
     ReactDOM = require('react-dom');
-    ReactDOMServer = require('react-dom/server');
     ReactTestUtils = require('react-dom/test-utils');
   });
 
@@ -263,7 +261,7 @@ describe('ReactContextValidator', () => {
 
     class Component extends React.Component {
       render() {
-        return <TestContext.Provider value={undefined} />;
+        return <TestContext.Provider />;
       }
     }
 
@@ -431,12 +429,8 @@ describe('ReactContextValidator', () => {
     expect(renderContext).toBe(secondContext);
     expect(componentDidUpdateContext).toBe(secondContext);
 
-    if (gate(flags => flags.enableLazyContextPropagation)) {
-      expect(shouldComponentUpdateWasCalled).toBe(true);
-    } else {
-      // sCU is not called in this case because React force updates when a provider re-renders
-      expect(shouldComponentUpdateWasCalled).toBe(false);
-    }
+    // sCU is not called in this case because React force updates when a provider re-renders
+    expect(shouldComponentUpdateWasCalled).toBe(false);
   });
 
   it('should re-render PureComponents when context Provider updates', () => {
@@ -676,40 +670,5 @@ describe('ReactContextValidator', () => {
     expect(() => ReactTestUtils.renderIntoDocument(<ComponentB />)).toErrorDev(
       'Warning: ComponentB: Function components do not support contextType.',
     );
-  });
-
-  it('should honor a displayName if set on the context type', () => {
-    const Context = React.createContext(null);
-    Context.displayName = 'MyContextType';
-    function Validator() {
-      return null;
-    }
-    Validator.propTypes = {dontPassToSeeErrorStack: PropTypes.bool.isRequired};
-
-    expect(() => {
-      ReactDOMServer.renderToStaticMarkup(
-        <Context.Provider>
-          <Context.Consumer>{() => <Validator />}</Context.Consumer>
-        </Context.Provider>,
-      );
-    }).toErrorDev(
-      'Warning: Failed prop type: The prop `dontPassToSeeErrorStack` is marked as required in `Validator`, but its value is `undefined`.\n' +
-        '    in Validator (at **)',
-    );
-  });
-
-  it('warns if displayName is set on the consumer type', () => {
-    const Context = React.createContext(null);
-
-    expect(() => {
-      Context.Consumer.displayName = 'IgnoredName';
-    }).toWarnDev(
-      'Warning: Setting `displayName` on Context.Consumer has no effect. ' +
-        "You should set it directly on the context with Context.displayName = 'IgnoredName'.",
-      {withoutStack: true},
-    );
-
-    // warning is deduped by Context so subsequent setting is fine
-    Context.Consumer.displayName = 'ADifferentName';
   });
 });

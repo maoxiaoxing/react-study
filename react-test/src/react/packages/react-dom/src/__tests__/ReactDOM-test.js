@@ -359,7 +359,6 @@ describe('ReactDOM', () => {
         '1st node clicked',
         "2nd node clicked imperatively from 1st's handler",
       ];
-
       expect(actual).toEqual(expected);
     } finally {
       document.body.removeChild(container);

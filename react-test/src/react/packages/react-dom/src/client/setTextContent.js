@@ -18,9 +18,9 @@ import {TEXT_NODE} from '../shared/HTMLNodeType';
  * @param {string} text
  * @internal
  */
-const setTextContent = function(node: Element, text: string): void {
+let setTextContent = function(node: Element, text: string): void {
   if (text) {
-    const firstChild = node.firstChild;
+    let firstChild = node.firstChild;
 
     if (
       firstChild &&

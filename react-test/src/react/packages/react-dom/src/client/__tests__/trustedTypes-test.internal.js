@@ -54,7 +54,7 @@ describe('when Trusted Types are available in global object', () => {
   });
 
   it('should not stringify trusted values for dangerouslySetInnerHTML', () => {
-    const innerHTMLDescriptor = Object.getOwnPropertyDescriptor(
+    let innerHTMLDescriptor = Object.getOwnPropertyDescriptor(
       Element.prototype,
       'innerHTML',
     );
@@ -97,7 +97,7 @@ describe('when Trusted Types are available in global object', () => {
   });
 
   it('should not stringify trusted values for setAttribute (unknown attribute)', () => {
-    const setAttribute = Element.prototype.setAttribute;
+    let setAttribute = Element.prototype.setAttribute;
     try {
       const setAttributeCalls = [];
       Element.prototype.setAttribute = function(name, value) {
@@ -125,7 +125,7 @@ describe('when Trusted Types are available in global object', () => {
   });
 
   it('should not stringify trusted values for setAttribute (known attribute)', () => {
-    const setAttribute = Element.prototype.setAttribute;
+    let setAttribute = Element.prototype.setAttribute;
     try {
       const setAttributeCalls = [];
       Element.prototype.setAttribute = function(name, value) {
@@ -153,7 +153,7 @@ describe('when Trusted Types are available in global object', () => {
   });
 
   it('should not stringify trusted values for setAttributeNS', () => {
-    const setAttributeNS = Element.prototype.setAttributeNS;
+    let setAttributeNS = Element.prototype.setAttributeNS;
     try {
       const setAttributeNSCalls = [];
       Element.prototype.setAttributeNS = function(ns, name, value) {

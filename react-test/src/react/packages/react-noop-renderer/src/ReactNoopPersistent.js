@@ -14,43 +14,12 @@
  * environment.
  */
 
-import ReactFiberReconciler from 'react-reconciler';
+import ReactFiberPersistentReconciler from 'react-reconciler/persistent';
 import createReactNoop from './createReactNoop';
 
-export const {
-  _Scheduler,
-  getChildren,
-  getPendingChildren,
-  getOrCreateRootContainer,
-  createRoot,
-  createLegacyRoot,
-  getChildrenAsJSX,
-  getPendingChildrenAsJSX,
-  createPortal,
-  render,
-  renderLegacySyncRoot,
-  renderToRootWithID,
-  unmountRootWithID,
-  findInstance,
-  flushNextYield,
-  flushWithHostCounters,
-  expire,
-  flushExpired,
-  batchedUpdates,
-  deferredUpdates,
-  unbatchedUpdates,
-  discreteUpdates,
-  idleUpdates,
-  flushDiscreteUpdates,
-  flushSync,
-  flushPassiveEffects,
-  act,
-  dumpTree,
-  getRoot,
-  // TODO: Remove this once callers migrate to alternatives.
-  // This should only be used by React internals.
-  unstable_runWithPriority,
-} = createReactNoop(
-  ReactFiberReconciler, // reconciler
+const ReactNoopPersistent = createReactNoop(
+  ReactFiberPersistentReconciler, // reconciler
   false, // useMutation
 );
+
+export default ReactNoopPersistent;

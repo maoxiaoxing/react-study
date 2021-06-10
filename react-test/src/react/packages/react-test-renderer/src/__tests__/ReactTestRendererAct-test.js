@@ -15,14 +15,14 @@ describe('ReactTestRenderer.act()', () => {
   });
   it('can use .act() to flush effects', () => {
     function App(props) {
-      const [ctr, setCtr] = React.useState(0);
+      let [ctr, setCtr] = React.useState(0);
       React.useEffect(() => {
         props.callback();
         setCtr(1);
       }, []);
       return ctr;
     }
-    const calledLog = [];
+    let calledLog = [];
     let root;
     act(() => {
       root = ReactTestRenderer.create(
@@ -41,7 +41,7 @@ describe('ReactTestRenderer.act()', () => {
   it("warns if you don't use .act", () => {
     let setCtr;
     function App(props) {
-      const [ctr, _setCtr] = React.useState(0);
+      let [ctr, _setCtr] = React.useState(0);
       setCtr = _setCtr;
       return ctr;
     }
@@ -63,7 +63,7 @@ describe('ReactTestRenderer.act()', () => {
         });
       }
       function App() {
-        const [details, setDetails] = React.useState(0);
+        let [details, setDetails] = React.useState(0);
 
         React.useEffect(() => {
           async function fetchDetails() {

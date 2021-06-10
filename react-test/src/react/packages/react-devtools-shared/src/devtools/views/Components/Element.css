@@ -13,7 +13,7 @@
 
 .Wrapper {
   padding: 0 0.25rem;
-  white-space: pre;
+  white-space: nowrap;
   height: var(--line-height-data);
   line-height: var(--line-height-data);
   display: inline-flex;
@@ -72,22 +72,4 @@
 
 .Badge {
   margin-left: 0.25rem;
-}
-
-.ErrorIcon,
-.ErrorIconContrast,
-.WarningIcon,
-.WarningIconContrast {
-  height: 0.75rem !important;
-  width: 0.75rem !important;
-  margin-left: 0.25rem;
-}
-.ErrorIcon {
-  color: var(--color-console-error-icon);
-}
-.WarningIcon {
-  color: var(--color-console-warning-icon);
-}
-.ErrorIconContrast, .WarningIconContrast {
-  color: var(--color-component-name);
 }

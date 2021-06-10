@@ -20,11 +20,9 @@ To build dependencies from source, run the following command from the root of th
 yarn build-for-devtools
 ```
 #### Download from CI
-To use the latest build from CI, run the following commands starting from the root of the repository:
+To use the latest build from CI, run the following command from the root of the repository:
 ```sh
-cd scripts/release
-yarn install
-./download-experimental-build.js
+./scripts/release/download-experimental-build.js
 ```
 ### Build steps
 Once the above packages have been built or downloaded, you can build the extension by running:

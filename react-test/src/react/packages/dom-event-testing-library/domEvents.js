@@ -234,10 +234,6 @@ export function blur({relatedTarget} = {}) {
   return new FocusEvent('blur', {relatedTarget});
 }
 
-export function focusOut({relatedTarget} = {}) {
-  return new FocusEvent('focusout', {relatedTarget, bubbles: true});
-}
-
 export function click(payload) {
   return createMouseEvent('click', {
     button: buttonType.primary,
@@ -261,10 +257,6 @@ export function dragstart(payload) {
 
 export function focus({relatedTarget} = {}) {
   return new FocusEvent('focus', {relatedTarget});
-}
-
-export function focusIn({relatedTarget} = {}) {
-  return new FocusEvent('focusin', {relatedTarget, bubbles: true});
 }
 
 export function scroll() {

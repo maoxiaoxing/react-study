@@ -44,7 +44,7 @@ const run = async ({cwd, packages, skipPackages, tags}) => {
     const sourceReactVersion = readFileSync(
       sourceReactVersionPath,
       'utf8'
-    ).replace(/export default '[^']+';/, `export default '${version}';`);
+    ).replace(/module\.exports = '[^']+';/, `module.exports = '${version}';`);
     writeFileSync(sourceReactVersionPath, sourceReactVersion);
   }
 };

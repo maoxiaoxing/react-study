@@ -7,12 +7,8 @@
  * @flow
  */
 
-import type {Thenable} from 'shared/ReactTypes';
-
 import * as React from 'react';
 import {createContext} from 'react';
-
-// TODO (cache) Remove this cache; it is outdated and will not work with newer APIs like startTransition.
 
 // Cache implementation was forked from the React repo:
 // https://github.com/facebook/react/blob/master/packages/react-cache/src/ReactCache.js
@@ -24,7 +20,10 @@ import {createContext} from 'react';
 //    The size of this cache is bounded by how many renders were profiled,
 //    and it will be fully reset between profiling sessions.
 
-export type {Thenable};
+export type Thenable<T> = {
+  then(resolve: (T) => mixed, reject: (mixed) => mixed): mixed,
+  ...
+};
 
 type Suspender = {then(resolve: () => mixed, reject: () => mixed): mixed, ...};
 
@@ -61,7 +60,7 @@ const Rejected = 2;
 const ReactCurrentDispatcher = (React: any)
   .__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED.ReactCurrentDispatcher;
 
-function readContext(Context) {
+function readContext(Context, observedBits) {
   const dispatcher = ReactCurrentDispatcher.current;
   if (dispatcher === null) {
     throw new Error(
@@ -70,7 +69,7 @@ function readContext(Context) {
         'lifecycle methods.',
     );
   }
-  return dispatcher.readContext(Context);
+  return dispatcher.readContext(Context, observedBits);
 }
 
 const CacheContext = createContext(null);

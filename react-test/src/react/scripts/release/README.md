@@ -1,49 +1,23 @@
 # React Release Scripts
 
-This document describes how to prepare and publish a release manually, using the command line.
+The release process consists of several phases, each one represented by one of the scripts below.
 
-However, most of our releases are actually *prereleases* that get continuously shipped via CI. Our automated prerelease channels are preferred whenever possible, because if they accidentally break, it won't affect production users.
+A typical release goes like this:
+1. When a commit is pushed to the React repo, [Circle CI](https://circleci.com/gh/facebook/react/) will build all release bundles and run unit tests against both the source code and the built bundles.
+2. The release is then [**published to the `next` channel**](#publishing-next) using the [`prepare-next`](#prepare-next) and [`publish`](#publish) scripts. (Currently this process is manual but might be automated in the future using [GitHub "actions"](https://github.com/features/actions).)
+3. Finally, a "next" release can be [**promoted to stable**](#publishing-a-stable-release)<sup>1</sup> using the [`prepare-stable`](#prepare-stable) and [`publish`](#publish) scripts. (This process is always manual.)
 
-Before proceeding, consider your motivation:
+The high level process of creating releases is [documented below](#process). Individual scripts are documented as well:
+* [`create-next`](#create-next)
+* [`prepare-next`](#prepare-next)
+* [`prepare-stable`](#prepare-stable)
+* [`publish`](#publish)
 
-- **"I want to share experimental features with collaborators."** After your code lands in GitHub (behind an experimental feature flag), it will be automatically published via CI within the next weekday. So usually, all you have to do is wait.
-- **"But I want to publish it now!"** You can [trigger the CI job to run automatically](#trigger-an-automated-prerelease).
-- **"I want to publish a stable release with a real version number"** Refer to the ["Publishing a Stable Release"](#publishing-a-stable-release) section. If this is your first time running a stable release, consult with another team member before proceeding.
-- **"I have some special use case that's not explicitly mentioned here."** Read the rest of this document, and consult with another team member before proceeding.
+<sup>Note that [**creating a patch release**](creating-a-patch-release) has a slightly different process than a major/minor release.</sup>
 
 # Process
 
 If this is your first time running the release scripts, go to the `scripts/release` directory and run `yarn` to install the dependencies.
-
-The release process consists of several phases, each one represented by one of the scripts below.
-
-A typical release cycle goes like this:
-1. When a commit is pushed to the React repo, [Circle CI](https://circleci.com/gh/facebook/react/) will build all release bundles and run unit tests against both the source code and the built bundles.
-2. Each weekday, an automated CI cron job publishes prereleases to the `next` and `experimental` channels, from tip of the main branch.
-   1. You can also [trigger an automated prerelease via the command line](#trigger-an-automated-prerelease), instead of waiting until the next time the cron job runs.
-   2. For advanced cases, you can [**manually prepare and publish to the `next` channel**](#publishing-release) using the [`prepare-release-from-ci`](#prepare-release-from-ci) and [`publish`](#publish) scripts; or to the [**`experimental` channel**](#publishing-an-experimental-release) using the the same scripts (but different build artifacts).
-3. Finally, a "next" release can be [**promoted to stable**](#publishing-a-stable-release)<sup>1</sup> using the [`prepare-release-from-npm`](#prepare-release-from-npm) and [`publish`](#publish) scripts. (This process is always manual.)
-
-The high level process of creating releases is [documented below](#process). Individual scripts are documented as well:
-* [`build-release-locally`](#build-release-locally): Build a release locally from the checked out source code.
-* [`prepare-release-from-ci`](#prepare-release-from-ci): Download a pre-built release from CI.
-* [`prepare-release-from-npm`](#prepare-release-from-npm): Prepare an NPM "next" release to be published as a "stable" release.
-* [`publish`](#publish): Publish the downloaded (or prepared) release to NPM.
-
-<sup>1. [**Creating a patch release**](#creating-a-patch-release) has a slightly different process than a major/minor release.</sup>
-
-## Trigger an Automated Prerelease
-
-If your code lands in the main branch, it will be automaticaly published to the prerelease channels within the next weekday. However, if you want to immediately publish a prerelease, you can trigger the job to run immediately:
-
-```sh
-yarn publish-prereleases
-```
-
-This will grab the most recent revision on the main branch and publish it to the Next and Experimental channels.
-## Publishing Without Tags
-
-The sections below include meaningful `--tags` in the instructions. However, keep in mind that **the `--tags` arguments is optional**, and you can omit it if you don't want to tag the release on npm at all. This can be useful when preparing breaking changes.
 
 ## Publishing Next
 
@@ -51,10 +25,14 @@ The sections below include meaningful `--tags` in the instructions. However, kee
 
 To prepare a build for a particular commit:
 1. Choose a commit from [the commit log](https://github.com/facebook/react/commits/master).
-2. Copy the SHA (by clicking the 📋 button)
-5. Run the [`prepare-release-from-ci`](#prepare-release-from-ci) script with the SHA <sup>1</sup> you found:
+2. Click the "“✓" icon and click the Circle CI "Details" link.
+3. Select the `build` job (**not** the `build_experimental` job; see the next section).
+   * If it's still pending, you'll need to wait for it to finish. <sup>1</sup>
+4. Copy the build ID from the URL
+   * e.g. the build ID for commit [241c4467](https://github.com/facebook/react/commit/241c4467eef7c2a8858c96d5dfe4e8ef84c47bad) is [**80592**](https://circleci.com/gh/facebook/react/80592)
+5. Run the [`prepare-next`](#prepare-next) script with the build ID <sup>2</sup> you found:
 ```sh
-scripts/release/prepare-release-from-ci.js -r stable --commit=0e526bc
+scripts/release/prepare-next.js --build=80592
 ```
 
 Once the build has been checked out and tested locally, you're ready to publish it:
@@ -62,32 +40,35 @@ Once the build has been checked out and tested locally, you're ready to publish 
 scripts/release/publish.js --tags next
 ```
 
-<sup>1: You can omit the `commit` param if you just want to release the latest commit as to "next".</sup>
+If the OTP code expires while publishing, re-run this command and answer "y" to the questions about whether it was expected for already published packages.
+
+<sup>1: This is the most awkward part of cutting a release right now. We have plans to improve it.</sup><br/>
+<sup>2: You can omit the `build` param if you just want to release the latest commit as to "next".</sup>
 
 ## Publishing an Experimental Release
 
 Experimental releases are special because they have additional features turned on.
 
-The steps for publishing an experimental release are almost the same as for publishing a "next" release except for the release channel (`-r`) flag.
+The steps for publishing an experimental release are almost the same as for publishing a "next" release, except in step 3 you should choose the `build_experimental` job instead of `build` <sup>1</sup> For example, the experimental build ID for commit [241c4467](https://github.com/facebook/react/commit/241c4467eef7c2a8858c96d5dfe4e8ef84c47bad) is [**80590**](https://circleci.com/gh/facebook/react/80590):
 
-```sh
-scripts/release/prepare-release-from-ci.js -r experimental --commit=0e526bc
-```
-
-Once the build has been checked out and tested locally, you're ready to publish it. When publishing an experimental release, use the `experimental` tag:
+When publishing an experimental release, use the `experimental` tag:
 
 ```sh
 scripts/release/publish.js --tags experimental
 ```
 
+If the OTP code expires while publishing, re-run this command and answer "y" to the questions about whether it was expected for already published packages.
+
+<sup>1: We have plans to make this less awkward. Ideally these releases will be published by a cron job.</sup>
+
 ## Publishing a Stable Release
 
 Stable releases should always be created from the "next" channel. This encourages better testing of the actual release artifacts and reduces the chance of unintended changes accidentally being included in a stable release.
 
-To prepare a stable release, choose a "next" version and run the [`prepare-release-from-npm`](#prepare-release-from-npm) script <sup>1</sup>:
+To prepare a stable release, choose a "next" version and run the [`prepare-stable`](#prepare-stable) script <sup>1</sup>:
 
 ```sh
-scripts/release/prepare-release-from-npm.js --version=0.0.0-241c4467e
+scripts/release/prepare-stable.js --version=0.0.0-241c4467e
 ```
 
 This script will prompt you to select stable version numbers for each of the packages. It will update the package JSON versions (and dependencies) based on the numbers you select.
@@ -96,10 +77,9 @@ Once this step is complete, you're ready to publish the release:
 
 ```sh
 scripts/release/publish.js --tags latest
-
-# Or, if you want to bump "next" as well:
-scripts/release/publish.js --tags latest next
 ```
+
+If the OTP code expires while publishing, re-run this command and answer "y" to the questions about whether it was expected for already published packages.
 
 After successfully publishing the release, follow the on-screen instructions to ensure that all of the appropriate post-release steps are executed.
 
@@ -127,13 +107,13 @@ Once you have cherry picked all of the commits you want to include in the releas
 git push origin 16.8.3
 ```
 
-Once CI is complete, follow the regular [**next**](#publishing-release) and [**promote to stable**](#publishing-a-stable-release) processes.
+Once CI is complete, follow the regular [**next**](#publishing-next) and [**promote to stable**](#publishing-a-stable-release) processes.
 
 <sup>1: The `build-info.json` artifact can also be used to identify the appropriate commit (e.g. [unpkg.com/react@16.8.3/build-info.json](https://unpkg.com/react@16.8.3/build-info.json) shows us that react version 16.8.3 was created from commit [`29b7b775f`](https://github.com/facebook/react/commit/29b7b775f)).</sup>
 
 # Scripts
 
-## `build-release-locally`
+## `create-next`
 Creates a "next" build from the current (local) Git revision.
 
 **This script is an escape hatch.** It allows a release to be created without pushing a commit to be verified by Circle CI. **It does not run any automated unit tests.** Testing is solely the responsibility of the release engineer.
@@ -143,21 +123,21 @@ Note that this script git-archives the React repo (at the current revision) to a
 #### Example usage
 To create a build from the current branch and revision:
 ```sh
-scripts/release/build-release-locally.js
+scripts/release/create-next.js
 ```
 
-## `prepare-release-from-ci`
-Downloads build artifacts from Circle CI in preparation to be published to NPM as either a "next" or "experimental" release.
+## `prepare-next`
+Downloads build artifacts from Circle CI in preparation to be published to NPM as a "next" release.
 
 All artifacts built by Circle CI have already been unit-tested (both source and bundles) but these candidates should **always be manually tested** before being published. Upon completion, this script prints manual testing instructions.
 
 #### Example usage
-To prepare the artifacts created by Circle CI for commit [0e526bc](https://github.com/facebook/react/commit/0e526bc) you would run:
+To prepare the artifacts created by [Circle CI build 80592](https://circleci.com/gh/facebook/react/80592#artifacts/containers/0) you would run:
 ```sh
-scripts/release/prepare-release-from-ci.js --commit=0e526bc -r stable
+scripts/release/prepare-next.js --build=80592
 ```
 
-## `prepare-release-from-npm`
+## `prepare-stable`
 Checks out a "next" release from NPM and prepares it to be published as a stable release.
 
 This script prompts for new (stable) release versions for each public package and updates the package contents (both `package.json` and inline version numbers) to match. It also updates inter-package dependencies to account for the new versions.
@@ -167,7 +147,7 @@ This script prompts for new (stable) release versions for each public package an
 #### Example usage
 To promote the "next" release `0.0.0-241c4467e` (aka commit [241c4467e](https://github.com/facebook/react/commit/241c4467e)) to stable:
 ```sh
-scripts/release/prepare-release-from-npm.js --version=0.0.0-241c4467e
+scripts/release/prepare-stable.js --version=0.0.0-241c4467e
 ```
 
 ## `publish`
@@ -182,5 +162,5 @@ Upon completion, this script provides instructions for tagging the Git commit th
 #### Example usage
 To publish a release to NPM as both `next` and `latest`:
 ```sh
-scripts/release/publish.js --tags latest next
+scripts/release/publish.js --tags latest
 ```

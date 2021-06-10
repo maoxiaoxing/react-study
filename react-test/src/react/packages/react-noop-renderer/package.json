@@ -12,12 +12,14 @@
   "license": "MIT",
   "dependencies": {
     "object-assign": "^4.1.1",
+    "prop-types": "^15.6.2",
+    "regenerator-runtime": "^0.11.0",
     "react-reconciler": "*",
-    "react-client": "*",
+    "react-flight": "*",
     "react-server": "*"
   },
   "peerDependencies": {
-    "react": "^17.0.0"
+    "react": "^16.0.0"
   },
   "files": [
     "LICENSE",
@@ -27,7 +29,6 @@
     "persistent.js",
     "server.js",
     "flight-client.js",
-    "flight-modules.js",
     "flight-server.js",
     "cjs/"
   ]

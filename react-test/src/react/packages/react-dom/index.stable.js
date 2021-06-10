@@ -8,15 +8,17 @@
  */
 
 export {
-  __SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED,
   createPortal,
-  createRoot,
-  findDOMNode,
+  unstable_batchedUpdates,
   flushSync,
+  __SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED,
+  version,
+  findDOMNode,
   hydrate,
   render,
   unmountComponentAtNode,
-  unstable_batchedUpdates,
   unstable_renderSubtreeIntoContainer,
-  version,
+  // Temporary alias since we already shipped React 16 RC with it.
+  // TODO: remove in React 17.
+  unstable_createPortal,
 } from './src/client/ReactDOM';

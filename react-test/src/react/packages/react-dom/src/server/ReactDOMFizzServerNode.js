@@ -10,68 +10,21 @@
 import type {ReactNodeList} from 'shared/ReactTypes';
 import type {Writable} from 'stream';
 
-import {
-  createRequest,
-  startWork,
-  startFlowing,
-  abort,
-} from 'react-server/src/ReactFizzServer';
-
-import {
-  createResponseState,
-  createRootFormatContext,
-} from './ReactDOMServerFormatConfig';
+import {createRequest, startWork, startFlowing} from 'react-server/inline.dom';
 
 function createDrainHandler(destination, request) {
   return () => startFlowing(request);
 }
 
-type Options = {|
-  identifierPrefix?: string,
-  namespaceURI?: string,
-  progressiveChunkSize?: number,
-  onReadyToStream?: () => void,
-  onCompleteAll?: () => void,
-  onError?: (error: mixed) => void,
-|};
-
-type Controls = {|
-  // Cancel any pending I/O and put anything remaining into
-  // client rendered mode.
-  abort(): void,
-  startWriting(): void,
-|};
-
 function pipeToNodeWritable(
   children: ReactNodeList,
   destination: Writable,
-  options?: Options,
-): Controls {
-  const request = createRequest(
-    children,
-    destination,
-    createResponseState(options ? options.identifierPrefix : undefined),
-    createRootFormatContext(options ? options.namespaceURI : undefined),
-    options ? options.progressiveChunkSize : undefined,
-    options ? options.onError : undefined,
-    options ? options.onCompleteAll : undefined,
-    options ? options.onReadyToStream : undefined,
-  );
-  let hasStartedFlowing = false;
+): void {
+  let request = createRequest(children, destination);
+  destination.on('drain', createDrainHandler(destination, request));
   startWork(request);
-  return {
-    startWriting() {
-      if (hasStartedFlowing) {
-        return;
-      }
-      hasStartedFlowing = true;
-      startFlowing(request);
-      destination.on('drain', createDrainHandler(destination, request));
-    },
-    abort() {
-      abort(request);
-    },
-  };
 }
 
-export {pipeToNodeWritable};
+export default {
+  pipeToNodeWritable,
+};

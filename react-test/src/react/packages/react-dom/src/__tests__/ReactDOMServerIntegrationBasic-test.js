@@ -63,37 +63,37 @@ describe('ReactDOMServerIntegration', () => {
     });
 
     itRenders('a string', async render => {
-      const e = await render('Hello');
+      let e = await render('Hello');
       expect(e.nodeType).toBe(3);
       expect(e.nodeValue).toMatch('Hello');
     });
 
     itRenders('a number', async render => {
-      const e = await render(42);
+      let e = await render(42);
       expect(e.nodeType).toBe(3);
       expect(e.nodeValue).toMatch('42');
     });
 
     itRenders('an array with one child', async render => {
-      const e = await render([<div key={1}>text1</div>]);
-      const parent = e.parentNode;
+      let e = await render([<div key={1}>text1</div>]);
+      let parent = e.parentNode;
       expect(parent.childNodes[0].tagName).toBe('DIV');
     });
 
     itRenders('an array with several children', async render => {
-      const Header = props => {
+      let Header = props => {
         return <p>header</p>;
       };
-      const Footer = props => {
+      let Footer = props => {
         return [<h2 key={1}>footer</h2>, <h3 key={2}>about</h3>];
       };
-      const e = await render([
+      let e = await render([
         <div key={1}>text1</div>,
         <span key={2}>text2</span>,
         <Header key={3} />,
         <Footer key={4} />,
       ]);
-      const parent = e.parentNode;
+      let parent = e.parentNode;
       expect(parent.childNodes[0].tagName).toBe('DIV');
       expect(parent.childNodes[1].tagName).toBe('SPAN');
       expect(parent.childNodes[2].tagName).toBe('P');
@@ -102,12 +102,12 @@ describe('ReactDOMServerIntegration', () => {
     });
 
     itRenders('a nested array', async render => {
-      const e = await render([
+      let e = await render([
         [<div key={1}>text1</div>],
         <span key={1}>text2</span>,
         [[[null, <p key={1} />], false]],
       ]);
-      const parent = e.parentNode;
+      let parent = e.parentNode;
       expect(parent.childNodes[0].tagName).toBe('DIV');
       expect(parent.childNodes[1].tagName).toBe('SPAN');
       expect(parent.childNodes[2].tagName).toBe('P');
@@ -128,8 +128,8 @@ describe('ReactDOMServerIntegration', () => {
           };
         },
       };
-      const e = await render(threeDivIterable);
-      const parent = e.parentNode;
+      let e = await render(threeDivIterable);
+      let parent = e.parentNode;
       expect(parent.childNodes.length).toBe(3);
       expect(parent.childNodes[0].tagName).toBe('DIV');
       expect(parent.childNodes[1].tagName).toBe('DIV');
@@ -137,7 +137,7 @@ describe('ReactDOMServerIntegration', () => {
     });
 
     itRenders('emptyish values', async render => {
-      const e = await render(0);
+      let e = await render(0);
       expect(e.nodeType).toBe(TEXT_NODE_TYPE);
       expect(e.nodeValue).toMatch('0');
 

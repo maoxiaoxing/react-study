@@ -7,4 +7,10 @@
  * @flow
  */
 
-export * from './src/test-utils/ReactTestUtils';
+'use strict';
+
+const ReactTestUtils = require('./src/test-utils/ReactTestUtils');
+
+// TODO: decide on the top-level export form.
+// This is hacky but makes it work with both Rollup and Jest.
+module.exports = ReactTestUtils.default || ReactTestUtils;

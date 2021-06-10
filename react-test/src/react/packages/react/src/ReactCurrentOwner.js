@@ -7,7 +7,7 @@
  * @flow
  */
 
-import type {Fiber} from 'react-reconciler/src/ReactInternalTypes';
+import type {Fiber} from 'react-reconciler/src/ReactFiber';
 
 /**
  * Keeps track of the current owner.

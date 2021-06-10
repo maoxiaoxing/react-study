@@ -9,7 +9,7 @@
 
 import invariant from 'shared/invariant';
 
-function invokeGuardedCallbackProd<A, B, C, D, E, F, Context>(
+let invokeGuardedCallbackImpl = function<A, B, C, D, E, F, Context>(
   name: string | null,
   func: (a: A, b: B, c: C, d: D, e: E, f: F) => mixed,
   context: Context,
@@ -26,9 +26,7 @@ function invokeGuardedCallbackProd<A, B, C, D, E, F, Context>(
   } catch (error) {
     this.onError(error);
   }
-}
-
-let invokeGuardedCallbackImpl = invokeGuardedCallbackProd;
+};
 
 if (__DEV__) {
   // In DEV mode, we swap out invokeGuardedCallback for a special version
@@ -60,15 +58,7 @@ if (__DEV__) {
   ) {
     const fakeNode = document.createElement('react');
 
-    invokeGuardedCallbackImpl = function invokeGuardedCallbackDev<
-      A,
-      B,
-      C,
-      D,
-      E,
-      F,
-      Context,
-    >(
+    const invokeGuardedCallbackDev = function<A, B, C, D, E, F, Context>(
       name: string | null,
       func: (a: A, b: B, c: C, d: D, e: E, f: F) => mixed,
       context: Context,
@@ -81,7 +71,7 @@ if (__DEV__) {
     ) {
       // If document doesn't exist we know for sure we will crash in this method
       // when we call document.createEvent(). However this can cause confusing
-      // errors: https://github.com/facebook/create-react-app/issues/3482
+      // errors: https://github.com/facebookincubator/create-react-app/issues/3482
       // So we preemptively throw with a better message instead.
       invariant(
         typeof document !== 'undefined',
@@ -95,7 +85,6 @@ if (__DEV__) {
       );
       const evt = document.createEvent('Event');
 
-      let didCall = false;
       // Keeps track of whether the user-provided callback threw an error. We
       // set this to true at the beginning, then set it to false right after
       // calling the function. If the function errors, `didError` will never be
@@ -107,7 +96,7 @@ if (__DEV__) {
       // Keeps track of the value of window.event so that we can reset it
       // during the callback to let user code access window.event in the
       // browsers that support it.
-      const windowEvent = window.event;
+      let windowEvent = window.event;
 
       // Keeps track of the descriptor of window.event to restore it after event
       // dispatching: https://github.com/facebook/react/issues/13688
@@ -116,7 +105,11 @@ if (__DEV__) {
         'event',
       );
 
-      function restoreAfterDispatch() {
+      // Create an event handler for our fake event. We will synchronously
+      // dispatch our fake event using `dispatchEvent`. Inside the handler, we
+      // call the user-provided callback.
+      const funcArgs = Array.prototype.slice.call(arguments, 3);
+      function callCallback() {
         // We immediately remove the callback from event listeners so that
         // nested `invokeGuardedCallback` calls do not clash. Otherwise, a
         // nested call would trigger the fake event handlers of any call higher
@@ -133,15 +126,7 @@ if (__DEV__) {
         ) {
           window.event = windowEvent;
         }
-      }
 
-      // Create an event handler for our fake event. We will synchronously
-      // dispatch our fake event using `dispatchEvent`. Inside the handler, we
-      // call the user-provided callback.
-      const funcArgs = Array.prototype.slice.call(arguments, 3);
-      function callCallback() {
-        didCall = true;
-        restoreAfterDispatch();
         func.apply(context, funcArgs);
         didError = false;
       }
@@ -198,7 +183,7 @@ if (__DEV__) {
         Object.defineProperty(window, 'event', windowEventDescriptor);
       }
 
-      if (didCall && didError) {
+      if (didError) {
         if (!didSetError) {
           // The callback errored, but the error event never fired.
           error = new Error(
@@ -215,7 +200,7 @@ if (__DEV__) {
           error = new Error(
             "A cross-origin error was thrown. React doesn't have access to " +
               'the actual error object in development. ' +
-              'See https://reactjs.org/link/crossorigin-error for more information.',
+              'See https://fb.me/react-crossorigin-error for more information.',
           );
         }
         this.onError(error);
@@ -223,16 +208,9 @@ if (__DEV__) {
 
       // Remove our event listeners
       window.removeEventListener('error', handleWindowError);
-
-      if (!didCall) {
-        // Something went really wrong, and our event was not dispatched.
-        // https://github.com/facebook/react/issues/16734
-        // https://github.com/facebook/react/issues/16585
-        // Fall back to the production implementation.
-        restoreAfterDispatch();
-        return invokeGuardedCallbackProd.apply(this, arguments);
-      }
     };
+
+    invokeGuardedCallbackImpl = invokeGuardedCallbackDev;
   }
 }
 

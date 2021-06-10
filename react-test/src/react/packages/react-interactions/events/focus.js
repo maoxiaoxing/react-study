@@ -7,4 +7,6 @@
  * @flow
  */
 
-export * from './src/dom/create-event-handle/Focus';
+'use strict';
+
+module.exports = require('./src/dom/Focus');

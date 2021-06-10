@@ -8,21 +8,18 @@ const {join} = require('path');
 const {confirm} = require('../utils');
 const theme = require('../theme');
 
-const run = async ({cwd, packages, tags, ci}) => {
+const run = async ({cwd, packages, tags}) => {
   clear();
 
-  if (tags.length === 0) {
-    console.error('Expected at least one tag.');
-    process.exit(1);
-  } else if (tags.length === 1) {
+  if (tags.length === 1) {
     console.log(
-      theme`{spinnerSuccess ✓} You are about the publish the following packages under the tag {tag ${tags}}:`
+      theme`{spinnerSuccess ✓} You are about the publish the following packages under the tag {tag ${tags}}`
     );
   } else {
     console.log(
       theme`{spinnerSuccess ✓} You are about the publish the following packages under the tags {tag ${tags.join(
         ', '
-      )}}:`
+      )}}`
     );
   }
 
@@ -40,9 +37,7 @@ const run = async ({cwd, packages, tags, ci}) => {
     );
   }
 
-  if (!ci) {
-    await confirm('Do you want to proceed?');
-  }
+  await confirm('Do you want to proceed?');
 
   clear();
 };

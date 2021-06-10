@@ -14,7 +14,7 @@ invariant(
   'Expected ReactFbErrorUtils.invokeGuardedCallback to be a function.',
 );
 
-const invokeGuardedCallbackImpl = function<A, B, C, D, E, F, Context>(
+let invokeGuardedCallbackImpl = function<A, B, C, D, E, F, Context>(
   name: string | null,
   func: (a: A, b: B, c: C, d: D, e: E, f: F) => mixed,
   context: Context,

@@ -49,11 +49,11 @@ module.exports = function(initModules) {
   function asyncReactDOMRender(reactElement, domElement, forceHydrate) {
     return new Promise(resolve => {
       if (forceHydrate) {
-        ReactTestUtils.unstable_concurrentAct(() => {
+        ReactTestUtils.act(() => {
           ReactDOM.hydrate(reactElement, domElement);
         });
       } else {
-        ReactTestUtils.unstable_concurrentAct(() => {
+        ReactTestUtils.act(() => {
           ReactDOM.render(reactElement, domElement);
         });
       }
@@ -144,11 +144,9 @@ module.exports = function(initModules) {
   async function renderIntoStream(reactElement, errorCount = 0) {
     return await expectErrors(
       () =>
-        new Promise((resolve, reject) => {
-          const writable = new DrainWritable();
-          const s = ReactDOMServer.renderToNodeStream(reactElement);
-          s.on('error', e => reject(e));
-          s.pipe(writable);
+        new Promise(resolve => {
+          let writable = new DrainWritable();
+          ReactDOMServer.renderToNodeStream(reactElement).pipe(writable);
           writable.on('finish', () => resolve(writable.buffer));
         }),
       errorCount,
@@ -176,7 +174,7 @@ module.exports = function(initModules) {
     const markup = await renderIntoString(element, errorCount);
     resetModules();
 
-    const container = getContainerFromMarkup(element, markup);
+    let container = getContainerFromMarkup(element, markup);
     let serverNode = container.firstChild;
 
     const firstClientNode = await renderIntoDom(
@@ -207,11 +205,11 @@ module.exports = function(initModules) {
   const clientRenderOnBadMarkup = async (element, errorCount = 0) => {
     // First we render the top of bad mark up.
 
-    const container = getContainerFromMarkup(
+    let container = getContainerFromMarkup(
       element,
       shouldUseDocument(element)
         ? '<html><body><div id="badIdWhichWillCauseMismatch" /></body></html>'
-        : '<div id="badIdWhichWillCauseMismatch"></div>',
+        : '<div id="badIdWhichWillCauseMismatch" data-reactroot="" data-reactid="1"></div>',
     );
 
     await renderIntoDom(element, container, true, errorCount + 1);

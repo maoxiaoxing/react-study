@@ -10,7 +10,7 @@
 import * as React from 'react';
 import {Fragment, useContext} from 'react';
 import {ProfilerContext} from './ProfilerContext';
-import {formatDuration} from './utils';
+import {formatDuration, formatTime} from './utils';
 import WhatChanged from './WhatChanged';
 import {StoreContext} from '../context';
 
@@ -39,22 +39,23 @@ export default function HoveredFiberInfo({fiberData}: Props) {
     rootID: ((rootID: any): number),
   });
 
-  let renderDurationInfo = null;
+  let renderDurationInfo;
   let i = 0;
   for (i = 0; i < commitIndices.length; i++) {
     const commitIndex = commitIndices[i];
     if (selectedCommitIndex === commitIndex) {
-      const {
-        fiberActualDurations,
-        fiberSelfDurations,
-      } = profilerStore.getCommitData(((rootID: any): number), commitIndex);
-      const actualDuration = fiberActualDurations.get(id) || 0;
-      const selfDuration = fiberSelfDurations.get(id) || 0;
+      const {duration, timestamp} = profilerStore.getCommitData(
+        ((rootID: any): number),
+        commitIndex,
+      );
 
       renderDurationInfo = (
-        <div key={commitIndex} className={styles.CurrentCommit}>
-          {formatDuration(selfDuration)}ms of {formatDuration(actualDuration)}ms
-        </div>
+        <Fragment>
+          <label className={styles.Label}>Rendered at:</label>
+          <div key={commitIndex} className={styles.CurrentCommit}>
+            {formatTime(timestamp)}s for {formatDuration(duration)}ms
+          </div>
+        </Fragment>
       );
 
       break;
@@ -67,8 +68,10 @@ export default function HoveredFiberInfo({fiberData}: Props) {
         <div className={styles.Component}>{name}</div>
       </div>
       <div className={styles.Content}>
-        {renderDurationInfo || <div>Did not render.</div>}
         <WhatChanged fiberID={((id: any): number)} />
+        {renderDurationInfo || (
+          <div>Did not render during this profiling session.</div>
+        )}
       </div>
     </Fragment>
   );

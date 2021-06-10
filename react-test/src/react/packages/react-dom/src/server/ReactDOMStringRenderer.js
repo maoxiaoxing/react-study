@@ -5,7 +5,6 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-import type {ServerOptions} from './ReactPartialRenderer';
 import ReactPartialRenderer from './ReactPartialRenderer';
 
 /**
@@ -13,8 +12,8 @@ import ReactPartialRenderer from './ReactPartialRenderer';
  * server.
  * See https://reactjs.org/docs/react-dom-server.html#rendertostring
  */
-export function renderToString(element, options?: ServerOptions) {
-  const renderer = new ReactPartialRenderer(element, false, options);
+export function renderToString(element) {
+  const renderer = new ReactPartialRenderer(element, false);
   try {
     const markup = renderer.read(Infinity);
     return markup;
@@ -28,8 +27,8 @@ export function renderToString(element, options?: ServerOptions) {
  * such as data-react-id that React uses internally.
  * See https://reactjs.org/docs/react-dom-server.html#rendertostaticmarkup
  */
-export function renderToStaticMarkup(element, options?: ServerOptions) {
-  const renderer = new ReactPartialRenderer(element, true, options);
+export function renderToStaticMarkup(element) {
+  const renderer = new ReactPartialRenderer(element, true);
   try {
     const markup = renderer.read(Infinity);
     return markup;

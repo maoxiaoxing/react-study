@@ -7,12 +7,7 @@
 
 'use strict';
 
-const fs = require('fs');
-const ReactVersionSrc = fs.readFileSync(
-  require.resolve('../../packages/shared/ReactVersion')
-);
-const reactVersion = /export default '([^']+)';/.exec(ReactVersionSrc)[1];
-
+const reactVersion = require('../../package.json').version;
 const versions = {
   'packages/react/package.json': require('../../packages/react/package.json')
     .version,
@@ -20,7 +15,7 @@ const versions = {
     .version,
   'packages/react-test-renderer/package.json': require('../../packages/react-test-renderer/package.json')
     .version,
-  'packages/shared/ReactVersion.js': reactVersion,
+  'packages/shared/ReactVersion.js': require('../../packages/shared/ReactVersion'),
 };
 
 let allVersionsMatch = true;

@@ -161,11 +161,11 @@ describe('ReactDOMServerIntegration', () => {
     });
 
     itRenders('readContext() in different components', async render => {
-      function readContext(Ctx) {
+      function readContext(Ctx, observedBits) {
         const dispatcher =
           React.__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED
             .ReactCurrentDispatcher.current;
-        return dispatcher.readContext(Ctx);
+        return dispatcher.readContext(Ctx, observedBits);
       }
 
       class Cls extends React.Component {
@@ -287,7 +287,7 @@ describe('ReactDOMServerIntegration', () => {
           </Language.Consumer>
         </div>
       );
-      const e = await render(<App />);
+      let e = await render(<App />);
       expect(e.querySelector('#theme1').textContent).toBe('dark');
       expect(e.querySelector('#theme2').textContent).toBe('light');
       expect(e.querySelector('#theme3').textContent).toBe('blue');
@@ -442,11 +442,11 @@ describe('ReactDOMServerIntegration', () => {
         </CurrentIndex.Provider>
       );
 
-      const streams = [];
+      let streams = [];
 
       // Test with more than 32 streams to test that growing the thread count
       // works properly.
-      const streamCount = 34;
+      let streamCount = 34;
 
       for (let i = 0; i < streamCount; i++) {
         streams[i] = ReactDOMServer.renderToNodeStream(

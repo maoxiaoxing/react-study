@@ -139,7 +139,7 @@ function runTests(itRenders, itRejectsRendering, expectToReject) {
   );
 
   it('rejects a javascript protocol href if it is added during an update', () => {
-    const container = document.createElement('div');
+    let container = document.createElement('div');
     ReactDOM.render(<a href="thisisfine">click me</a>, container);
     expectToReject(() => {
       ReactDOM.render(<a href="javascript:notfine">click me</a>, container);
@@ -244,13 +244,13 @@ describe('ReactDOMServerIntegration - Untrusted URLs - disableJavaScriptURLs', (
     }
 
     let toStringCalls = 0;
-    const firstIsSafe = {
+    let firstIsSafe = {
       toString() {
         // This tries to avoid the validation by pretending to be safe
         // the first times it is called and then becomes dangerous.
         toStringCalls++;
         if (toStringCalls <= expectedToStringCalls) {
-          return 'https://reactjs.org/';
+          return 'https://fb.me/';
         }
         return 'javascript:notfine';
       },
@@ -258,11 +258,11 @@ describe('ReactDOMServerIntegration - Untrusted URLs - disableJavaScriptURLs', (
 
     const e = await render(<a href={firstIsSafe} />);
     expect(toStringCalls).toBe(expectedToStringCalls);
-    expect(e.href).toBe('https://reactjs.org/');
+    expect(e.href).toBe('https://fb.me/');
   });
 
   it('rejects a javascript protocol href if it is added during an update twice', () => {
-    const container = document.createElement('div');
+    let container = document.createElement('div');
     ReactDOM.render(<a href="thisisfine">click me</a>, container);
     expectToReject(() => {
       ReactDOM.render(<a href="javascript:notfine">click me</a>, container);

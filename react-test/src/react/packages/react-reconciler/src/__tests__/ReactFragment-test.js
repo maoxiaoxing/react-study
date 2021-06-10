@@ -900,15 +900,17 @@ describe('ReactFragment', () => {
     );
 
     ReactNoop.render(<Foo condition={false} />);
-    // The key warning gets deduped because it's in the same component.
-    expect(Scheduler).toFlushWithoutYielding();
+    expect(() => expect(Scheduler).toFlushWithoutYielding()).toErrorDev(
+      'Each child in a list should have a unique "key" prop.',
+    );
 
     expect(ops).toEqual(['Update Stateful']);
     expect(ReactNoop.getChildren()).toEqual([span(), div()]);
 
     ReactNoop.render(<Foo condition={true} />);
-    // The key warning gets deduped because it's in the same component.
-    expect(Scheduler).toFlushWithoutYielding();
+    expect(() => expect(Scheduler).toFlushWithoutYielding()).toErrorDev(
+      'Each child in a list should have a unique "key" prop.',
+    );
 
     expect(ops).toEqual(['Update Stateful', 'Update Stateful']);
     expect(ReactNoop.getChildren()).toEqual([span(), div()]);

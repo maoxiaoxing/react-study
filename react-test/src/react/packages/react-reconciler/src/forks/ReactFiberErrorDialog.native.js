@@ -7,14 +7,10 @@
  * @flow
  */
 
-import type {Fiber} from '../ReactFiber.old';
-import type {CapturedValue} from '../ReactCapturedValue';
-
-import {ClassComponent} from '../ReactWorkTags';
+import type {CapturedError} from '../ReactCapturedValue';
 
 // Module provided by RN:
 import {ReactFiberErrorDialog as RNImpl} from 'react-native/Libraries/ReactPrivate/ReactNativePrivateInterface';
-
 import invariant from 'shared/invariant';
 
 invariant(
@@ -22,17 +18,6 @@ invariant(
   'Expected ReactFiberErrorDialog.showErrorDialog to be a function.',
 );
 
-export function showErrorDialog(
-  boundary: Fiber,
-  errorInfo: CapturedValue<mixed>,
-): boolean {
-  const capturedError = {
-    componentStack: errorInfo.stack !== null ? errorInfo.stack : '',
-    error: errorInfo.value,
-    errorBoundary:
-      boundary !== null && boundary.tag === ClassComponent
-        ? boundary.stateNode
-        : null,
-  };
+export function showErrorDialog(capturedError: CapturedError): boolean {
   return RNImpl.showErrorDialog(capturedError);
 }

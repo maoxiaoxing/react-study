@@ -13,56 +13,33 @@ import typeof * as EventListenerType from '../EventListener';
 import typeof * as EventListenerShimType from './EventListener-www';
 
 export function addEventBubbleListener(
-  target: EventTarget,
+  element: Element,
   eventType: string,
   listener: Function,
-) {
-  return EventListenerWWW.listen(target, eventType, listener);
+): void {
+  EventListenerWWW.listen(element, eventType, listener);
 }
 
 export function addEventCaptureListener(
-  target: EventTarget,
+  element: Element,
   eventType: string,
   listener: Function,
-) {
-  return EventListenerWWW.capture(target, eventType, listener);
+): void {
+  EventListenerWWW.capture(element, eventType, listener);
 }
 
 export function addEventCaptureListenerWithPassiveFlag(
-  target: EventTarget,
+  element: Element,
   eventType: string,
   listener: Function,
   passive: boolean,
-) {
-  return EventListenerWWW.captureWithPassiveFlag(
-    target,
+): void {
+  EventListenerWWW.captureWithPassiveFlag(
+    element,
     eventType,
     listener,
     passive,
   );
-}
-
-export function addEventBubbleListenerWithPassiveFlag(
-  target: EventTarget,
-  eventType: string,
-  listener: Function,
-  passive: boolean,
-) {
-  return EventListenerWWW.bubbleWithPassiveFlag(
-    target,
-    eventType,
-    listener,
-    passive,
-  );
-}
-
-export function removeEventListener(
-  target: EventTarget,
-  eventType: string,
-  listener: Function,
-  capture: boolean,
-) {
-  listener.remove();
 }
 
 // Flow magic to verify the exports of this file match the original version.

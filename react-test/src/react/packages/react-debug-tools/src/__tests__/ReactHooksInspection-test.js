@@ -22,10 +22,10 @@ describe('ReactHooksInspection', () => {
 
   it('should inspect a simple useState hook', () => {
     function Foo(props) {
-      const [state] = React.useState('hello world');
+      let [state] = React.useState('hello world');
       return <div>{state}</div>;
     }
-    const tree = ReactDebugTools.inspectHooks(Foo, {});
+    let tree = ReactDebugTools.inspectHooks(Foo, {});
     expect(tree).toEqual([
       {
         isStateEditable: true,
@@ -39,15 +39,15 @@ describe('ReactHooksInspection', () => {
 
   it('should inspect a simple custom hook', () => {
     function useCustom(value) {
-      const [state] = React.useState(value);
+      let [state] = React.useState(value);
       React.useDebugValue('custom hook label');
       return state;
     }
     function Foo(props) {
-      const value = useCustom('hello world');
+      let value = useCustom('hello world');
       return <div>{value}</div>;
     }
-    const tree = ReactDebugTools.inspectHooks(Foo, {});
+    let tree = ReactDebugTools.inspectHooks(Foo, {});
     expect(tree).toEqual([
       {
         isStateEditable: false,
@@ -70,20 +70,20 @@ describe('ReactHooksInspection', () => {
   it('should inspect a tree of multiple hooks', () => {
     function effect() {}
     function useCustom(value) {
-      const [state] = React.useState(value);
+      let [state] = React.useState(value);
       React.useEffect(effect);
       return state;
     }
     function Foo(props) {
-      const value1 = useCustom('hello');
-      const value2 = useCustom('world');
+      let value1 = useCustom('hello');
+      let value2 = useCustom('world');
       return (
         <div>
           {value1} {value2}
         </div>
       );
     }
-    const tree = ReactDebugTools.inspectHooks(Foo, {});
+    let tree = ReactDebugTools.inspectHooks(Foo, {});
     expect(tree).toEqual([
       {
         isStateEditable: false,
@@ -135,30 +135,30 @@ describe('ReactHooksInspection', () => {
   it('should inspect a tree of multiple levels of hooks', () => {
     function effect() {}
     function useCustom(value) {
-      const [state] = React.useReducer((s, a) => s, value);
+      let [state] = React.useReducer((s, a) => s, value);
       React.useEffect(effect);
       return state;
     }
     function useBar(value) {
-      const result = useCustom(value);
+      let result = useCustom(value);
       React.useLayoutEffect(effect);
       return result;
     }
     function useBaz(value) {
       React.useLayoutEffect(effect);
-      const result = useCustom(value);
+      let result = useCustom(value);
       return result;
     }
     function Foo(props) {
-      const value1 = useBar('hello');
-      const value2 = useBaz('world');
+      let value1 = useBar('hello');
+      let value2 = useBaz('world');
       return (
         <div>
           {value1} {value2}
         </div>
       );
     }
-    const tree = ReactDebugTools.inspectHooks(Foo, {});
+    let tree = ReactDebugTools.inspectHooks(Foo, {});
     expect(tree).toEqual([
       {
         isStateEditable: false,
@@ -238,12 +238,12 @@ describe('ReactHooksInspection', () => {
   });
 
   it('should inspect the default value using the useContext hook', () => {
-    const MyContext = React.createContext('default');
+    let MyContext = React.createContext('default');
     function Foo(props) {
-      const value = React.useContext(MyContext);
+      let value = React.useContext(MyContext);
       return <div>{value}</div>;
     }
-    const tree = ReactDebugTools.inspectHooks(Foo, {});
+    let tree = ReactDebugTools.inspectHooks(Foo, {});
     expect(tree).toEqual([
       {
         isStateEditable: false,
@@ -257,15 +257,15 @@ describe('ReactHooksInspection', () => {
 
   it('should support an injected dispatcher', () => {
     function Foo(props) {
-      const [state] = React.useState('hello world');
+      let [state] = React.useState('hello world');
       return <div>{state}</div>;
     }
 
-    const initial = {};
+    let initial = {};
     let current = initial;
     let getterCalls = 0;
-    const setterCalls = [];
-    const FakeDispatcherRef = {
+    let setterCalls = [];
+    let FakeDispatcherRef = {
       get current() {
         getterCalls++;
         return current;
@@ -277,17 +277,14 @@ describe('ReactHooksInspection', () => {
     };
 
     expect(() => {
-      expect(() => {
-        ReactDebugTools.inspectHooks(Foo, {}, FakeDispatcherRef);
-      }).toThrow("Cannot read property 'useState' of null");
-    }).toErrorDev(
+      ReactDebugTools.inspectHooks(Foo, {}, FakeDispatcherRef);
+    }).toThrow(
       'Invalid hook call. Hooks can only be called inside of the body of a function component. This could happen for' +
         ' one of the following reasons:\n' +
         '1. You might have mismatching versions of React and the renderer (such as React DOM)\n' +
         '2. You might be breaking the Rules of Hooks\n' +
         '3. You might have more than one copy of React in the same app\n' +
-        'See https://reactjs.org/link/invalid-hook-call for tips about how to debug and fix this problem.',
-      {withoutStack: true},
+        'See https://fb.me/react-invalid-hook-call for tips about how to debug and fix this problem.',
     );
 
     expect(getterCalls).toBe(1);
@@ -302,7 +299,7 @@ describe('ReactHooksInspection', () => {
         React.useDebugValue('this is invalid');
         return null;
       }
-      const tree = ReactDebugTools.inspectHooks(Foo, {});
+      let tree = ReactDebugTools.inspectHooks(Foo, {});
       expect(tree).toHaveLength(0);
     });
 
@@ -315,7 +312,7 @@ describe('ReactHooksInspection', () => {
         useCustom();
         return null;
       }
-      const tree = ReactDebugTools.inspectHooks(Foo, {});
+      let tree = ReactDebugTools.inspectHooks(Foo, {});
       expect(tree).toEqual([
         {
           isStateEditable: false,

@@ -37,7 +37,7 @@ function getFriendlyTag(tag) {
   }
 }
 
-function getFriendlyEffect(flags) {
+function getFriendlyEffect(effectTag) {
   const effects = {
     1: 'Performed Work',
     2: 'Placement',
@@ -49,7 +49,7 @@ function getFriendlyEffect(flags) {
     128: 'Ref',
   };
   return Object.keys(effects)
-    .filter(flag => flag & flags)
+    .filter(flag => flag & effectTag)
     .map(flag => effects[flag])
     .join(' & ');
 }
@@ -72,7 +72,7 @@ export default function describeFibers(rootFiber, workInProgress) {
       ...fiber,
       id: id,
       tag: getFriendlyTag(fiber.tag),
-      flags: getFriendlyEffect(fiber.flags),
+      effectTag: getFriendlyEffect(fiber.effectTag),
       type: fiber.type && '<' + (fiber.type.name || fiber.type) + '>',
       stateNode: `[${typeof fiber.stateNode}]`,
       return: acknowledgeFiber(fiber.return),

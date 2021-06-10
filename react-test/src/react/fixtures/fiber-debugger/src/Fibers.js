@@ -324,9 +324,9 @@ export default function Fibers({fibers, show, graphSettings, ...rest}) {
               ) : (
                 <small>Committed</small>
               )}
-              {fiber.flags && [
+              {fiber.effectTag && [
                 <br key="br" />,
-                <small key="small">Effect: {fiber.flags}</small>,
+                <small key="small">Effect: {fiber.effectTag}</small>,
               ]}
             </div>
           </Vertex>,

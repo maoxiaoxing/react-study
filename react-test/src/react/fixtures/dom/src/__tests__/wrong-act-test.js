@@ -81,12 +81,12 @@ it("doesn't warn when you use the right act + renderer: test", () => {
   });
 });
 
-it('resets correctly across renderers', async () => {
+it('resets correctly across renderers', () => {
   function Effecty() {
     React.useEffect(() => {}, []);
     return null;
   }
-  await TestUtils.act(async () => {
+  TestUtils.act(() => {
     TestRenderer.act(() => {});
     expect(() => {
       TestRenderer.create(<Effecty />);
@@ -118,9 +118,7 @@ it('warns when using the wrong act version - test + dom: updates', () => {
     TestRenderer.act(() => {
       setCtr(1);
     });
-  }).toWarnDev(["It looks like you're using the wrong act()"], {
-    withoutStack: true,
-  });
+  }).toWarnDev(["It looks like you're using the wrong act()"]);
 });
 
 it('warns when using the wrong act version - dom + test: .create()', () => {
@@ -156,9 +154,7 @@ it('warns when using the wrong act version - dom + test: updates', () => {
     TestUtils.act(() => {
       setCtr(1);
     });
-  }).toWarnDev(["It looks like you're using the wrong act()"], {
-    withoutStack: true,
-  });
+  }).toWarnDev(["It looks like you're using the wrong act()"]);
 });
 
 it('does not warn when nesting react-act inside react-dom', () => {
@@ -183,7 +179,7 @@ it("doesn't warn if you use nested acts from different renderers", () => {
 
 if (__EXPERIMENTAL__) {
   it('warns when using createRoot() + .render', () => {
-    const root = ReactDOM.unstable_createRoot(document.createElement('div'));
+    const root = ReactDOM.createRoot(document.createElement('div'));
     expect(() => {
       TestRenderer.act(() => {
         root.render(<App />);

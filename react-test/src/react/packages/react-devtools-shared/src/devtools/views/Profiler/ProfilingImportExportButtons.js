@@ -39,9 +39,7 @@ export default function ProfilingImportExportButtons() {
       return;
     }
 
-    const anchorElement = downloadRef.current;
-
-    if (profilingData !== null && anchorElement !== null) {
+    if (profilingData !== null && downloadRef.current !== null) {
       const profilingDataExport = prepareProfilingDataExport(profilingData);
       const date = new Date();
       const dateString = date
@@ -57,7 +55,7 @@ export default function ProfilingImportExportButtons() {
         })
         .replace(/:/g, '-');
       downloadFile(
-        anchorElement,
+        downloadRef.current,
         `profiling-data.${dateString}.${timeString}.json`,
         JSON.stringify(profilingDataExport, null, 2),
       );
@@ -85,7 +83,6 @@ export default function ProfilingImportExportButtons() {
           );
         } catch (error) {
           modalDialogDispatch({
-            id: 'ProfilingImportExportButtons',
             type: 'SHOW',
             title: 'Import failed',
             content: (

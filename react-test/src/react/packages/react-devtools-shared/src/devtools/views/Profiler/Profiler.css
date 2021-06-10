@@ -11,11 +11,6 @@
   color: var(--color-text);
 }
 
-.Profiler, .Profiler * {
-  box-sizing: border-box;
-  -webkit-font-smoothing: var(--font-smoothing);
-}
-
 .LeftColumn {
   display: flex;
   flex-direction: column;

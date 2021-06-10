@@ -28,7 +28,7 @@ function dumpSubtree(info, indent) {
 
 const RCTFabricUIManager = {
   __dumpChildSetForJestTestsOnly: function(childSet) {
-    const result = [];
+    let result = [];
     // eslint-disable-next-line no-for-of-loops/no-for-of-loops
     for (const child of childSet) {
       result.push(dumpSubtree(child, 0));
@@ -36,7 +36,7 @@ const RCTFabricUIManager = {
     return result.join('\n');
   },
   __dumpHierarchyForJestTestsOnly: function() {
-    const result = [];
+    let result = [];
     // eslint-disable-next-line no-for-of-loops/no-for-of-loops
     for (const [rootTag, childSet] of roots) {
       result.push(rootTag);
@@ -122,8 +122,6 @@ const RCTFabricUIManager = {
 
   dispatchCommand: jest.fn(),
 
-  sendAccessibilityEvent: jest.fn(),
-
   registerEventHandler: jest.fn(function registerEventHandler(callback) {}),
 
   measure: jest.fn(function measure(node, callback) {
@@ -176,7 +174,6 @@ const RCTFabricUIManager = {
     );
     success(1, 1, 100, 100);
   }),
-  setIsJSResponder: jest.fn(),
 };
 
 global.nativeFabricUIManager = RCTFabricUIManager;

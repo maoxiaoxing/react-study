@@ -16,8 +16,8 @@ let ReactDOM;
 let ReactFreshRuntime;
 let act;
 
-const babel = require('@babel/core');
-const freshPlugin = require('react-refresh/babel');
+let babel = require('@babel/core');
+let freshPlugin = require('react-refresh/babel');
 
 describe('ReactFreshIntegration', () => {
   let container;
@@ -30,7 +30,7 @@ describe('ReactFreshIntegration', () => {
       ReactFreshRuntime = require('react-refresh/runtime');
       ReactFreshRuntime.injectIntoGlobalHook(global);
       ReactDOM = require('react-dom');
-      act = require('react-dom/test-utils').unstable_concurrentAct;
+      act = require('react-dom/test-utils').act;
       container = document.createElement('div');
       document.body.appendChild(container);
       exportsObj = undefined;
@@ -100,7 +100,7 @@ describe('ReactFreshIntegration', () => {
       // (In a real module system we'd do this for *all* exports.)
       // For example, this can happen if you convert a class to a function.
       // Or if you wrap something in a HOC.
-      const didExportsChange =
+      let didExportsChange =
         ReactFreshRuntime.getFamilyByType(prevExports.default) !==
         ReactFreshRuntime.getFamilyByType(nextExports.default);
       if (didExportsChange) {
@@ -466,227 +466,6 @@ describe('ReactFreshIntegration', () => {
         expect(container.firstChild).not.toBe(el);
         const newEl = container.firstChild;
         expect(newEl.textContent).toBe('C3');
-      }
-    });
-
-    it('resets state when renaming a state variable inside a HOC with direct call', () => {
-      if (__DEV__) {
-        render(`
-          const {useState} = React;
-          const S = 1;
-
-          function hocWithDirectCall(Wrapped) {
-            return function Generated() {
-              return Wrapped();
-            };
-          }
-
-          export default hocWithDirectCall(() => {
-            const [foo, setFoo] = useState(S);
-            return <h1>A{foo}</h1>;
-          });
-        `);
-        const el = container.firstChild;
-        expect(el.textContent).toBe('A1');
-
-        patch(`
-          const {useState} = React;
-          const S = 2;
-
-          function hocWithDirectCall(Wrapped) {
-            return function Generated() {
-              return Wrapped();
-            };
-          }
-
-          export default hocWithDirectCall(() => {
-            const [foo, setFoo] = useState(S);
-            return <h1>B{foo}</h1>;
-          });
-        `);
-        // Same state variable name, so state is preserved.
-        expect(container.firstChild).toBe(el);
-        expect(el.textContent).toBe('B1');
-
-        patch(`
-          const {useState} = React;
-          const S = 3;
-
-          function hocWithDirectCall(Wrapped) {
-            return function Generated() {
-              return Wrapped();
-            };
-          }
-
-          export default hocWithDirectCall(() => {
-            const [bar, setBar] = useState(S);
-            return <h1>C{bar}</h1>;
-          });
-        `);
-        // Different state variable name, so state is reset.
-        expect(container.firstChild).not.toBe(el);
-        const newEl = container.firstChild;
-        expect(newEl.textContent).toBe('C3');
-      }
-    });
-
-    it('does not crash when changing Hook order inside a HOC with direct call', () => {
-      if (__DEV__) {
-        render(`
-          const {useEffect} = React;
-
-          function hocWithDirectCall(Wrapped) {
-            return function Generated() {
-              return Wrapped();
-            };
-          }
-
-          export default hocWithDirectCall(() => {
-            useEffect(() => {}, []);
-            return <h1>A</h1>;
-          });
-        `);
-        const el = container.firstChild;
-        expect(el.textContent).toBe('A');
-
-        patch(`
-          const {useEffect} = React;
-
-          function hocWithDirectCall(Wrapped) {
-            return function Generated() {
-              return Wrapped();
-            };
-          }
-
-          export default hocWithDirectCall(() => {
-            useEffect(() => {}, []);
-            useEffect(() => {}, []);
-            return <h1>B</h1>;
-          });
-        `);
-        // Hook order changed, so we remount.
-        expect(container.firstChild).not.toBe(el);
-        const newEl = container.firstChild;
-        expect(newEl.textContent).toBe('B');
-      }
-    });
-
-    it('does not crash when changing Hook order inside a memo-ed HOC with direct call', () => {
-      if (__DEV__) {
-        render(`
-          const {useEffect, memo} = React;
-
-          function hocWithDirectCall(Wrapped) {
-            return memo(function Generated() {
-              return Wrapped();
-            });
-          }
-
-          export default hocWithDirectCall(() => {
-            useEffect(() => {}, []);
-            return <h1>A</h1>;
-          });
-        `);
-        const el = container.firstChild;
-        expect(el.textContent).toBe('A');
-
-        patch(`
-          const {useEffect, memo} = React;
-
-          function hocWithDirectCall(Wrapped) {
-            return memo(function Generated() {
-              return Wrapped();
-            });
-          }
-
-          export default hocWithDirectCall(() => {
-            useEffect(() => {}, []);
-            useEffect(() => {}, []);
-            return <h1>B</h1>;
-          });
-        `);
-        // Hook order changed, so we remount.
-        expect(container.firstChild).not.toBe(el);
-        const newEl = container.firstChild;
-        expect(newEl.textContent).toBe('B');
-      }
-    });
-
-    it('does not crash when changing Hook order inside a memo+forwardRef-ed HOC with direct call', () => {
-      if (__DEV__) {
-        render(`
-          const {useEffect, memo, forwardRef} = React;
-
-          function hocWithDirectCall(Wrapped) {
-            return memo(forwardRef(function Generated() {
-              return Wrapped();
-            }));
-          }
-
-          export default hocWithDirectCall(() => {
-            useEffect(() => {}, []);
-            return <h1>A</h1>;
-          });
-        `);
-        const el = container.firstChild;
-        expect(el.textContent).toBe('A');
-
-        patch(`
-          const {useEffect, memo, forwardRef} = React;
-
-          function hocWithDirectCall(Wrapped) {
-            return memo(forwardRef(function Generated() {
-              return Wrapped();
-            }));
-          }
-
-          export default hocWithDirectCall(() => {
-            useEffect(() => {}, []);
-            useEffect(() => {}, []);
-            return <h1>B</h1>;
-          });
-        `);
-        // Hook order changed, so we remount.
-        expect(container.firstChild).not.toBe(el);
-        const newEl = container.firstChild;
-        expect(newEl.textContent).toBe('B');
-      }
-    });
-
-    it('does not crash when changing Hook order inside a HOC returning an object', () => {
-      if (__DEV__) {
-        render(`
-          const {useEffect} = React;
-
-          function hocWithDirectCall(Wrapped) {
-            return {Wrapped: Wrapped};
-          }
-
-          export default hocWithDirectCall(() => {
-            useEffect(() => {}, []);
-            return <h1>A</h1>;
-          }).Wrapped;
-        `);
-        const el = container.firstChild;
-        expect(el.textContent).toBe('A');
-
-        patch(`
-          const {useEffect} = React;
-
-          function hocWithDirectCall(Wrapped) {
-            return {Wrapped: Wrapped};
-          }
-
-          export default hocWithDirectCall(() => {
-            useEffect(() => {}, []);
-            useEffect(() => {}, []);
-            return <h1>B</h1>;
-          }).Wrapped;
-        `);
-        // Hook order changed, so we remount.
-        expect(container.firstChild).not.toBe(el);
-        const newEl = container.firstChild;
-        expect(newEl.textContent).toBe('B');
       }
     });
 
@@ -1600,53 +1379,51 @@ describe('ReactFreshIntegration', () => {
       }
     });
 
-    if (!require('shared/ReactFeatureFlags').disableModulePatternComponents) {
-      it('remounts deprecated factory components', () => {
-        if (__DEV__) {
-          expect(() => {
-            render(`
-              function Parent() {
-                return {
-                  render() {
-                    return <Child prop="A" />;
-                  }
-                };
-              };
-
-              function Child({prop}) {
-                return <h1>{prop}1</h1>;
-              };
-
-              export default Parent;
-            `);
-          }).toErrorDev(
-            'The <Parent /> component appears to be a function component ' +
-              'that returns a class instance.',
-          );
-          const el = container.firstChild;
-          expect(el.textContent).toBe('A1');
-          patch(`
+    it('remounts deprecated factory components', () => {
+      if (__DEV__) {
+        expect(() => {
+          render(`
             function Parent() {
               return {
                 render() {
-                  return <Child prop="B" />;
+                  return <Child prop="A" />;
                 }
               };
             };
 
             function Child({prop}) {
-              return <h1>{prop}2</h1>;
+              return <h1>{prop}1</h1>;
             };
 
             export default Parent;
           `);
-          // Like classes, factory components always remount.
-          expect(container.firstChild).not.toBe(el);
-          const newEl = container.firstChild;
-          expect(newEl.textContent).toBe('B2');
-        }
-      });
-    }
+        }).toErrorDev(
+          'The <Parent /> component appears to be a function component ' +
+            'that returns a class instance.',
+        );
+        const el = container.firstChild;
+        expect(el.textContent).toBe('A1');
+        patch(`
+          function Parent() {
+            return {
+              render() {
+                return <Child prop="B" />;
+              }
+            };
+          };
+
+          function Child({prop}) {
+            return <h1>{prop}2</h1>;
+          };
+
+          export default Parent;
+        `);
+        // Like classes, factory components always remount.
+        expect(container.firstChild).not.toBe(el);
+        const newEl = container.firstChild;
+        expect(newEl.textContent).toBe('B2');
+      }
+    });
 
     describe('with inline requires', () => {
       beforeEach(() => {

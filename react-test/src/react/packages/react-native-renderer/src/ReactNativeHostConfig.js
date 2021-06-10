@@ -7,8 +7,6 @@
  * @flow
  */
 
-import type {TouchedViewDataAtPoint} from './ReactNativeTypes';
-
 import invariant from 'shared/invariant';
 
 // Modules provided by RN:
@@ -25,8 +23,6 @@ import {
   updateFiberProps,
 } from './ReactNativeComponentTree';
 import ReactNativeFiberHostComponent from './ReactNativeFiberHostComponent';
-
-import {DefaultEventPriority} from 'react-reconciler/src/ReactEventPriorities';
 
 const {get: getViewConfigForType} = ReactNativeViewConfigRegistry;
 
@@ -45,18 +41,6 @@ export type ChildSet = void; // Unused
 
 export type TimeoutHandle = TimeoutID;
 export type NoTimeout = -1;
-export type OpaqueIDType = void;
-
-export type RendererInspectionConfig = $ReadOnly<{|
-  // Deprecated. Replaced with getInspectorDataForViewAtPoint.
-  getInspectorDataForViewTag?: (tag: number) => Object,
-  getInspectorDataForViewAtPoint?: (
-    inspectedView: Object,
-    locationX: number,
-    locationY: number,
-    callback: (viewData: TouchedViewDataAtPoint) => mixed,
-  ) => void,
-|}>;
 
 const UPDATE_SIGNAL = {};
 if (__DEV__) {
@@ -87,11 +71,8 @@ function recursivelyUncacheFiberNode(node: Instance | TextInstance) {
   }
 }
 
-export * from 'react-reconciler/src/ReactFiberHostConfigWithNoPersistence';
-export * from 'react-reconciler/src/ReactFiberHostConfigWithNoHydration';
-export * from 'react-reconciler/src/ReactFiberHostConfigWithNoScopes';
-export * from 'react-reconciler/src/ReactFiberHostConfigWithNoTestSelectors';
-export * from 'react-reconciler/src/ReactFiberHostConfigWithNoMicrotasks';
+export * from 'shared/HostConfigWithNoPersistence';
+export * from 'shared/HostConfigWithNoHydration';
 
 export function appendInitialChild(
   parentInstance: Instance,
@@ -127,11 +108,7 @@ export function createInstance(
     updatePayload, // props
   );
 
-  const component = new ReactNativeFiberHostComponent(
-    tag,
-    viewConfig,
-    internalInstanceHandle,
-  );
+  const component = new ReactNativeFiberHostComponent(tag, viewConfig);
 
   precacheFiberNode(internalInstanceHandle, tag);
   updateFiberProps(tag, props);
@@ -224,9 +201,8 @@ export function getPublicInstance(instance: Instance): * {
   return instance;
 }
 
-export function prepareForCommit(containerInfo: Container): null | Object {
+export function prepareForCommit(containerInfo: Container): void {
   // Noop
-  return null;
 }
 
 export function prepareUpdate(
@@ -251,6 +227,10 @@ export const scheduleTimeout = setTimeout;
 export const cancelTimeout = clearTimeout;
 export const noTimeout = -1;
 
+export function shouldDeprioritizeSubtree(type: string, props: Props): boolean {
+  return false;
+}
+
 export function shouldSetTextContent(type: string, props: Props): boolean {
   // TODO (bvaughn) Revisit this decision.
   // Always returning false simplifies the createInstance() implementation,
@@ -259,10 +239,6 @@ export function shouldSetTextContent(type: string, props: Props): boolean {
   // It's not clear to me which is better so I'm deferring for now.
   // More context @ github.com/facebook/react/pull/8560#discussion_r92111303
   return false;
-}
-
-export function getCurrentEventPriority(): * {
-  return DefaultEventPriority;
 }
 
 // -------------------
@@ -487,11 +463,6 @@ export function unhideInstance(instance: Instance, props: Props): void {
   );
 }
 
-export function clearContainer(container: Container): void {
-  // TODO Implement this for React Native
-  // UIManager does not expose a "remove all" type method.
-}
-
 export function unhideTextInstance(
   textInstance: TextInstance,
   text: string,
@@ -499,40 +470,46 @@ export function unhideTextInstance(
   throw new Error('Not yet implemented.');
 }
 
+export function DEPRECATED_mountResponderInstance(
+  responder: any,
+  responderInstance: any,
+  props: Object,
+  state: Object,
+  instance: Instance,
+) {
+  throw new Error('Not yet implemented.');
+}
+
+export function DEPRECATED_unmountResponderInstance(
+  responderInstance: any,
+): void {
+  throw new Error('Not yet implemented.');
+}
+
+export function getFundamentalComponentInstance(fundamentalInstance: any) {
+  throw new Error('Not yet implemented.');
+}
+
+export function mountFundamentalComponent(fundamentalInstance: any) {
+  throw new Error('Not yet implemented.');
+}
+
+export function shouldUpdateFundamentalComponent(fundamentalInstance: any) {
+  throw new Error('Not yet implemented.');
+}
+
+export function updateFundamentalComponent(fundamentalInstance: any) {
+  throw new Error('Not yet implemented.');
+}
+
+export function unmountFundamentalComponent(fundamentalInstance: any) {
+  throw new Error('Not yet implemented.');
+}
+
 export function getInstanceFromNode(node: any) {
   throw new Error('Not yet implemented.');
 }
 
-export function isOpaqueHydratingObject(value: mixed): boolean {
-  throw new Error('Not yet implemented');
-}
-
-export function makeOpaqueHydratingObject(
-  attemptToReadValue: () => void,
-): OpaqueIDType {
-  throw new Error('Not yet implemented.');
-}
-
-export function makeClientId(): OpaqueIDType {
-  throw new Error('Not yet implemented');
-}
-
-export function makeClientIdInDEV(warnOnAccessInDEV: () => void): OpaqueIDType {
-  throw new Error('Not yet implemented');
-}
-
-export function beforeActiveInstanceBlur(internalInstanceHandle: Object) {
-  // noop
-}
-
-export function afterActiveInstanceBlur() {
-  // noop
-}
-
-export function preparePortalMount(portalInstance: Instance): void {
-  // noop
-}
-
-export function detachDeletedInstance(node: Instance): void {
+export function beforeRemoveInstance(instance: any) {
   // noop
 }

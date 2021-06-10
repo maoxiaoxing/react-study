@@ -7,9 +7,9 @@
  * @flow
  */
 
-import type {HostComponent} from './ReactNativeTypes';
+import type {ReactFabricType, HostComponent} from './ReactNativeTypes';
 import type {ReactNodeList} from 'shared/ReactTypes';
-import type {ElementRef, Element, ElementType} from 'react';
+import type {ElementRef} from 'react';
 
 import './ReactFabricInjection';
 
@@ -19,35 +19,31 @@ import {
   batchedEventUpdates,
   batchedUpdates as batchedUpdatesImpl,
   discreteUpdates,
+  flushDiscreteUpdates,
   createContainer,
   updateContainer,
   injectIntoDevTools,
   getPublicRootInstance,
-} from 'react-reconciler/src/ReactFiberReconciler';
+} from 'react-reconciler/inline.fabric';
 
-import {createPortal as createPortalImpl} from 'react-reconciler/src/ReactPortal';
-import {setBatchingImplementation} from './legacy-events/ReactGenericBatching';
+import {createPortal} from 'shared/ReactPortal';
+import {setBatchingImplementation} from 'legacy-events/ReactGenericBatching';
 import ReactVersion from 'shared/ReactVersion';
 
-// Modules provided by RN:
-import {
-  UIManager,
-  legacySendAccessibilityEvent,
-} from 'react-native/Libraries/ReactPrivate/ReactNativePrivateInterface';
+// Module provided by RN:
+import {UIManager} from 'react-native/Libraries/ReactPrivate/ReactNativePrivateInterface';
 
 import {getClosestInstanceFromNode} from './ReactFabricComponentTree';
-import {
-  getInspectorDataForViewTag,
-  getInspectorDataForViewAtPoint,
-} from './ReactNativeFiberInspector';
-import {LegacyRoot, ConcurrentRoot} from 'react-reconciler/src/ReactRootTags';
+import {getInspectorDataForViewTag} from './ReactNativeFiberInspector';
+
+import {LegacyRoot} from 'shared/ReactRootTags';
 import ReactSharedInternals from 'shared/ReactSharedInternals';
-import getComponentNameFromType from 'shared/getComponentNameFromType';
+import getComponentName from 'shared/getComponentName';
 
 const ReactCurrentOwner = ReactSharedInternals.ReactCurrentOwner;
 
-function findHostInstance_DEPRECATED<TElementType: ElementType>(
-  componentOrHandle: ?(ElementRef<TElementType> | number),
+function findHostInstance_DEPRECATED(
+  componentOrHandle: any,
 ): ?ElementRef<HostComponent<mixed>> {
   if (__DEV__) {
     const owner = ReactCurrentOwner.current;
@@ -59,7 +55,7 @@ function findHostInstance_DEPRECATED<TElementType: ElementType>(
             'never access something that requires stale data from the previous ' +
             'render, such as refs. Move this logic to componentDidMount and ' +
             'componentDidUpdate instead.',
-          getComponentNameFromType(owner.type) || 'A component',
+          getComponentName(owner.type) || 'A component',
         );
       }
 
@@ -69,14 +65,10 @@ function findHostInstance_DEPRECATED<TElementType: ElementType>(
   if (componentOrHandle == null) {
     return null;
   }
-  // $FlowIssue Flow has hardcoded values for React DOM that don't work with RN
   if (componentOrHandle._nativeTag) {
-    // $FlowIssue Flow has hardcoded values for React DOM that don't work with RN
     return componentOrHandle;
   }
-  // $FlowIssue Flow has hardcoded values for React DOM that don't work with RN
   if (componentOrHandle.canonical && componentOrHandle.canonical._nativeTag) {
-    // $FlowIssue Flow has hardcoded values for React DOM that don't work with RN
     return componentOrHandle.canonical;
   }
   let hostInstance;
@@ -96,7 +88,6 @@ function findHostInstance_DEPRECATED<TElementType: ElementType>(
     // Fabric
     return (hostInstance: any).canonical;
   }
-  // $FlowFixMe[incompatible-return]
   return hostInstance;
 }
 
@@ -111,7 +102,7 @@ function findNodeHandle(componentOrHandle: any): ?number {
             'never access something that requires stale data from the previous ' +
             'render, such as refs. Move this logic to componentDidMount and ' +
             'componentDidUpdate instead.',
-          getComponentNameFromType(owner.type) || 'A component',
+          getComponentName(owner.type) || 'A component',
         );
       }
 
@@ -153,132 +144,91 @@ function findNodeHandle(componentOrHandle: any): ?number {
   return hostInstance._nativeTag;
 }
 
-function dispatchCommand(handle: any, command: string, args: Array<any>) {
-  if (handle._nativeTag == null) {
-    if (__DEV__) {
-      console.error(
-        "dispatchCommand was called with a ref that isn't a " +
-          'native component. Use React.forwardRef to get access to the underlying native component',
-      );
-    }
-
-    return;
-  }
-
-  if (handle._internalInstanceHandle) {
-    nativeFabricUIManager.dispatchCommand(
-      handle._internalInstanceHandle.stateNode.node,
-      command,
-      args,
-    );
-  } else {
-    UIManager.dispatchViewManagerCommand(handle._nativeTag, command, args);
-  }
-}
-
-function sendAccessibilityEvent(handle: any, eventType: string) {
-  if (handle._nativeTag == null) {
-    if (__DEV__) {
-      console.error(
-        "sendAccessibilityEvent was called with a ref that isn't a " +
-          'native component. Use React.forwardRef to get access to the underlying native component',
-      );
-    }
-    return;
-  }
-
-  if (handle._internalInstanceHandle) {
-    nativeFabricUIManager.sendAccessibilityEvent(
-      handle._internalInstanceHandle.stateNode.node,
-      eventType,
-    );
-  } else {
-    legacySendAccessibilityEvent(handle._nativeTag, eventType);
-  }
-}
-
-function render(
-  element: Element<ElementType>,
-  containerTag: number,
-  callback: ?() => void,
-  concurrentRoot: ?boolean,
-): ?ElementRef<ElementType> {
-  let root = roots.get(containerTag);
-
-  if (!root) {
-    // TODO (bvaughn): If we decide to keep the wrapper component,
-    // We could create a wrapper for containerTag as well to reduce special casing.
-    root = createContainer(
-      containerTag,
-      concurrentRoot ? ConcurrentRoot : LegacyRoot,
-      false,
-      null,
-      false,
-      null,
-    );
-    roots.set(containerTag, root);
-  }
-  updateContainer(element, root, null, callback);
-
-  // $FlowIssue Flow has hardcoded values for React DOM that don't work with RN
-  return getPublicRootInstance(root);
-}
-
-function unmountComponentAtNode(containerTag: number) {
-  this.stopSurface(containerTag);
-}
-
-function stopSurface(containerTag: number) {
-  const root = roots.get(containerTag);
-  if (root) {
-    // TODO: Is it safe to reset this now or should I wait since this unmount could be deferred?
-    updateContainer(null, root, null, () => {
-      roots.delete(containerTag);
-    });
-  }
-}
-
-function createPortal(
-  children: ReactNodeList,
-  containerTag: number,
-  key: ?string = null,
-) {
-  return createPortalImpl(children, containerTag, null, key);
-}
-
 setBatchingImplementation(
   batchedUpdatesImpl,
   discreteUpdates,
+  flushDiscreteUpdates,
   batchedEventUpdates,
 );
 
 const roots = new Map();
 
-export {
+const ReactFabric: ReactFabricType = {
   // This is needed for implementation details of TouchableNativeFeedback
   // Remove this once TouchableNativeFeedback doesn't use cloneElement
   findHostInstance_DEPRECATED,
   findNodeHandle,
-  dispatchCommand,
-  sendAccessibilityEvent,
-  render,
+
+  dispatchCommand(handle: any, command: string, args: Array<any>) {
+    if (handle._nativeTag == null) {
+      if (__DEV__) {
+        console.error(
+          "dispatchCommand was called with a ref that isn't a " +
+            'native component. Use React.forwardRef to get access to the underlying native component',
+        );
+      }
+
+      return;
+    }
+
+    if (handle._internalInstanceHandle) {
+      nativeFabricUIManager.dispatchCommand(
+        handle._internalInstanceHandle.stateNode.node,
+        command,
+        args,
+      );
+    } else {
+      UIManager.dispatchViewManagerCommand(handle._nativeTag, command, args);
+    }
+  },
+
+  render(element: React$Element<any>, containerTag: any, callback: ?Function) {
+    let root = roots.get(containerTag);
+
+    if (!root) {
+      // TODO (bvaughn): If we decide to keep the wrapper component,
+      // We could create a wrapper for containerTag as well to reduce special casing.
+      root = createContainer(containerTag, LegacyRoot, false, null);
+      roots.set(containerTag, root);
+    }
+    updateContainer(element, root, null, callback);
+
+    return getPublicRootInstance(root);
+  },
+
   // Deprecated - this function is being renamed to stopSurface, use that instead.
   // TODO (T47576999): Delete this once it's no longer called from native code.
-  unmountComponentAtNode,
-  stopSurface,
-  createPortal,
+  unmountComponentAtNode(containerTag: number) {
+    this.stopSurface(containerTag);
+  },
+
+  stopSurface(containerTag: number) {
+    const root = roots.get(containerTag);
+    if (root) {
+      // TODO: Is it safe to reset this now or should I wait since this unmount could be deferred?
+      updateContainer(null, root, null, () => {
+        roots.delete(containerTag);
+      });
+    }
+  },
+
+  createPortal(
+    children: ReactNodeList,
+    containerTag: number,
+    key: ?string = null,
+  ) {
+    return createPortal(children, containerTag, null, key);
+  },
+
+  __SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED: {},
 };
 
 injectIntoDevTools({
   findFiberByHostInstance: getClosestInstanceFromNode,
+  getInspectorDataForViewTag: getInspectorDataForViewTag,
   bundleType: __DEV__ ? 1 : 0,
   version: ReactVersion,
   rendererPackageName: 'react-native-renderer',
-  rendererConfig: {
-    getInspectorDataForViewTag: getInspectorDataForViewTag,
-    getInspectorDataForViewAtPoint: getInspectorDataForViewAtPoint.bind(
-      null,
-      findNodeHandle,
-    ),
-  },
 });
+
+export default ReactFabric;

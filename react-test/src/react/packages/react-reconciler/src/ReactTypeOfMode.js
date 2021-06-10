@@ -9,11 +9,13 @@
 
 export type TypeOfMode = number;
 
-export const NoMode = /*                         */ 0b000000;
-// TODO: Remove ConcurrentMode by reading from the root tag instead
-export const ConcurrentMode = /*                 */ 0b000001;
-export const ProfileMode = /*                    */ 0b000010;
-export const DebugTracingMode = /*               */ 0b000100;
-export const StrictLegacyMode = /*               */ 0b001000;
-export const StrictEffectsMode = /*              */ 0b010000;
-export const ConcurrentUpdatesByDefaultMode = /* */ 0b100000;
+// 0 同步渲染模式
+export const NoMode = 0b0000;
+// 1 严格模式
+export const StrictMode = 0b0001;
+// 10 异步渲染过渡模式
+export const BlockingMode = 0b0010;
+// 100 异步渲染模式
+export const ConcurrentMode = 0b0100;
+// 1000 性能测试模式
+export const ProfileMode = 0b1000;

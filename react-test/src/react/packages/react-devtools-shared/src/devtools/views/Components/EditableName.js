@@ -12,44 +12,27 @@ import {useCallback, useState} from 'react';
 import AutoSizeInput from './NativeStyleEditor/AutoSizeInput';
 import styles from './EditableName.css';
 
-type Type = 'props' | 'state' | 'context' | 'hooks';
-type OverrideNameFn = (
-  oldName: Array<string | number>,
-  newName: Array<string | number>,
-) => void;
+type OverrideNameFn = (path: Array<string | number>, value: any) => void;
 
 type EditableNameProps = {|
-  allowEmpty?: boolean,
-  allowWhiteSpace?: boolean,
   autoFocus?: boolean,
-  className?: string,
   initialValue?: string,
-  overrideName: OverrideNameFn,
-  path: Array<string | number>,
-  type: Type,
+  overrideNameFn: OverrideNameFn,
 |};
 
 export default function EditableName({
-  allowEmpty = false,
-  allowWhiteSpace = false,
   autoFocus = false,
-  className = '',
   initialValue = '',
-  overrideName,
-  path,
-  type,
+  overrideNameFn,
 }: EditableNameProps) {
   const [editableName, setEditableName] = useState(initialValue);
   const [isValid, setIsValid] = useState(false);
 
   const handleChange = useCallback(
     ({target}) => {
-      let value = target.value;
-      if (!allowWhiteSpace) {
-        value = value.trim();
-      }
+      const value = target.value.trim();
 
-      if (allowEmpty || value !== '') {
+      if (value) {
         setIsValid(true);
       } else {
         setIsValid(false);
@@ -57,7 +40,7 @@ export default function EditableName({
 
       setEditableName(value);
     },
-    [overrideName],
+    [overrideNameFn],
   );
 
   const handleKeyDown = useCallback(
@@ -69,11 +52,7 @@ export default function EditableName({
         case 'Enter':
         case 'Tab':
           if (isValid) {
-            const basePath = path.slice(0, path.length - 1);
-            overrideName(
-              [...basePath, initialValue],
-              [...basePath, editableName],
-            );
+            overrideNameFn(editableName);
           }
           break;
         case 'Escape':
@@ -83,16 +62,16 @@ export default function EditableName({
           break;
       }
     },
-    [editableName, setEditableName, isValid, initialValue, overrideName],
+    [editableName, setEditableName, isValid, initialValue, overrideNameFn],
   );
 
   return (
     <AutoSizeInput
       autoFocus={autoFocus}
-      className={[styles.Input, className].join(' ')}
+      className={styles.Input}
       onChange={handleChange}
       onKeyDown={handleKeyDown}
-      placeholder="new entry"
+      placeholder="new prop"
       type="text"
       value={editableName}
     />

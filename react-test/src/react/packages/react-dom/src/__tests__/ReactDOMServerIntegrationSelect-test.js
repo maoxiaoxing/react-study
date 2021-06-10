@@ -156,12 +156,13 @@ describe('ReactDOMServerIntegrationSelect', () => {
           </option>
           <option
             id="baz"
+            value="baz"
             dangerouslySetInnerHTML={{
-              __html: 'Baz', // This warns because no value prop is passed.
+              __html: 'Baz',
             }}
           />
         </select>,
-        2,
+        1,
       );
       expectSelectValue(e, 'bar');
     },
@@ -227,23 +228,26 @@ describe('ReactDOMServerIntegrationSelect', () => {
       </select>,
     );
     const option = e.options[0];
-    expect(option.textContent).toBe('A B');
-    expect(option.value).toBe('bar');
-    expect(option.selected).toBe(true);
+    expect(option.childNodes.length).toBe(1);
+    expect(option.childNodes[0].nodeType).toBe(3);
+    expect(option.childNodes[0].nodeValue).toBe('A B');
   });
 
   itRenders(
-    'a select option with flattened children no value',
+    'a select option with flattened children and a warning',
     async render => {
       const e = await render(
-        <select value="A B" readOnly={true}>
-          <option>A {'B'}</option>
+        <select readOnly={true} value="bar">
+          <option value="bar">
+            {['Bar', false, 'Foo', <div key="1" />, 'Baz']}
+          </option>
         </select>,
+        1,
       );
-      const option = e.options[0];
-      expect(option.textContent).toBe('A B');
-      expect(option.value).toBe('A B');
-      expect(option.selected).toBe(true);
+      expect(e.getAttribute('value')).toBe(null);
+      expect(e.getAttribute('defaultValue')).toBe(null);
+      expect(e.firstChild.innerHTML).toBe('BarFoo[object Object]Baz');
+      expect(e.firstChild.selected).toBe(true);
     },
   );
 });

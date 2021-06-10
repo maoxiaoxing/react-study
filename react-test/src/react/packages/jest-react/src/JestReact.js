@@ -8,7 +8,6 @@
 import {REACT_ELEMENT_TYPE, REACT_FRAGMENT_TYPE} from 'shared/ReactSymbols';
 
 import invariant from 'shared/invariant';
-import isArray from 'shared/isArray';
 
 function captureAssertion(fn) {
   // Trick to use a Jest matcher inside another Jest matcher. `fn` contains an
@@ -43,7 +42,7 @@ export function unstable_toMatchRenderedOutput(root, expectedJSX) {
   let actualJSX;
   if (actualJSON === null || typeof actualJSON === 'string') {
     actualJSX = actualJSON;
-  } else if (isArray(actualJSON)) {
+  } else if (Array.isArray(actualJSON)) {
     if (actualJSON.length === 0) {
       actualJSX = null;
     } else if (actualJSON.length === 1) {
@@ -100,7 +99,7 @@ function jsonChildrenToJSXChildren(jsonChildren) {
     if (jsonChildren.length === 1) {
       return jsonChildToJSXChild(jsonChildren[0]);
     } else if (jsonChildren.length > 1) {
-      const jsxChildren = [];
+      let jsxChildren = [];
       let allJSXChildrenAreStrings = true;
       let jsxChildrenString = '';
       for (let i = 0; i < jsonChildren.length; i++) {

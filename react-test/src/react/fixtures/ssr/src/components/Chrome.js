@@ -1,8 +1,4 @@
-import React, {
-  Component,
-  Suspense,
-  unstable_startTransition as startTransition,
-} from 'react';
+import React, {Component} from 'react';
 
 import Theme, {ThemeToggleButton} from './Theme';
 
@@ -27,20 +23,21 @@ export default class Chrome extends Component {
               __html: `<b>Enable JavaScript to run this app.</b>`,
             }}
           />
-          <Suspense fallback="Loading...">
-            <Theme.Provider value={this.state.theme}>
-              {this.props.children}
-              <div>
-                <ThemeToggleButton
-                  onChange={theme => {
-                    startTransition(() => {
+          <Theme.Provider value={this.state.theme}>
+            {this.props.children}
+            <div>
+              <ThemeToggleButton
+                onChange={theme => {
+                  React.unstable_withSuspenseConfig(
+                    () => {
                       this.setState({theme});
-                    });
-                  }}
-                />
-              </div>
-            </Theme.Provider>
-          </Suspense>
+                    },
+                    {timeoutMs: 6000}
+                  );
+                }}
+              />
+            </div>
+          </Theme.Provider>
           <script
             dangerouslySetInnerHTML={{
               __html: `assetManifest = ${JSON.stringify(assets)};`,

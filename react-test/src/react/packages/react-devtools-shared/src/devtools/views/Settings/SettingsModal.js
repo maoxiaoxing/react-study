@@ -20,7 +20,6 @@ import {
   useSubscription,
 } from '../hooks';
 import ComponentsSettings from './ComponentsSettings';
-import DebuggingSettings from './DebuggingSettings';
 import GeneralSettings from './GeneralSettings';
 import ProfilerSettings from './ProfilerSettings';
 
@@ -79,17 +78,14 @@ function SettingsModalImpl(_: {||}) {
 
   let view = null;
   switch (selectedTabID) {
-    case 'components':
-      view = <ComponentsSettings />;
-      break;
-    case 'debugging':
-      view = <DebuggingSettings />;
-      break;
     case 'general':
       view = <GeneralSettings />;
       break;
     case 'profiler':
       view = <ProfilerSettings />;
+      break;
+    case 'components':
+      view = <ComponentsSettings />;
       break;
     default:
       break;
@@ -122,11 +118,6 @@ const tabs = [
     id: 'general',
     icon: 'settings',
     label: 'General',
-  },
-  {
-    id: 'debugging',
-    icon: 'bug',
-    label: 'Debugging',
   },
   {
     id: 'components',

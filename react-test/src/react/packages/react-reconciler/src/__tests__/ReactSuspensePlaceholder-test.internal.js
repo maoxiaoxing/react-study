@@ -23,7 +23,7 @@ describe('ReactSuspensePlaceholder', () => {
     jest.resetModules();
 
     ReactFeatureFlags = require('shared/ReactFeatureFlags');
-
+    ReactFeatureFlags.debugRenderPhaseSideEffectsForStrictMode = false;
     ReactFeatureFlags.enableProfilerTimer = true;
     ReactFeatureFlags.replayFailedUnitOfWorkWithInvokeGuardedCallback = false;
     React = require('react');
@@ -310,7 +310,7 @@ describe('ReactSuspensePlaceholder', () => {
     });
 
     describe('when suspending during mount', () => {
-      it('properly accounts for base durations when a suspended times out in a legacy tree', async () => {
+      it('properly accounts for base durations when a suspended times out in a legacy tree', () => {
         ReactNoop.renderLegacySyncRoot(<App shouldSuspend={true} />);
         expect(Scheduler).toHaveYielded([
           'App',
@@ -331,10 +331,7 @@ describe('ReactSuspensePlaceholder', () => {
         jest.advanceTimersByTime(1000);
 
         expect(Scheduler).toHaveYielded(['Promise resolved [Loaded]']);
-
-        ReactNoop.flushSync();
-
-        expect(Scheduler).toHaveYielded(['Loaded']);
+        expect(Scheduler).toFlushExpired(['Loaded']);
         expect(ReactNoop).toMatchRenderedOutput('LoadedText');
         expect(onRender).toHaveBeenCalledTimes(2);
 
@@ -381,7 +378,7 @@ describe('ReactSuspensePlaceholder', () => {
     });
 
     describe('when suspending during update', () => {
-      it('properly accounts for base durations when a suspended times out in a legacy tree', async () => {
+      it('properly accounts for base durations when a suspended times out in a legacy tree', () => {
         ReactNoop.renderLegacySyncRoot(
           <App shouldSuspend={false} textRenderDuration={5} />,
         );
@@ -406,11 +403,10 @@ describe('ReactSuspensePlaceholder', () => {
         expect(onRender).toHaveBeenCalledTimes(2);
 
         // The suspense update should only show the "Loading..." Fallback.
-        // The actual duration should include 10ms spent rendering Fallback,
-        // plus the 8ms render all of the hidden, suspended subtree.
-        // But the tree base duration should only include 10ms spent rendering Fallback,
+        // Both durations should include 10ms spent rendering Fallback
+        // plus the 8ms rendering the (hidden) components.
         expect(onRender.mock.calls[1][2]).toBe(18);
-        expect(onRender.mock.calls[1][3]).toBe(10);
+        expect(onRender.mock.calls[1][3]).toBe(18);
 
         ReactNoop.renderLegacySyncRoot(
           <App shouldSuspend={true} text="New" textRenderDuration={6} />,
@@ -425,15 +421,16 @@ describe('ReactSuspensePlaceholder', () => {
         expect(ReactNoop).toMatchRenderedOutput('Loading...');
         expect(onRender).toHaveBeenCalledTimes(3);
 
-        expect(onRender.mock.calls[1][2]).toBe(18);
-        expect(onRender.mock.calls[1][3]).toBe(10);
+        // If we force another update while still timed out,
+        // but this time the Text component took 1ms longer to render.
+        // This should impact both actualDuration and treeBaseDuration.
+        expect(onRender.mock.calls[2][2]).toBe(19);
+        expect(onRender.mock.calls[2][3]).toBe(19);
+
         jest.advanceTimersByTime(1000);
 
         expect(Scheduler).toHaveYielded(['Promise resolved [Loaded]']);
-
-        ReactNoop.flushSync();
-
-        expect(Scheduler).toHaveYielded(['Loaded']);
+        expect(Scheduler).toFlushExpired(['Loaded']);
         expect(ReactNoop).toMatchRenderedOutput('LoadedNew');
         expect(onRender).toHaveBeenCalledTimes(4);
 
@@ -484,9 +481,10 @@ describe('ReactSuspensePlaceholder', () => {
         // The suspense update should only show the "Loading..." Fallback.
         // The actual duration should include 10ms spent rendering Fallback,
         // plus the 8ms render all of the hidden, suspended subtree.
-        // But the tree base duration should only include 10ms spent rendering Fallback.
+        // But the tree base duration should only include 10ms spent rendering Fallback,
+        // plus the 5ms rendering the previously committed version of the hidden tree.
         expect(onRender.mock.calls[1][2]).toBe(18);
-        expect(onRender.mock.calls[1][3]).toBe(10);
+        expect(onRender.mock.calls[1][3]).toBe(15);
 
         // Update again while timed out.
         // Since this test was originally written we added an optimization to avoid
@@ -500,13 +498,6 @@ describe('ReactSuspensePlaceholder', () => {
             </Suspense>
           </>,
         );
-
-        // TODO: This is here only to shift us into the next JND bucket. A
-        // consequence of AsyncText relying on the same timer queue as React's
-        // internal Suspense timer. We should decouple our AsyncText helpers
-        // from timers.
-        Scheduler.unstable_advanceTime(100);
-
         expect(Scheduler).toFlushAndYield([
           'App',
           'Suspending',
