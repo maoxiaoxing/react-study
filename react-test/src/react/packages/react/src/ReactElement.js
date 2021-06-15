@@ -390,7 +390,7 @@ export function jsxDEV(type, config, maybeKey, source, self) {
 /**
  * 创建 React Element
  * type      元素类型
- * config    配置属性
+ * config    配置属性，包含props属性 和 其他特殊属性 例如 key ref self source
  * children  子元素
  * 1. 分离 props 属性和特殊属性
  * 2. 将子元素挂载到 props.children 中
@@ -424,7 +424,7 @@ export function createElement(type, config, children) {
     if (hasValidRef(config)) {
       // 将 config.ref 属性提取到 ref 变量中
       ref = config.ref;
-      // 在开发环境中
+      // 在开发环境中，开发环境的代码不是主流程代码
       if (__DEV__) {
         // 如果 ref 属性的值被设置成了字符串形式就报一个提示
         // 说明此用法在将来的版本中会被删除
