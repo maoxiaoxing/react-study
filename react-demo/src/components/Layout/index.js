@@ -6,7 +6,7 @@ import {
 } from '@ant-design/icons'
 import routes from '../../router/routes'
 import { Route, useHistory, withRouter } from 'react-router-dom'
-import style from './style.scss'
+import style from './style.module.css'
 
 const { Header, Sider, Content } = Layout
 const { SubMenu } = Menu
