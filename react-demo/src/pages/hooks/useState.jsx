@@ -5,6 +5,15 @@ const UseState = (props) => {
   const [count, setCount] = useState(0)
   const [person, setPerson] = useState({age: 18, name: 'maoxiaoxing'})
   const [coin, setCoin] = useState(() => props.coin || 0)
+  const [title, setTitle] = useState(0)
+
+  const handleTitle = () => {
+    setTitle((title) => {
+      const newTitle = title + 1
+      document.title = newTitle
+      return newTitle
+    })
+  }
 
   return (
     <div>
@@ -16,6 +25,9 @@ const UseState = (props) => {
       <p>----------------</p>
       <p>{coin}</p>
       <Button onClick={() => setCoin(coin + 1)}>+ 1</Button>
+      <p>------- 异步 ---------</p>
+      <Button onClick={handleTitle}>setTitle</Button>
+
     </div>
   )
 }
