@@ -14,6 +14,12 @@ const UseState = (props) => {
       return newTitle
     })
   }
+ 
+  const handlePerson = () => {
+    setPerson({...person, name: 'yangxiaoA'})
+    // person['hobby'] = '玩'
+    // setPerson(person)
+  }
 
   return (
     <div>
@@ -21,7 +27,7 @@ const UseState = (props) => {
       <Button onClick={() => setCount(count + 1)}>+ 1</Button>
       <p>----------------</p>
       <p>年龄：{person.age}名字：{person.name}</p>
-      <Button onClick={() => setPerson({...person, name: 'yangxiaoA'})}>setPerson</Button>
+      <Button onClick={handlePerson}>setPerson</Button>
       <p>----------------</p>
       <p>{coin}</p>
       <Button onClick={() => setCoin(coin + 1)}>+ 1</Button>
