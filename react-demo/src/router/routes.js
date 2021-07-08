@@ -1,3 +1,5 @@
+import Position from '../pages/demo/position'
+
 import Hooks from '../pages/hooks'
 import UseState from '../pages/hooks/useState.jsx'
 import UseReducer from  '../pages/hooks/useReducer'
@@ -5,6 +7,21 @@ import UseContext from  '../pages/hooks/useContext'
 import UseEffect from  '../pages/hooks/useEffect'
 
 const routes = [
+  {
+    path: '/demo',
+    name: 'Demo',
+    title: 'Demo',
+    descriptions: 'Demo',
+    children: [
+      {
+        path: '/demo/position',
+        name: 'Position',
+        title: 'Position',
+        descriptions: 'Position',
+        component: Position,
+      },
+    ],
+  },
   {
     path: '/hooks',
     name: 'Hooks',
