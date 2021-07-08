@@ -2,6 +2,7 @@ import Hooks from '../pages/hooks'
 import UseState from '../pages/hooks/useState.jsx'
 import UseReducer from  '../pages/hooks/useReducer'
 import UseContext from  '../pages/hooks/useContext'
+import UseEffect from  '../pages/hooks/useEffect'
 
 const routes = [
   {
@@ -37,6 +38,13 @@ const routes = [
         title: 'UseContext',
         descriptions: 'UseContext',
         component: UseContext,
+      },
+      {
+        path: '/hooks/useEffect',
+        name: 'UseEffect',
+        title: 'UseEffect',
+        descriptions: 'UseEffect',
+        component: UseEffect,
       },
     ],
   }
