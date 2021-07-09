@@ -5,6 +5,7 @@ import UseState from '../pages/hooks/useState.jsx'
 import UseReducer from  '../pages/hooks/useReducer'
 import UseContext from  '../pages/hooks/useContext'
 import UseEffect from  '../pages/hooks/useEffect'
+import UseMemo from  '../pages/hooks/useMemo'
 
 const routes = [
   {
@@ -62,6 +63,13 @@ const routes = [
         title: 'UseEffect',
         descriptions: 'UseEffect',
         component: UseEffect,
+      },
+      {
+        path: '/hooks/useMemo',
+        name: 'UseMemo',
+        title: 'UseMemo',
+        descriptions: 'UseMemo',
+        component: UseMemo,
       },
     ],
   }
