@@ -34,6 +34,10 @@ const UseEffect = () => {
     }
   }, [])
 
+  useEffect(() => {
+    console.log(`${count}变化了`)
+  }, [count])
+
   return (
     <div>
       <Button onClick={() => setCount(count+1)}>+1</Button>
