@@ -6,6 +6,7 @@ import UseReducer from  '../pages/hooks/useReducer'
 import UseContext from  '../pages/hooks/useContext'
 import UseEffect from  '../pages/hooks/useEffect'
 import UseMemo from  '../pages/hooks/useMemo'
+import Memo from  '../pages/hooks/memo'
 
 const routes = [
   {
@@ -70,6 +71,13 @@ const routes = [
         title: 'UseMemo',
         descriptions: 'UseMemo',
         component: UseMemo,
+      },
+      {
+        path: '/hooks/memo',
+        name: 'Memo',
+        title: 'Memo',
+        descriptions: 'Memo',
+        component: Memo,
       },
     ],
   }
