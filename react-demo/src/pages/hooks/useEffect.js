@@ -9,6 +9,13 @@ const UseEffect = () => {
     ReactDOM.unmountComponentAtNode(document.getElementById('root'))
   }
 
+  // 异步函数
+  const getData = () => {
+    return new Promise((resolve) =>{
+      resolve({msg: 'hello'})
+    })
+  }
+
   // componentDidMount componentDidUpdate
   useEffect(() => {
     console.log(count)
@@ -37,6 +44,22 @@ const UseEffect = () => {
   useEffect(() => {
     console.log(`${count}变化了`)
   }, [count])
+
+  // 异步函数会导致 componentWillUnMount 不生效
+  useEffect(async () => {
+    const res = await getData()
+    console.log(res)
+    return () =>{
+      console.log(123)
+    }
+  }, [])
+
+  // useEffect(() => {
+  //   (async () => {
+  //     const res = await getData()
+  //     console.log(res)
+  //   })()
+  // }, [])
 
   return (
     <div>
