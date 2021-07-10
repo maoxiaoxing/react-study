@@ -7,6 +7,7 @@ import UseContext from  '../pages/hooks/useContext'
 import UseEffect from  '../pages/hooks/useEffect'
 import UseMemo from  '../pages/hooks/useMemo'
 import Memo from  '../pages/hooks/memo'
+import UseCallback from  '../pages/hooks/useCallback'
 
 const routes = [
   {
@@ -78,6 +79,13 @@ const routes = [
         title: 'Memo',
         descriptions: 'Memo',
         component: Memo,
+      },
+      {
+        path: '/hooks/useCallback',
+        name: 'UseCallback',
+        title: 'UseCallback',
+        descriptions: 'UseCallback',
+        component: UseCallback,
       },
     ],
   }
