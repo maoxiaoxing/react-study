@@ -8,6 +8,7 @@ import UseEffect from  '../pages/hooks/useEffect'
 import UseMemo from  '../pages/hooks/useMemo'
 import Memo from  '../pages/hooks/memo'
 import UseCallback from  '../pages/hooks/useCallback'
+import UseRef from  '../pages/hooks/useRef'
 
 const routes = [
   {
@@ -86,6 +87,13 @@ const routes = [
         title: 'UseCallback',
         descriptions: 'UseCallback',
         component: UseCallback,
+      },
+      {
+        path: '/hooks/useRef',
+        name: 'UseRef',
+        title: 'UseRef',
+        descriptions: 'UseRef',
+        component: UseRef,
       },
     ],
   }
