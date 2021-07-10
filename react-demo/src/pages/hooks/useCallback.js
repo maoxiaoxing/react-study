@@ -1,4 +1,4 @@
-import React, { useState, memo } from 'react'
+import React, { useState, memo, useCallback } from 'react'
 import { Button } from 'antd'
 
 const Foo = memo((props) => {
@@ -15,7 +15,7 @@ const Foo = memo((props) => {
   )
 })
 
-const useCallback = () => {
+const UseCallback = () => {
   // memo 阻止组件更新，类似于类组件中的 PureComponent 和 shouldComponentUpdate
 
   const [count, setCount] = useState(0)
@@ -24,9 +24,12 @@ const useCallback = () => {
     setCount(count + 1)
   }
 
-  const resetCount = () => {
+  // const resetCount = () => {
+  //   setCount(0)
+  // }
+  const resetCount = useCallback(() => {
     setCount(0)
-  }
+  }, [setCount])
 
   return (
     <div>
@@ -39,4 +42,4 @@ const useCallback = () => {
   )
 }
 
-export default useCallback
+export default UseCallback
