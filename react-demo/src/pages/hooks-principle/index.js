@@ -19,6 +19,11 @@ let state = []
 let setters = []
 let stateIndex = 0
 
+function getType (obj) {
+  const type = Object.prototype.toString.call(obj)
+  return type.substring(8, type.length - 1)
+}
+
 function createSetter (index) {
   return function (newState) {
     state[index] = newState;
@@ -38,12 +43,38 @@ function useState (initialState) {
 
 function render () {
   stateIndex = 0;
-  ReactDOM.render(<UseStatePrinciple></UseStatePrinciple>, document.getElementsByClassName('ant-layout-content')[0])
+  effectIndex = 0;
+  ReactDOM.render(<Principle></Principle>, document.getElementsByClassName('ant-layout-content')[0])
+}
+
+let prevDepsAry = [];
+let effectIndex = 0;
+
+function useEffect (callBack, depsAry) {
+  if (getType(callBack) !== 'Function') throw new Error('useEffect的第一个参数必须是函数')
+
+  if (!depsAry) {
+    callBack()
+  } else {
+    if (getType(depsAry) !== 'Array') throw new Error('useEffect第二个参数必须是数组')
+    let prevDeps = prevDepsAry[effectIndex];
+    let hasChanged = prevDeps ? depsAry.every((dep, index) => dep === prevDeps[index]) === false : true;
+    if (hasChanged) {
+      callBack()
+    }
+
+    prevDepsAry[effectIndex] = depsAry
+    effectIndex++
+  }
 }
 
 const Principle = () => {
   const [count, setCount] = useState(0)
   const [name, setName] = useState('毛小星')
+
+  useEffect(() => {
+    console.log(12)
+  }, [count])
 
   return (
     <div>
