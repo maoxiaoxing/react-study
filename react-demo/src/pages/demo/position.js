@@ -1,22 +1,25 @@
 import React, { useEffect, useState } from 'react'
+import {usePosition} from '../../hooks'
 
 const Position = () => {
-  const [position, setPosition] = useState({ x: 0, y: 0 })
+  // const [position, setPosition] = useState({ x: 0, y: 0 })
 
-  const getPosition = (e) => {
-    setPosition({
-      x: e.pageX,
-      y: e.pageY,
-    })
-  }
+  // const getPosition = (e) => {
+  //   setPosition({
+  //     x: e.pageX,
+  //     y: e.pageY,
+  //   })
+  // }
 
-  useEffect(() => {
-    window.addEventListener('mousemove', getPosition)
+  // useEffect(() => {
+  //   window.addEventListener('mousemove', getPosition)
 
-    return () => {
-      window.removeEventListener('mousemove', getPosition)
-    }
-  }, []) 
+  //   return () => {
+  //     window.removeEventListener('mousemove', getPosition)
+  //   }
+  // }, [])
+
+  const position = usePosition()
 
   return (
     <div>
