@@ -41,7 +41,7 @@ function render () {
   ReactDOM.render(<UseStatePrinciple></UseStatePrinciple>, document.getElementsByClassName('ant-layout-content')[0])
 }
 
-const UseStatePrinciple = () => {
+const Principle = () => {
   const [count, setCount] = useState(0)
   const [name, setName] = useState('毛小星')
 
@@ -55,4 +55,4 @@ const UseStatePrinciple = () => {
   )
 }
 
-export default UseStatePrinciple
+export default Principle
