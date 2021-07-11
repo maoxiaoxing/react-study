@@ -10,6 +10,8 @@ import Memo from  '../pages/hooks/memo'
 import UseCallback from  '../pages/hooks/useCallback'
 import UseRef from  '../pages/hooks/useRef'
 
+import useStatePrinciple  from '../pages/hooks-principle/useState'
+
 const routes = [
   {
     path: '/demo',
@@ -96,7 +98,22 @@ const routes = [
         component: UseRef,
       },
     ],
-  }
+  },
+  {
+    path: '/hooks-principle',
+    name: 'HooksPrinciple',
+    title: 'HooksPrinciple',
+    descriptions: 'HooksPrinciple',
+    children: [
+      {
+        path: '/hooks-principle/useState-principle',
+        name: 'useStatePrinciple',
+        title: 'useStatePrinciple',
+        descriptions: 'useStatePrinciple',
+        component: useStatePrinciple,
+      },
+    ],
+  },
 ]
 
 export default routes
