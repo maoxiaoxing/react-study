@@ -15,6 +15,14 @@ function useState(initialState) {
     hook = {
       memoizedState: initialState,
       next: null,
+      // 保存改变的状态
+      // 队列是因为 有可能有多个更新函数
+      // setNum(num => num + 1)
+      // setNum(num => num + 1)
+      // setNum(num => num + 1)
+      queue: {
+        pending: null,
+      }
     }
 
     // 创建 hook 链表
@@ -32,6 +40,29 @@ function useState(initialState) {
     hook = workInprogressHook
     workInprogressHook = workInprogressHook.next
   }
+
+  // todo 更新
+}
+
+function dispatchAction(queue, action) {
+  // 更新节点
+  const update = {
+    action,
+    next: null,
+  }
+
+  // 构建更新链表 环状链表
+  // queue.pending === null 还没有触发更新，创建第一个更新
+  if (queue.pending === null) {
+    // u0 -> u0 -> u0
+    update.next = update
+  } else {
+    // u0 -> u0
+    // u1 -> u0 -> u1
+    update.next = queue.pending.next
+    queue.pending.next = update
+  }
+  queue.pending = update
 }
 
 // 调度
