@@ -68,9 +68,30 @@ function useEffect (callBack, depsAry) {
   }
 }
 
+function useReducer (reducer, initialState) {
+  const [state, setState] = useState(initialState)
+  function dispatch (action) {
+    const newState = reducer(state, action)
+    setState(newState)
+  }
+
+  return [state, dispatch]
+}
+
 const Principle = () => {
   const [count, setCount] = useState(0)
   const [name, setName] = useState('毛小星')
+
+  const coinReducer = (state, action) => {
+    if (action.type = 'increment') {
+      return state + 1
+    } else if (action.type = 'decrement') {
+      return state - 1
+    }
+    return state
+  }
+
+  const [coin, coinDispatch] = useReducer(coinReducer, 0)
 
   useEffect(() => {
     console.log(12)
@@ -82,6 +103,10 @@ const Principle = () => {
       <Button onClick={() => setCount(count + 1)}>setCount</Button>
       {name}
       <Button onClick={() => setName('杨小A')}>setName</Button>
+      <Button onClick={() => coinDispatch({type: 'decrement'})}>decrement</Button>
+      {coin}
+      <Button onClick={() => coinDispatch({type: 'increment'})}>increment</Button>
+
     </div>
   )
 }
