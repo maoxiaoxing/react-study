@@ -41,7 +41,27 @@ function useState(initialState) {
     workInprogressHook = workInprogressHook.next
   }
 
-  // todo 更新
+  // 处理更新 遍历更新函数的环状链表
+  // 获取初始状态
+  let baseState = hook.memoizedState
+
+  if (hook.queue.pending) {
+    let firstUpdate = hook.queue.pending.next
+
+    do {
+      const action = firstUpdate.action
+      // 处理更新状态
+      baseState = action(baseState)
+      firstUpdate = firstUpdate.next
+    } while (firstUpdate !== hook.queue.pending.next) // 遍历完环状链表
+
+    // 清空链表
+    hook.queue.pending = null
+  }
+
+  hook.memoizedState = baseState
+
+  return [baseState, dispatchAction.bind(null, hook.queue)]
 }
 
 function dispatchAction(queue, action) {
@@ -63,6 +83,9 @@ function dispatchAction(queue, action) {
     queue.pending.next = update
   }
   queue.pending = update
+
+  // 触发更新
+  schedule()
 }
 
 // 调度
@@ -75,6 +98,9 @@ function schedule() {
 
 function App () {
   const [num, setNum] = useState(0)
+  console.log(isMount, 'isMount')
+  console.log(num, 'num')
+
 
   return {
     onClick() {
@@ -82,4 +108,6 @@ function App () {
     }
   }
 }
+
+window.app = schedule()
 
