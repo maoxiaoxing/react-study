@@ -1,5 +1,5 @@
 
-let isMount = false // 是否渲染
+let isMount = true // 是否渲染
 let workInprogressHook = null // 当前处理 hook
 
 // Fiber对象
@@ -11,6 +11,7 @@ const fiber = {
 function useState(initialState) {
   let hook // 当前 hook 节点
 
+  console.log(isMount)
   if (isMount) {
     hook = {
       memoizedState: initialState,
@@ -30,10 +31,11 @@ function useState(initialState) {
     // 如果不是初始化的话，则将 当前处理节点（workInprogressHook）的下一个节点指向 hook
     if (!fiber.memoizedState) {
       fiber.memoizedState = hook
-      workInprogressHook = hook
     } else {
       workInprogressHook.next = hook
     }
+
+    workInprogressHook = hook
   } else {
     // 如果是 update 的情况，则将 hook 指向 workInprogressHook
     // workInprogressHook 指向 hook 链表的下一个节点
@@ -92,8 +94,9 @@ function dispatchAction(queue, action) {
 function schedule() {
   // 初始化 当前处理 hook
   workInprogressHook = fiber.memoizedState
-  fiber.stateNode()
+  const app = fiber.stateNode()
   isMount = false
+  return app
 }
 
 function App () {
