@@ -11,7 +11,6 @@ const fiber = {
 function useState(initialState) {
   let hook // 当前 hook 节点
 
-  console.log(isMount)
   if (isMount) {
     hook = {
       memoizedState: initialState,
@@ -101,13 +100,18 @@ function schedule() {
 
 function App () {
   const [num, setNum] = useState(0)
+  const [count, setCount] = useState(0)
   console.log(isMount, 'isMount')
   console.log(num, 'num')
+  console.log(count, 'count')
 
 
   return {
     onClick() {
       setNum(num => num + 1)
+    },
+    updateCount() {
+      setCount(count => count + 1)
     }
   }
 }
