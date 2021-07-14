@@ -11,6 +11,10 @@ const fiber = {
 function useState(initialState) {
   let hook // 当前 hook 节点
 
+  if (typeof initialState === 'function') {
+    initialState = initialState();
+  }
+
   if (isMount) {
     hook = {
       memoizedState: initialState,
