@@ -1,4 +1,5 @@
 import Position from '../pages/demo/position'
+import Rule from '../pages/demo/rule'
 
 import Hooks from '../pages/hooks'
 import UseState from '../pages/hooks/useState.jsx'
@@ -25,6 +26,13 @@ const routes = [
         title: 'Position',
         descriptions: 'Position',
         component: Position,
+      },
+      {
+        path: '/demo/rule',
+        name: 'Rule',
+        title: 'Rule',
+        descriptions: 'Rule',
+        component: Rule,
       },
     ],
   },
