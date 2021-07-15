@@ -840,6 +840,7 @@ function rerenderReducer<S, I, A>(
 function mountState<S>(
   initialState: (() => S) | S,
 ): [S, Dispatch<BasicStateAction<S>>] {
+  // 创建hook对象
   const hook = mountWorkInProgressHook();
   if (typeof initialState === 'function') {
     // $FlowFixMe: Flow doesn't like mixed types
@@ -1387,6 +1388,7 @@ export const ContextOnlyDispatcher: Dispatcher = {
   useTransition: throwInvalidHookError,
 };
 
+// 利用 hash 来存储不用状态的方法
 const HooksDispatcherOnMount: Dispatcher = {
   readContext,
 
