@@ -7,4 +7,24 @@ React Hooks 是 React 16.8 以及之后版本的产物，React Hooks 就是一�
 
 ## useState
 
+在 16.8 之前的版本，函数型组件基本只负责展示数据，不负责状态的保存。useState 的出现就可以让函数型组件保存状态了，下面我们来看看 useState 是怎样的使用的
 
+### useState 的基本使用
+
+```js
+import React, { useState } from 'react'
+import { Button } from 'antd'
+
+const Demo () => {
+  const [count, setCount] = useState(0)
+
+  return (
+    <div>
+      <p>{count}</p>
+      <Button onClick={() => setCount(count + 1)}>increment</Button>
+    </div>
+  )
+}
+
+export default Demo
+```
