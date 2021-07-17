@@ -11,6 +11,11 @@ React Hooks 是 React 16.8 以及之后版本的产物，React Hooks 就是一�
 
 ### useState 的基本使用
 
+1. useState 可以接收一个初始的值
+2. 返回值为数组，数组中存储状态值和更改状态值的方法
+3. useState 方法可以被调用多次，用来保存不同状态值
+4. 参数可以是一个函数，函数返回什么，初始状态就是什么，函数只会被调用一次，用在初始值是动态值的情况
+
 ```js
 import React, { useState } from 'react'
 import { Button } from 'antd'
