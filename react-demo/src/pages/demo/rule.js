@@ -1,10 +1,21 @@
 import { Button } from 'antd'
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
+
+let isMount = false
 
 const Rule = () => {
-  const [name, setName] = useState('毛小星')
-  const [age, setAge] = useState('18')
+  // const [name, setName] = useState('毛小星')
+  // const [age, setAge] = useState('18')
   const [hobby, setHobby] = useState('吃小熊饼干，看动画片')
+
+  if (isMount) {
+    const [name, setName] = useState('毛小星')
+    const [age, setAge] = useState('18')
+  }
+
+  useEffect(() => {
+    isMount = true
+  }, [])
 
   return (
     <div>
