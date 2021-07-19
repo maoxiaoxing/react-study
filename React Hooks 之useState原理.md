@@ -1,4 +1,4 @@
-# React Hooks 之useState原理
+# React Hooks 之 useState 原理
 
 ## React Hooks 简介
 
@@ -17,7 +17,7 @@ React Hooks 是 React 16.8 以及之后版本的产物，React Hooks 就是一�
 import React, { useState } from 'react'
 import { Button } from 'antd'
 
-const Demo () => {
+const Demo = () => {
   const [count, setCount] = useState(0)
 
   return (
@@ -30,3 +30,7 @@ const Demo () => {
 
 export default Demo
 ```
+
+![](https://gitee.com/maoxiaoxing/mxx-blog/raw/master/Img/useState.gif)
+
+
