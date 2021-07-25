@@ -102,8 +102,14 @@ function schedule() {
   return app
 }
 
+let isMounted = false
+
 function App () {
-  const [num, setNum] = useState(0)
+  let num, setNum;
+  if (!isMounted) {
+    [num, setNum] = useState(0)
+    isMounted = true
+  }
   const [count, setCount] = useState(0)
   console.log(isMount, 'isMount')
   console.log(num, 'num')
