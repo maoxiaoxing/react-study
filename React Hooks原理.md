@@ -7,6 +7,7 @@ React 核心成员 [Sebastian Markbåge](https://github.com/sebmarkbage/) (Hooks
 ![](https://img2020.cnblogs.com/blog/1575596/202107/1575596-20210725223512026-1437088832.png)
 
 代数效应是函数式编程的一个概念，它所解决的一部分问题只在纯函数式编程中才存在，是为了分离一些副作用。
+有人看到这可能就会说了，我不关心什么破代数效应，不要跟我讲大道理，直接给老子上代码就行了≦(._.)≧
 代数效应看起来像是很高深的原理，下面我们用一些虚构的伪代码来解释一下什么是代数效应。
 
 假设我们有一个 getName 是根据 id 获取用户信息的函数，还有一个 makeFriends 函数用来处理 getName 返回的用户信息
@@ -37,7 +38,10 @@ async function makeFriends(id1, id2) {
 }
 ```
 
-可以看到，由于 getName 函数变成了异步函数，导致 makeFriends 也需要变成异步函数去获取 getName 返回的数据，getName 变成异步函数破坏了 makeFriends 函数的同步特性。但是其实以正常编程思想，我们其实不想关注 getName 是怎样的实现的，我只在乎 getName 返回的数据。这其实就是 getName 编程异步函数导致的副作用。
+可以看到，由于 getName 函数变成了异步函数，导致 makeFriends 也需要变成异步函数去获取 getName 返回的数据，getName 变成异步函数破坏了 makeFriends 函数的同步特性。但是其实以正常编程思想，我才不想关注 getName 是怎样的实现的，我只在乎 getName 返回的数据。
+![](https://img2020.cnblogs.com/blog/1575596/202107/1575596-20210725232041295-986738930.gif)
+
+这其实就是 getName 变成异步函数导致的副作用。
 
 
 
