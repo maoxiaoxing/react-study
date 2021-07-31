@@ -1,5 +1,9 @@
 # React Hooks原理
 
+## React Hooks 简介
+
+React Hooks 是 React 16.8 以及之后版本的产物，React Hooks 就是一堆钩子函数，不同的钩子函数提供了不同的功能，React 通过这些钩子函数对函数型组件进行增强。Hooks 允许你在不编写 class 的情况下使用状态(state)和其他 React 特性。 你还可以构建自己的 Hooks, 跨组件共享可重用的有状态逻辑。
+
 ## 践行代数效应
 
 React 核心成员 [Sebastian Markbåge](https://github.com/sebmarkbage/) (Hooks 的发明者)曾说：我们在 React 中做的就是践行代数效应。
@@ -74,6 +78,46 @@ try {
 
 ![](https://img2020.cnblogs.com/blog/1575596/202107/1575596-20210731202116250-303666976.jpg)
 
+## 代数效应在 React 中的实践
+
+React 16.8 中的 Hooks 就是在践行代数效应，像 useState、useReducer、useRef 等，我们不需要关注函数式组件中的 state 在 Hooks 中是如果保存的，React 会为我们处理。你可以把 useState 看做成是一个 perform State()，这个效应就被 React 处理了，这样我们就直接使用 useState 返回的 state，编写我们的业务逻辑即可。
+下面我们看看 useState 的基本使用
+
+### useState 的基本使用
+
+在 16.8 之前的版本，函数型组件基本只负责展示数据，不负责状态的保存。useState 的出现就可以让函数型组件保存状态了，下面我们来看看 useState 是怎样的使用的
+
+1. useState 可以接收一个初始的值
+2. 返回值为数组，数组中存储状态值和更改状态值的方法
+3. useState 方法可以被调用多次，用来保存不同状态值
+4. 参数可以是一个函数，函数返回什么，初始状态就是什么，函数只会被调用一次，用在初始值是动态值的情况
+
+```js
+import React, { useState } from 'react'
+import { Button } from 'antd'
+
+const Demo = () => {
+  const [name, setName] = useState('毛小星')
+  const [count, setCount] = useState(() => 0)
+
+  return (
+    <div>
+      <p>{name}</p>
+      <Button onClick={() => setName('杨秘书')}>increment</Button>
+      <p>{count}</p>
+      <Button onClick={() => setCount((_count) => _count + 1)}>increment</Button>
+    </div>
+  )
+}
+
+export default Demo
+```
+
+![](https://gitee.com/maoxiaoxing/mxx-blog/raw/master/Img/useState.gif)
+
+
+![](https://img2020.cnblogs.com/blog/1575596/202107/1575596-20210731222101786-742218887.png)
 
 
 - [写给那些搞不懂代数效应的我们（翻译）](https://zhuanlan.zhihu.com/p/76158581)
+- [React技术揭秘](https://react.iamkasong.com/process/fiber-mental.html#%E4%BB%80%E4%B9%88%E6%98%AF%E4%BB%A3%E6%95%B0%E6%95%88%E5%BA%94)
