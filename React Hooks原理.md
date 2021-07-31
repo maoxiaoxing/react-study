@@ -103,9 +103,9 @@ const Demo = () => {
   return (
     <div>
       <p>{name}</p>
-      <Button onClick={() => setName('杨秘书')}>increment</Button>
+      <Button type="primary" onClick={() => setName('杨秘书')}>setName</Button>
       <p>{count}</p>
-      <Button onClick={() => setCount((_count) => _count + 1)}>increment</Button>
+      <Button type="primary" onClick={() => setCount((_count) => _count + 1)}>increment</Button>
     </div>
   )
 }
@@ -113,7 +113,11 @@ const Demo = () => {
 export default Demo
 ```
 
-![](https://gitee.com/maoxiaoxing/mxx-blog/raw/master/Img/useState.gif)
+![](https://gitee.com/maoxiaoxing/mxx-blog/raw/master/Img/useState1.gif)
+
+### useState 原理
+
+上面我们在讲代数效应的时候，我们说不用关心 useState 里面做了什么，我们只需要使用 useState 返回给我们的 state 即可。诶，但是我就是个好奇宝宝，我就想知道 useState 内部到底是怎样实现的。
 
 
 ![](https://img2020.cnblogs.com/blog/1575596/202107/1575596-20210731222101786-742218887.png)
