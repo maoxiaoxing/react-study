@@ -122,6 +122,61 @@ export default Demo
 
 ![](https://img2020.cnblogs.com/blog/1575596/202107/1575596-20210731222101786-742218887.png)
 
+下面我们自己实现一个简易版的 useState，来了解一下 Hooks 内部的基本原理。
+我们先来准备一些基础代码，也就是我们要写的 useState 的架子，写代码之前，我们先来梳理一下我们需要干什么。
+- 首先我们要模拟 useState ，那么我们肯定要先声明一个 useState 函数
+- 然后我们需要一个组件来测试我们实现的 hook，我们暂且叫它 App
+- 我们都知道 React 16.8 之后采用了新的 Fiber 架构，Fiber 也就是一个对象用来存储组件的信息，一般组件都会被存储在 stateNode 这个属性上，而 Hooks 的 state 会用链表结构被存储在 Fiber 的 memoizedState 这个属性上。
+- React 设计最精妙之处就在于它的调度，我们需要一个调度函数 schedule
+- 组件是需要区分生命周期的，首次渲染和更新阶段是不一样的，我们使用一个 isMount 字段去标识
+- 最后我们需要一个 workInprogressHook 来处理最近的一个 hooks
+
+下面我们就通过上面的思路来把 hooks 的框架搭出来
+
+```js
+let isMount = true // 是否渲染
+let workInprogressHook = null // 当前处理 hook
+
+// Fiber对象
+const fiber = {
+  stateNode: App,
+  memoizedState: null, // 用链表去存储 hook 
+}
+
+function useState (initialState) {
+ // todo
+}
+
+
+// 调度
+function schedule() {
+  // 初始化 当前处理 hook
+  workInprogressHook = fiber.memoizedState
+  const app = fiber.stateNode()
+  isMount = false
+  return app
+}
+
+// 测试组件
+// 为了简化流程，我们忽略 DOM 更新
+function App () {
+  const [num, setNum] = useState(0)
+  const [count, setCount] = useState(0)
+
+  return {
+    onClick() {
+      setNum(num => num + 1)
+    },
+    updateCount() {
+      setCount(count => count + 1)
+    }
+  }
+}
+
+// 将调度挂载到 window 对象上，方便测试点击效果
+window.app = schedule()
+```
+
 
 - [写给那些搞不懂代数效应的我们（翻译）](https://zhuanlan.zhihu.com/p/76158581)
 - [React技术揭秘](https://react.iamkasong.com/process/fiber-mental.html#%E4%BB%80%E4%B9%88%E6%98%AF%E4%BB%A3%E6%95%B0%E6%95%88%E5%BA%94)
