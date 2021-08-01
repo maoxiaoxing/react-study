@@ -122,6 +122,8 @@ export default Demo
 
 ![](https://img2020.cnblogs.com/blog/1575596/202107/1575596-20210731222101786-742218887.png)
 
+#### Hooks 架子
+
 下面我们自己实现一个简易版的 useState，来了解一下 Hooks 内部的基本原理。
 我们先来准备一些基础代码，也就是我们要写的 useState 的架子，写代码之前，我们先来梳理一下我们需要干什么。
 - 首先我们要模拟 useState ，那么我们肯定要先声明一个 useState 函数
@@ -129,7 +131,7 @@ export default Demo
 - 我们都知道 React 16.8 之后采用了新的 Fiber 架构，Fiber 也就是一个对象用来存储组件的信息，一般组件都会被存储在 stateNode 这个属性上，而 Hooks 的 state 会用链表结构被存储在 Fiber 的 memoizedState 这个属性上。
 - React 设计最精妙之处就在于它的调度，我们需要一个调度函数 schedule
 - 组件是需要区分生命周期的，首次渲染和更新阶段是不一样的，我们使用一个 isMount 字段去标识
-- 最后我们需要一个 workInprogressHook 来处理最近的一个 hooks
+- 最后我们需要一个 workInprogressHook 来处理最近的一个 hook
 
 下面我们就通过上面的思路来把 hooks 的框架搭出来
 
@@ -144,7 +146,7 @@ const fiber = {
 }
 
 function useState (initialState) {
- // todo
+ // todo 实现 useState
 }
 
 
@@ -175,6 +177,179 @@ function App () {
 
 // 将调度挂载到 window 对象上，方便测试点击效果
 window.app = schedule()
+```
+
+#### 初始状态的 useState
+
+上面我们在 useState 函数中留了一个 todo项，在实现 useState 函数之前，我们先来思考一个问题，我们应该怎样存储 useState 生成的状态呢，通常我们调用 useState 是像下面这样的
+
+```js
+const [count1, setCount1] = useState(0)
+const [count2, setCount2] = useState(0)
+const [count3, setCount3] = useState(0)
+```
+
+在 React 源码中，React 是通过链表结构来存储这些 hook 的，我们要把所有的 state 通过链表的形式存储，并且我们要将 workInprogressHook 指向当前 hook 方便我们处理，下面我们来试着实现 useState
+
+```js
+function useState(initialState) {
+  let hook // 当前 hook 节点
+
+  if (typeof initialState === 'function') {
+    initialState = initialState();
+  }
+
+  if (isMount) {
+    hook = {
+      memoizedState: initialState,
+      next: null,
+    }
+
+    // 创建 hook 链表
+    // 如果没有初始化的 hook 则初始化 hook 节点，并将当前处理节点（workInprogressHook）指向当前 hook
+    // 如果不是初始化的话，则将 当前处理节点（workInprogressHook）的下一个节点指向 hook
+    if (!fiber.memoizedState) {
+      fiber.memoizedState = hook
+    } else {
+      workInprogressHook.next = hook
+    }
+
+    workInprogressHook = hook
+  }
+
+  // todo 实现更新逻辑
+}
+```
+
+#### 更新 state
+
+在完善 useState 的更新逻辑，我们先来想想，既然 state 是需要用链表来存储的，那么update 函数也得需要对应一个链表来存储啊，我们来看看为什么需要链表来存储
+
+```js
+const [count, setCount] = useState(0)
+
+return (
+  <p onClick={() => {
+    setCount(num => num + 1)
+    setCount(num => num + 1)
+    setCount(num => num + 1)
+  }}>
+    {num}
+  </p>
+)
+```
+
+可以看到更新函数 setCount 可能不是只调用一次，在 React 中，这些 update 函数被环状链表组合在了一起。这时我们就需要在 hook 上增加一个 queue 属性来存储 update 函数
+
+```js
+hook = {
+  memoizedState: initialState,
+  next: null,
+  // 保存改变的状态
+  // 队列是因为 有可能有多个更新函数
+  // setCount(num => num + 1)
+  // setCount(num => num + 1)
+  // setCount(num => num + 1)
+  queue: {
+    pending: null,
+  }
+}
+```
+
+在 React 源码中，更新阶段会调用 dispatchAction.bind(null, hook.queue) 这个函数来更新 state，我们先来看看是怎样实现的
+
+```js
+function dispatchAction(queue, action) {
+  // 更新节点
+  const update = {
+    action,
+    next: null,
+  }
+
+  // 构建更新链表 环状链表
+  // queue.pending === null 还没有触发更新，创建第一个更新
+  if (queue.pending === null) {
+    // u0 -> u0 -> u0
+    update.next = update
+  } else {
+    // u0 -> u0
+    // u1 -> u0 -> u1
+    update.next = queue.pending.next
+    queue.pending.next = update
+  }
+  queue.pending = update
+
+  // 触发更新
+  schedule()
+}
+```
+
+环状链表的操作可能不太容易理解，下面我们来详细讲解下。
+- 首先，当产生第一个 update 的时候（我们叫它 u0），此时queue.pending === null。update.next = update;即u0.next = u0，他会和自己首尾相连形成单向环状链表。然后queue.pending = update;即queue.pending = u0
+
+```js
+queue.pending = u0 ---> u0
+                ^       |
+                |       |
+                ---------
+```
+
+- 当产生第二个update（我们叫他u1），update.next = queue.pending.next;，此时queue.pending.next === u0， 即u1.next = u0。queue.pending.next = update;，即u0.next = u1。然后queue.pending = update;即queue.pending = u1
+
+```js
+queue.pending = u1 ---> u0   
+                ^       |
+                |       |
+                ---------
+```
+
+这样做的好处就是，当我们需要遍历 update 时，queue.pending.next指向第一个插入的update，方便我们去操作 update 函数。逻辑还是比较清晰明了的，如果上面看不懂的话，需要去好好补一下数据结构了哦。
+
+![](https://img2020.cnblogs.com/blog/1575596/202108/1575596-20210801183829942-1662875368.jpg)
+
+#### 完善 useState
+
+在 dispatchAction 中，我们将 update 构建成环状链表后， 接着我们就可以继续实现 useState 中的更新逻辑，当我们需要更新 state 时，我们就需要遍历环状链表，将新的状态更新到 update 函数中去，当遍历完，我们将链表清空，最后我们将新的 state 和 update 函数返回即可。
+
+```js
+function useState(initialState) {
+  let hook // 当前 hook 节点
+
+  if (typeof initialState === 'function') {
+    initialState = initialState();
+  }
+
+  if (isMount) {
+    ... mount 阶段
+  } else {
+    // 如果是 update 的情况，则将 hook 指向 workInprogressHook
+    // workInprogressHook 指向 hook 链表的下一个节点
+    hook = workInprogressHook
+    workInprogressHook = workInprogressHook.next
+  }
+
+  // 处理更新 遍历更新函数的环状链表
+  // 获取初始状态
+  let baseState = hook.memoizedState
+
+  if (hook.queue.pending) {
+    let firstUpdate = hook.queue.pending.next
+
+    do {
+      const action = firstUpdate.action
+      // 处理更新状态
+      baseState = action(baseState)
+      firstUpdate = firstUpdate.next
+    } while (firstUpdate !== hook.queue.pending.next) // 遍历完环状链表
+
+    // 清空链表
+    hook.queue.pending = null
+  }
+
+  hook.memoizedState = baseState
+
+  return [baseState, dispatchAction.bind(null, hook.queue)]
+}
 ```
 
 
