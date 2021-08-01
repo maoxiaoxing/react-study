@@ -488,7 +488,7 @@ function basicStateReducer<S>(state: S, action: BasicStateAction<S>): S {
 
 这也直接证明了 useState 即 reducer 为 basicStateReducer 的 useReducer。
 
-<!-- #### update 阶段
+#### update 阶段
 
 在 update 阶段 updateState 则是直接调用了 updateReducer 方法，更加证明了 useState 就是特殊的 useReducer
 
@@ -498,7 +498,7 @@ function updateState<S>(
 ): [S, Dispatch<BasicStateAction<S>>] {
   return updateReducer(basicStateReducer, (initialState: any));
 }
-``` -->
+```
 
 
 - [写给那些搞不懂代数效应的我们（翻译）](https://zhuanlan.zhihu.com/p/76158581)
