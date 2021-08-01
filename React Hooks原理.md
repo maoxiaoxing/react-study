@@ -527,5 +527,6 @@ function updateReducer<S, I, A>(
 源码这个部分比较长，我只保留了一些主干代码，大致流程就是重新计算新的 state，然后将新的 state 返回。
 
 
+
 - [写给那些搞不懂代数效应的我们（翻译）](https://zhuanlan.zhihu.com/p/76158581)
 - [React技术揭秘](https://react.iamkasong.com/process/fiber-mental.html#%E4%BB%80%E4%B9%88%E6%98%AF%E4%BB%A3%E6%95%B0%E6%95%88%E5%BA%94)
