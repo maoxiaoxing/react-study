@@ -46,7 +46,7 @@ async function makeFriends(id1, id2) {
 ![](https://img2020.cnblogs.com/blog/1575596/202107/1575596-20210725232041295-986738930.gif)
 
 这其实就是 getName 变成异步函数导致的副作用。
-我们尝试虚构一个类似 try...catch 的语法 —— try...handle 和两个操作符 perform、resume
+我们尝试虚构一个类似 try...catch 的语法 —— try...handle 和两个操作符 perform、resume 去分离一下这样的副作用
 
 ```js
 function getName(id) {
@@ -351,6 +351,154 @@ function useState(initialState) {
   return [baseState, dispatchAction.bind(null, hook.queue)]
 }
 ```
+
+### 浅析 Hooks 源码
+
+上面我们实现一个简单的 useState，我们使用 isMount 来判断更新时机，但是 React 中没有这么 low，React 中使用了不用的 hash 值来标识不同的 hooks 的状态
+
+```js
+// 利用 hash 来存储不用状态的方法
+const HooksDispatcherOnMount: Dispatcher = {
+  readContext,
+
+  useCallback: mountCallback,
+  useContext: readContext,
+  useEffect: mountEffect,
+  useImperativeHandle: mountImperativeHandle,
+  useLayoutEffect: mountLayoutEffect,
+  useMemo: mountMemo,
+  useReducer: mountReducer,
+  useRef: mountRef,
+  useState: mountState,
+  useDebugValue: mountDebugValue,
+  useResponder: createDeprecatedResponderListener,
+  useDeferredValue: mountDeferredValue,
+  useTransition: mountTransition,
+};
+
+const HooksDispatcherOnUpdate: Dispatcher = {
+  readContext,
+
+  useCallback: updateCallback,
+  useContext: readContext,
+  useEffect: updateEffect,
+  useImperativeHandle: updateImperativeHandle,
+  useLayoutEffect: updateLayoutEffect,
+  useMemo: updateMemo,
+  useReducer: updateReducer,
+  useRef: updateRef,
+  useState: updateState,
+  useDebugValue: updateDebugValue,
+  useResponder: createDeprecatedResponderListener,
+  useDeferredValue: updateDeferredValue,
+  useTransition: updateTransition,
+};
+```
+
+Redux 的作者 [Dan Abramov](https://github.com/gaearon) 在加入 React 团队中也是将 Redux 的思想带入了 React 中，useState 和 useReducer 这两个 hook 就是他的代表作，而且从本质来说，useState 不过就是预置了 reducer 的 useReducer
+
+![](https://img2020.cnblogs.com/blog/1575596/202108/1575596-20210801213806401-1290783913.png)
+
+#### mount 阶段
+
+在 mount 阶段，useState 会调用 mountState， 而 useReducer 则会调用 mountReducer
+下面我们来看看这两个方法
+
+```js
+// \react\packages\react-reconciler\src\ReactFiberHooks.js
+
+function mountState<S>(
+  initialState: (() => S) | S,
+): [S, Dispatch<BasicStateAction<S>>] {
+  // 创建hook对象
+  const hook = mountWorkInProgressHook();
+  if (typeof initialState === 'function') {
+    // $FlowFixMe: Flow doesn't like mixed types
+    initialState = initialState();
+  }
+  hook.memoizedState = hook.baseState = initialState;
+  const queue = (hook.queue = {
+    pending: null,
+    dispatch: null,
+    lastRenderedReducer: basicStateReducer,
+    lastRenderedState: (initialState: any),
+  });
+  const dispatch: Dispatch<
+    BasicStateAction<S>,
+  > = (queue.dispatch = (dispatchAction.bind(
+    null,
+    currentlyRenderingFiber,
+    queue,
+  ): any));
+  return [hook.memoizedState, dispatch];
+}
+
+function mountReducer<S, I, A>(
+  reducer: (S, A) => S,
+  initialArg: I,
+  init?: I => S,
+): [S, Dispatch<A>] {
+  const hook = mountWorkInProgressHook();
+  let initialState;
+  if (init !== undefined) {
+    initialState = init(initialArg);
+  } else {
+    initialState = ((initialArg: any): S);
+  }
+  hook.memoizedState = hook.baseState = initialState;
+  const queue = (hook.queue = {
+    pending: null,
+    dispatch: null,
+    lastRenderedReducer: reducer,
+    lastRenderedState: (initialState: any),
+  });
+  const dispatch: Dispatch<A> = (queue.dispatch = (dispatchAction.bind(
+    null,
+    currentlyRenderingFiber,
+    queue,
+  ): any));
+  return [hook.memoizedState, dispatch];
+}
+```
+
+能看到 mountState 和 mountReducer 的区别就是 queue 中 lastRenderedReducer 字段
+
+```js
+const queue = (hook.queue = {
+  // 与极简实现中的同名字段意义相同，保存update对象
+  pending: null,
+  // 保存dispatchAction.bind()的值
+  dispatch: null,
+  // 上一次render时使用的reducer
+  lastRenderedReducer: reducer,
+  // 上一次render时的state
+  lastRenderedState: (initialState: any),
+});
+```
+
+mountReducer 的 lastRenderedReducer 接收的就是传入的 reducer；而 mountState 接收的 lastRenderedReducer 是 basicStateReducer。
+下面我们来看看 basicStateReducer 的实现
+
+```js
+function basicStateReducer<S>(state: S, action: BasicStateAction<S>): S {
+  // $FlowFixMe: Flow doesn't like mixed types
+  return typeof action === 'function' ? action(state) : action;
+}
+```
+
+这也直接证明了 useState 即 reducer 为 basicStateReducer 的 useReducer。
+
+<!-- #### update 阶段
+
+在 update 阶段 updateState 则是直接调用了 updateReducer 方法，更加证明了 useState 就是特殊的 useReducer
+
+```js
+function updateState<S>(
+  initialState: (() => S) | S,
+): [S, Dispatch<BasicStateAction<S>>] {
+  return updateReducer(basicStateReducer, (initialState: any));
+}
+``` -->
 
 
 - [写给那些搞不懂代数效应的我们（翻译）](https://zhuanlan.zhihu.com/p/76158581)
