@@ -399,7 +399,7 @@ Redux 的作者 [Dan Abramov](https://github.com/gaearon) 在加入 React 团队
 
 ![](https://img2020.cnblogs.com/blog/1575596/202108/1575596-20210801213806401-1290783913.png)
 
-#### mount 阶段
+#### mount 阶段的 useState 和 useReducer
 
 在 mount 阶段，useState 会调用 mountState， 而 useReducer 则会调用 mountReducer
 下面我们来看看这两个方法
@@ -476,7 +476,7 @@ const queue = (hook.queue = {
 });
 ```
 
-mountReducer 的 lastRenderedReducer 接收的就是传入的 reducer；而 mountState 接收的 lastRenderedReducer 是 basicStateReducer。
+mountReducer 的 lastRenderedReducer 接收的就是传入你自定义的 reducer；而 mountState 接收的 lastRenderedReducer 是一个预置的 basicStateReducer。
 下面我们来看看 basicStateReducer 的实现
 
 ```js
@@ -488,7 +488,7 @@ function basicStateReducer<S>(state: S, action: BasicStateAction<S>): S {
 
 这也直接证明了 useState 即 reducer 为 basicStateReducer 的 useReducer。
 
-#### update 阶段
+#### update 阶段的 useState 和 useReducer
 
 在 update 阶段 updateState 则是直接调用了 updateReducer 方法，更加证明了 useState 就是特殊的 useReducer
 
@@ -499,6 +499,30 @@ function updateState<S>(
   return updateReducer(basicStateReducer, (initialState: any));
 }
 ```
+
+下面我们来看看 updateReducer 是怎样实现的
+
+```js
+function updateReducer<S, I, A>(
+  reducer: (S, A) => S,
+  initialArg: I,
+  init?: I => S,
+): [S, Dispatch<A>] {
+  // 获取当前hook
+  const hook = updateWorkInProgressHook();
+  const queue = hook.queue;
+  
+  queue.lastRenderedReducer = reducer;
+
+  // ...计算 newState 的过程
+
+  hook.memoizedState = newState;
+  const dispatch: Dispatch<A> = (queue.dispatch: any);
+  return [hook.memoizedState, dispatch];
+}
+```
+
+源码这个部分比较长，我只保留了一些主干代码，大致流程就是重新计算新的 state，然后将新的 state 返回
 
 
 - [写给那些搞不懂代数效应的我们（翻译）](https://zhuanlan.zhihu.com/p/76158581)

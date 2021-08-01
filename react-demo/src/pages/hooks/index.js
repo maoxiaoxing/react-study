@@ -15,6 +15,7 @@ import { Button } from 'antd'
 const Demo = () => {
   const [name, setName] = useState('毛小星')
   const [count, setCount] = useState(() => 0)
+  // setCount(2)
 
   return (
     <div>
