@@ -12,6 +12,8 @@ import UseCallback from  '../pages/hooks/useCallback'
 import UseRef from  '../pages/hooks/useRef'
 
 import Principle  from '../pages/hooks-principle'
+import State  from '../pages/hooks-principle/state'
+
 
 const routes = [
   {
@@ -119,6 +121,13 @@ const routes = [
         title: 'Principle',
         descriptions: 'Principle',
         component: Principle,
+      },
+      {
+        path: '/hooks-principle/State',
+        name: 'State',
+        title: 'State',
+        descriptions: 'State',
+        component: State,
       },
     ],
   },
