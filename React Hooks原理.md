@@ -356,6 +356,8 @@ function useState(initialState) {
 
 上面我们实现一个简单的 useState，我们使用 isMount 来判断更新时机，但是 React 中没有这么 low，React 中使用了不用的 hash 值来标识不同的 hooks 的状态
 
+> 本篇博客 React 源码为 16.12.0 版本
+
 ```js
 // 利用 hash 来存储不用状态的方法
 const HooksDispatcherOnMount: Dispatcher = {
@@ -522,7 +524,7 @@ function updateReducer<S, I, A>(
 }
 ```
 
-源码这个部分比较长，我只保留了一些主干代码，大致流程就是重新计算新的 state，然后将新的 state 返回
+源码这个部分比较长，我只保留了一些主干代码，大致流程就是重新计算新的 state，然后将新的 state 返回。
 
 
 - [写给那些搞不懂代数效应的我们（翻译）](https://zhuanlan.zhihu.com/p/76158581)
