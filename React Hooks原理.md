@@ -360,6 +360,7 @@ function useState(initialState) {
 
 ```js
 // 利用 hash 来存储不用状态的方法
+// mount 阶段
 const HooksDispatcherOnMount: Dispatcher = {
   readContext,
 
@@ -378,6 +379,7 @@ const HooksDispatcherOnMount: Dispatcher = {
   useTransition: mountTransition,
 };
 
+// update 阶段
 const HooksDispatcherOnUpdate: Dispatcher = {
   readContext,
 
@@ -397,7 +399,7 @@ const HooksDispatcherOnUpdate: Dispatcher = {
 };
 ```
 
-Redux 的作者 [Dan Abramov](https://github.com/gaearon) 在加入 React 团队中也是将 Redux 的思想带入了 React 中，useState 和 useReducer 这两个 hook 就是他的代表作，而且从本质来说，useState 不过就是预置了 reducer 的 useReducer
+Redux 的作者 [Dan Abramov](https://github.com/gaearon) 在加入 React 团队中也是将 Redux 的思想带入了 React 中，useState 和 useReducer 这两个 hook 就是他的代表作，而且从本质来说，useState 不过就是预置了 reducer 的 useReducer，下面的源码会印证这点。
 
 ![](https://img2020.cnblogs.com/blog/1575596/202108/1575596-20210801213806401-1290783913.png)
 
@@ -526,7 +528,12 @@ function updateReducer<S, I, A>(
 
 源码这个部分比较长，我只保留了一些主干代码，大致流程就是重新计算新的 state，然后将新的 state 返回。
 
+#### 调用更新函数
 
+我们在使用 setCount((count) => count + 1)  这样的更新函数更新 state 的时候，会触发 dispatchAction 函数，这个时候当前的函数组件对应的 Fiber 和 对应的更新方法（hook.queue）就通过调用 dispatchAction.bind 传入了方法内
+
+```js
+```
 
 - [写给那些搞不懂代数效应的我们（翻译）](https://zhuanlan.zhihu.com/p/76158581)
 - [React技术揭秘](https://react.iamkasong.com/process/fiber-mental.html#%E4%BB%80%E4%B9%88%E6%98%AF%E4%BB%A3%E6%95%B0%E6%95%88%E5%BA%94)
