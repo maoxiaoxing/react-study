@@ -533,7 +533,80 @@ function updateReducer<S, I, A>(
 我们在使用 setCount((count) => count + 1)  这样的更新函数更新 state 的时候，会触发 dispatchAction 函数，这个时候当前的函数组件对应的 Fiber 和 对应的更新方法（hook.queue）就通过调用 dispatchAction.bind 传入了方法内
 
 ```js
+function dispatchAction<S, A>(
+  fiber: Fiber,
+  queue: UpdateQueue<S, A>,
+  action: A,
+) {
+
+  const currentTime = requestCurrentTimeForUpdate();
+  const suspenseConfig = requestCurrentSuspenseConfig();
+  const expirationTime = computeExpirationForFiber(
+    currentTime,
+    fiber,
+    suspenseConfig,
+  );
+
+  const update: Update<S, A> = {
+    expirationTime,
+    suspenseConfig,
+    action,
+    eagerReducer: null,
+    eagerState: null,
+    next: (null: any),
+  };
+
+  // 构建 update 环状链表
+  // Append the update to the end of the list.
+  const pending = queue.pending;
+  if (pending === null) {
+    // This is the first update. Create a circular list.
+    update.next = update;
+  } else {
+    update.next = pending.next;
+    pending.next = update;
+  }
+  queue.pending = update;
+
+  const alternate = fiber.alternate;
+  if (
+    fiber === currentlyRenderingFiber ||
+    (alternate !== null && alternate === currentlyRenderingFiber)
+  ) {
+    // This is a render phase update. Stash it in a lazily-created map of
+    // queue -> linked list of updates. After this render pass, we'll restart
+    // and apply the stashed updates on top of the work-in-progress hook.
+    didScheduleRenderPhaseUpdate = true;
+    update.expirationTime = renderExpirationTime;
+    currentlyRenderingFiber.expirationTime = renderExpirationTime;
+  } else {
+    if (
+      fiber.expirationTime === NoWork &&
+      (alternate === null || alternate.expirationTime === NoWork)
+    ) {
+      // ...优化调度渲染
+    }
+
+    // 调度
+    scheduleWork(fiber, expirationTime);
+  }
+}
 ```
+
+dispatchAction 函数我只留了一些主干代码，总结一下：将 update 加入 queue.pending，构建环状链表，在优化渲染后，开启调度。
+
+if...else... 是 React 的一些优化手段，if 内：
+
+```js
+if (
+  fiber === currentlyRenderingFiber ||
+  (alternate !== null && alternate === currentlyRenderingFiber)
+)
+```
+
+这是需要 render 阶段触发的更新，所以需要给当前的更新放到一个延迟队列中，在渲染阶段，再重新启用 workInProgress 去触发更新
+
+
 
 - [写给那些搞不懂代数效应的我们（翻译）](https://zhuanlan.zhihu.com/p/76158581)
 - [React技术揭秘](https://react.iamkasong.com/process/fiber-mental.html#%E4%BB%80%E4%B9%88%E6%98%AF%E4%BB%A3%E6%95%B0%E6%95%88%E5%BA%94)
