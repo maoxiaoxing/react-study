@@ -606,6 +606,15 @@ if (
 
 这是需要 render 阶段触发的更新，所以需要给当前的更新放到一个延迟队列中，在渲染阶段，再重新启用 workInProgress 去触发更新
 
+而下面的 else...if
+
+```js
+else if (
+    fiber.expirationTime === NoWork &&
+    (alternate === null || alternate.expirationTime === NoWork)
+  )
+```
+
 
 
 - [写给那些搞不懂代数效应的我们（翻译）](https://zhuanlan.zhihu.com/p/76158581)
