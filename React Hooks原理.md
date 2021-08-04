@@ -584,7 +584,19 @@ function dispatchAction<S, A>(
       fiber.expirationTime === NoWork &&
       (alternate === null || alternate.expirationTime === NoWork)
     ) {
+      // 只保留核心代码
       // ...优化调度渲染
+      const currentState: S = (queue.lastRenderedState: any);
+      const eagerState = lastRenderedReducer(currentState, action);
+      update.eagerReducer = lastRenderedReducer;
+      update.eagerState = eagerState;
+      if (is(eagerState, currentState)) {
+        // Fast path. We can bail out without scheduling React to re-render.
+        // It's still possible that we'll need to rebase this update later,
+        // if the component re-renders for a different reason and by that
+        // time the reducer has changed.
+        return;
+      }
     }
 
     // 调度
@@ -615,6 +627,8 @@ else if (
   )
 ```
 
+fiber.expirationTime 保存的是 fiber 对象的 update的优先级，fiber.expirationTime === NoWork 则意味着 fiber 对象上不存在 update。
+通过源码的学习，我们已经知道了 update 计算 state 是在 hook 的声明阶段，在调用阶段还通过内置的 reducer 重新计算 state，如果调用阶段的 state 和声明阶段的 state 是相等的，那么就完全不需要重新开启一次新的调度了。如果不相等的话，在声明阶段也可以直接使用调用阶段计算出来的 state。
 
 
 - [写给那些搞不懂代数效应的我们（翻译）](https://zhuanlan.zhihu.com/p/76158581)
