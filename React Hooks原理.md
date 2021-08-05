@@ -628,7 +628,7 @@ else if (
 ```
 
 fiber.expirationTime 保存的是 fiber 对象的 update的优先级，fiber.expirationTime === NoWork 则意味着 fiber 对象上不存在 update。
-通过源码的学习，我们已经知道了 update 计算 state 是在 hook 的声明阶段，在调用阶段还通过内置的 reducer 重新计算 state，如果调用阶段的 state 和声明阶段的 state 是相等的，那么就完全不需要重新开启一次新的调度了。如果不相等的话，在声明阶段也可以直接使用调用阶段计算出来的 state。
+通过源码的学习，我们已经知道了 update 计算 state 是在 hook 的声明阶段，在调用阶段还通过内置的 reducer 重新计算 state，如果调用阶段的 state 和声明阶段的 state 是相等的，那么就完全不需要重新开启一次新的调度了。
 
 
 - [写给那些搞不懂代数效应的我们（翻译）](https://zhuanlan.zhihu.com/p/76158581)
