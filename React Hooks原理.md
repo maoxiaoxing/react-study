@@ -93,24 +93,46 @@ React 16.8 中的 Hooks 就是在践行代数效应，像 useState、useReducer�
 4. 参数可以是一个函数，函数返回什么，初始状态就是什么，函数只会被调用一次，用在初始值是动态值的情况
 
 ```js
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Button } from 'antd'
 
-const Demo = () => {
-  const [name, setName] = useState('毛小星')
+const userMap = new Map([
+  ['9527', { name: '毛小星' }],
+  ['9528', { name: '杨秘书' }],
+])
+
+const Friend = () => {
   const [count, setCount] = useState(() => 0)
+  const [id1] = useState('9527')
+  const [id2] = useState('9528')
+  const [content, setContent] = useState('')
+  
+  const getName = (_id) => {
+    return userMap.get(_id)
+  }
+
+  const makeFriend = (_id1, _id2) => {
+    const user1 = getName(_id1)
+    const user2 = getName(_id2)
+
+    const result = `${user1.name} 和 ${user2.name} 变成了好朋友`
+
+    setContent(result)
+  }
+
+  useEffect(() => {
+    makeFriend(id1, id2)
+  }, [id1, id2, count])
 
   return (
     <div>
-      <p>{name}</p>
-      <Button type="primary" onClick={() => setName('杨秘书')}>setName</Button>
-      <p>{count}</p>
+      <p>{count && content}</p>
       <Button type="primary" onClick={() => setCount((_count) => _count + 1)}>increment</Button>
     </div>
   )
 }
 
-export default Demo
+export default Friend
 ```
 
 ![](https://gitee.com/maoxiaoxing/mxx-blog/raw/master/Img/useState1.gif)
