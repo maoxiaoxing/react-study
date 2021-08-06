@@ -36,9 +36,9 @@ const userMap = new Map([
 ])
 
 const Demo = () => {
-  const [count, setCount] = useState(0)
-  const [id1, setName] = useState('9527')
-  const [id2, setName] = useState('9528')
+  const [count, setCount] = useState(() => 0)
+  const [id1] = useState('9527')
+  const [id2] = useState('9528')
   const [content, setContent] = useState('')
   
   const getName = (_id) => {
@@ -49,7 +49,9 @@ const Demo = () => {
     const user1 = getName(_id1)
     const user2 = getName(_id2)
 
-    return `${user1.name} 和 ${use2.name} 变成了好朋友`
+    const result = `${user1.name} 和 ${user2.name} 变成了好朋友`
+
+    setContent(result)
   }
 
   useEffect(() => {
@@ -58,7 +60,7 @@ const Demo = () => {
 
   return (
     <div>
-      <p>{count}</p>
+      {/* <p>{count}</p> */}
       <p>{count && content}</p>
       <Button type="primary" onClick={() => setCount((_count) => _count + 1)}>increment</Button>
     </div>
