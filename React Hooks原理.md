@@ -135,7 +135,7 @@ const Friend = () => {
 export default Friend
 ```
 
-![](https://gitee.com/maoxiaoxing/mxx-blog/raw/master/Img/useState1.gif)
+![](https://gitee.com/maoxiaoxing/mxx-blog/raw/master/Img/useState2.gif)
 
 ### useState 原理
 
