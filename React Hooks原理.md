@@ -652,6 +652,10 @@ else if (
 fiber.expirationTime 保存的是 fiber 对象的 update的优先级，fiber.expirationTime === NoWork 则意味着 fiber 对象上不存在 update。
 通过源码的学习，我们已经知道了 update 计算 state 是在 hook 的声明阶段，在调用阶段还通过内置的 reducer 重新计算 state，如果调用阶段的 state 和声明阶段的 state 是相等的，那么就完全不需要重新开启一次新的调度了。
 
+到此我们就了解了 hooks 的理念，其实 React 就是在践行函数式编程，如果你觉得这篇“人类高质量文章”写的不错就点个赞吧！
+
+![](https://img2020.cnblogs.com/blog/1575596/202108/1575596-20210807184621517-9891606.jpg)
+
 
 - [写给那些搞不懂代数效应的我们（翻译）](https://zhuanlan.zhihu.com/p/76158581)
 - [React技术揭秘](https://react.iamkasong.com/process/fiber-mental.html#%E4%BB%80%E4%B9%88%E6%98%AF%E4%BB%A3%E6%95%B0%E6%95%88%E5%BA%94)
