@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "antd": "^4.16.11",
     "bfj": "^7.0.2",
     "camelcase": "^6.1.0",
     "fs-extra": "^9.0.1",
