@@ -1,4 +1,12 @@
 .login {
+  width: 400px;
+  height: 565px;
+  margin: 0 auto;
+  padding: 50px 50px 30px;
+  background: #FFF;
+  box-shadow:  0 2px 12px 0 rgba(0, 0, 0, 0.1);
+  // box-shadow: 0 0 8px rgb(0 0 0 / 10%);
+
   .nav {
     display: flex;
   }
