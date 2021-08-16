@@ -1,5 +1,6 @@
 import React from 'react'
-import style from './login.scss'
+import style from './login.module.scss'
+// import './login.scss'
 
 const Login = (props) => {
 
