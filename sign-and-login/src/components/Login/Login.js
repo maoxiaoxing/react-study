@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import style from './login.module.scss'
 import { useHistory } from 'react-router-dom'
-// import './login.scss'
+import { Input, Form } from 'antd'
 
 const Sign = {
   SIGN_IN: 'sign_in',
@@ -10,6 +10,7 @@ const Sign = {
 
 const Login = (props) => {
   const history = useHistory()
+  const [form] = Form.useForm()
   const [active, setActive] = useState(Sign.SIGN_IN)
 
   const signIn = () => {
@@ -40,6 +41,14 @@ const Login = (props) => {
           onClick={signUp}
         >注册</div>
       </div>
+
+      <Form
+        form={form}
+      >
+        <Form.Item>
+          <Input placeholder="手机号或邮箱"></Input>
+        </Form.Item>
+      </Form>
     </div>
   )
 }
