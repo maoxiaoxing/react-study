@@ -10,5 +10,30 @@
   .nav {
     display: flex;
     font-weight: 400;
+    box-sizing: border-box;
+    justify-content: center;
+  }
+
+  .nav > div {
+    padding: 10px;
+    font-size: 18px;
+    color: #969696;
+    cursor: pointer;
+  }
+
+  .nav > div:hover {
+    border-bottom: 2px solid #ea6f5a;
+  }
+
+  .nav > b {
+    padding: 10px;
+    font-size: 18px;
+    color: #969696;
+  }
+
+  .nav .active {
+    font-weight: 700;
+    color: #ea6f5a;
+    border-bottom: 2px solid #ea6f5a;
   }
 }

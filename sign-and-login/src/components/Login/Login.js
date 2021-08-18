@@ -23,8 +23,8 @@ const Login = (props) => {
   return (
     <div className={style.login}>
       <div className={style.nav}>
-        <div onClick={signIn}>登录</div>
-        <div>·</div>
+        <div className={style.active} onClick={signIn}>登录</div>
+        <b>·</b>
         <div onClick={signUp}>注册</div>
       </div>
     </div>
