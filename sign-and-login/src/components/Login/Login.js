@@ -45,9 +45,47 @@ const Login = (props) => {
       <Form
         form={form}
       >
-        <Form.Item>
-          <Input placeholder="手机号或邮箱"></Input>
-        </Form.Item>
+        {
+          active === Sign.SIGN_IN ?
+          (
+            <>
+              <Form.Item 
+                name="email"
+                rules={[{ required: true, message: '请输入邮箱' }]}
+              >
+                <Input placeholder="邮箱"></Input>
+              </Form.Item>
+              <Form.Item 
+                name="password"
+                rules={[{ required: true, message: '请输入密码' }]}
+              >
+                <Input placeholder="密码"></Input>
+              </Form.Item>
+            </>
+          ) :
+          (
+            <>
+              <Form.Item 
+                name="username"
+                rules={[{ required: true, message: '请输入昵称' }]}
+              >
+                <Input placeholder="你的昵称"></Input>
+              </Form.Item>
+              <Form.Item 
+                name="email"
+                rules={[{ required: true, message: '请输入邮箱' }]}
+              >
+                <Input placeholder="邮箱"></Input>
+              </Form.Item>
+              <Form.Item 
+                name="password"
+                rules={[{ required: true, message: '请输入密码' }]}
+              >
+                <Input placeholder="设置密码"></Input>
+              </Form.Item>
+            </>
+          )
+        }
       </Form>
     </div>
   )
