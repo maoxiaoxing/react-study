@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import style from './login.module.scss'
 import { useHistory } from 'react-router-dom'
-import { Input, Form, Button } from 'antd'
+import { Input, Form, Button, Checkbox } from 'antd'
 
 const Sign = {
   SIGN_IN: 'sign_in',
@@ -61,6 +61,9 @@ const Login = (props) => {
                   rules={[{ required: true, message: '请输入密码' }]}
                 >
                   <Input placeholder="密码"></Input>
+                </Form.Item>
+                <Form.Item name="remember" valuePropName="checked" wrapperCol={{ offset: 4, span: 16 }}>
+                  <Checkbox>记住我</Checkbox>
                 </Form.Item>
                 <Form.Item 
                 >
