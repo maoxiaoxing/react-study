@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import style from './login.module.scss'
 import { useHistory } from 'react-router-dom'
-import { Input, Form } from 'antd'
+import { Input, Form, Button } from 'antd'
 
 const Sign = {
   SIGN_IN: 'sign_in',
@@ -62,6 +62,10 @@ const Login = (props) => {
                 >
                   <Input placeholder="密码"></Input>
                 </Form.Item>
+                <Form.Item 
+                >
+                  <Button type="primary" htmlType="submit">登录</Button>
+                </Form.Item>
               </>
             ) :
             (
@@ -83,6 +87,10 @@ const Login = (props) => {
                   rules={[{ required: true, message: '请输入密码' }]}
                 >
                   <Input placeholder="设置密码"></Input>
+                </Form.Item>
+                <Form.Item 
+                >
+                  <Button type="primary" htmlType="submit">注册</Button>
                 </Form.Item>
               </>
             )
