@@ -1,9 +1,9 @@
 import axios from 'axios'
 import HttpInspectors from './httpInspectors'
-import {Message} from 'element'
+import {message} from 'antd'
 
 HttpInspectors.setCallback('httpError', (error) => {
-  Message.error({type: 'error', content: error.errorMessage})
+  message.error(error.errorMessage)
 })
 
 var http = function (method, url, queryParams, data, options) {

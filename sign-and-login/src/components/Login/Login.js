@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react'
 import style from './login.module.scss'
 import { useHistory } from 'react-router-dom'
 import { Input, Form, Button, Checkbox } from 'antd'
+import LoginService from '@/service/loginService'
 
 const Sign = {
   SIGN_IN: 'sign_in',
