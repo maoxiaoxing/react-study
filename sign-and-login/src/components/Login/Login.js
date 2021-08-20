@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react'
 import style from './login.module.scss'
 import { useHistory } from 'react-router-dom'
 import { Input, Form, Button, Checkbox } from 'antd'
-import LoginService from '@/service/loginService'
+import LoginService from '../../service/loginService'
 
 const Sign = {
   SIGN_IN: 'sign_in',
@@ -23,6 +23,29 @@ const Login = (props) => {
   const signUp = () => {
     history.push(Sign.SIGN_UP)
     setActive(Sign.SIGN_UP)
+  }
+
+  const login = () => {
+    const values = form.getFieldsValue()
+    const params = {
+      user: {
+        email: 'jake@jake.jake',
+        password: 'jakejake',
+      }
+    }
+
+    LoginService.login(params)
+      .then((res) => {
+        console.log(res)
+      })
+  }
+
+  const register = () => {
+
+  }
+
+  const onFinish = () => {
+    login()
   }
 
   useEffect(() => {
@@ -46,6 +69,7 @@ const Login = (props) => {
       <div className={style.container}>
         <Form
           form={form}
+          onFinish={onFinish}
         >
           {
             active === Sign.SIGN_IN ?
