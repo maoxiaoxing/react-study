@@ -4,6 +4,7 @@
   "private": true,
   "dependencies": {
     "antd": "^4.16.11",
+    "axios": "^0.21.1",
     "bfj": "^7.0.2",
     "camelcase": "^6.1.0",
     "fs-extra": "^9.0.1",
@@ -11,9 +12,9 @@
     "react": "^17.0.2",
     "react-app-polyfill": "^2.0.0",
     "react-dom": "^17.0.2",
+    "react-refresh": "^0.8.3",
     "react-router": "^5.2.0",
     "react-router-dom": "^5.2.0",
-    "react-refresh": "^0.8.3",
     "resolve": "1.18.1",
     "resolve-url-loader": "^3.1.2",
     "semver": "7.3.2",
