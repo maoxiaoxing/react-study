@@ -3,8 +3,17 @@ import Urls from './urls'
 
 export default class LoginService {
   static login (data) {
-    var options = {
+    const options = {
       url: Urls.login,
+      data: data
+    }
+
+    return HttpService.post(options)
+  }
+
+  static register(data) {
+    const options = {
+      url: Urls.register,
       data: data
     }
 
