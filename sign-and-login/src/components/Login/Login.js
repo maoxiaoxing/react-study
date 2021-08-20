@@ -3,6 +3,7 @@ import style from './login.module.scss'
 import { useHistory } from 'react-router-dom'
 import { Input, Form, Button, Checkbox } from 'antd'
 import LoginService from '../../service/loginService'
+import _ from 'lodash'
 
 const Sign = {
   SIGN_IN: 'sign_in',
@@ -26,18 +27,18 @@ const Login = (props) => {
   }
 
   const login = () => {
-    const values = form.getFieldsValue()
-    const params = {
-      user: {
-        email: 'jake@jake.jake',
-        password: 'jakejake',
-      }
-    }
+    // const values = form.getFieldsValue()
+    // const params = {
+    //   user: {
+    //     email: 'jake@jake.jake',
+    //     password: 'jakejake',
+    //   }
+    // }
 
-    LoginService.login(params)
-      .then((res) => {
-        console.log(res)
-      })
+    // LoginService.login(params)
+    //   .then((res) => {
+    //     console.log(res)
+    //   })
   }
 
   const register = () => {
