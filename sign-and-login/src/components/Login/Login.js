@@ -42,11 +42,23 @@ const Login = (props) => {
   }
 
   const register = () => {
+    const values = form.getFieldsValue()
+    const params = {
 
+    }
+    LoginService.register(params)
+      .then((res) => {
+        console.log(res)
+      })
   }
 
   const onFinish = () => {
-    login()
+    const signMap = new Map([
+      [Sign.SIGN_IN, login],
+      [Sign.SIGN_UP, register],
+    ])
+    const fn = signMap.get(active)
+    fn()
   }
 
   useEffect(() => {
