@@ -27,18 +27,18 @@ const Login = (props) => {
   }
 
   const login = () => {
-    // const values = form.getFieldsValue()
-    // const params = {
-    //   user: {
-    //     email: 'jake@jake.jake',
-    //     password: 'jakejake',
-    //   }
-    // }
+    const values = form.getFieldsValue()
+    const params = {
+      user: {
+        email: 'jake@jake.jake',
+        password: 'jakejake',
+      }
+    }
 
-    // LoginService.login(params)
-    //   .then((res) => {
-    //     console.log(res)
-    //   })
+    LoginService.login(params)
+      .then((res) => {
+        console.log(res)
+      })
   }
 
   const register = () => {
@@ -58,7 +58,8 @@ const Login = (props) => {
       [Sign.SIGN_UP, register],
     ])
     const fn = signMap.get(active)
-    fn()
+    console.log(fn, 'fn')
+    fn && fn()
   }
 
   useEffect(() => {
