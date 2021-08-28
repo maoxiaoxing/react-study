@@ -14,6 +14,8 @@ import UseRef from  '../pages/hooks/useRef'
 import Principle  from '../pages/hooks-principle'
 import State  from '../pages/hooks-principle/state'
 
+import ReduxCount from '../pages/redux-demo/count'
+
 
 const routes = [
   {
@@ -130,6 +132,21 @@ const routes = [
         component: State,
       },
     ],
+  },
+  {
+    path: '/redux-demo',
+    name: 'ReduxDemo',
+    title: 'ReduxDemo',
+    descriptions: 'ReduxDemo',
+    children: [
+      {
+        path: '/redux-demo/count',
+        name: 'ReduxCount',
+        title: 'ReduxCount',
+        descriptions: 'ReduxCount',
+        component: ReduxCount,
+      },
+    ]
   },
 ]
 
