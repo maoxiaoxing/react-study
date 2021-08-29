@@ -1,12 +1,23 @@
 import React from 'react'
+import { connect } from 'react-redux'
+import { bindActionCreators } from 'redux';
+import * as couterActions from '../../store/actions/count'
 
-const Count = () => {
+const Counter = ({count, increment, decrement, increment_async}) => {
 
   return (
     <div>
-      123
+      <button onClick={() => increment(20)}>+</button>
+      <span>{count}</span>
+      <button onClick={() => decrement(5)}>-</button>
     </div>
   )
 }
 
-export default Count
+const mapStateToProps = state => ({
+  count: state.counter.count
+});
+
+const mapDispatchToProps = dispatch => bindActionCreators(couterActions, dispatch)
+
+export default connect(mapStateToProps, mapDispatchToProps)(Counter)
