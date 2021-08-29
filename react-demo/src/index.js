@@ -5,13 +5,17 @@ import App from './App';
 import reportWebVitals from './reportWebVitals';
 import MyLayout from './components/Layout'
 import { BrowserRouter } from 'react-router-dom'
+import { Provider } from 'react-redux'
+import { store } from './store'
 
 ReactDOM.render(
   // <React.StrictMode>
   //   <App />
   // </React.StrictMode>,
   <BrowserRouter>
-    <MyLayout></MyLayout>
+    <Provider store={store}>
+      <MyLayout></MyLayout>
+    </Provider>
   </BrowserRouter>,
   document.getElementById('root')
 );
