@@ -8,6 +8,7 @@ const Counter = ({count, increment, decrement, increment_async}) => {
   return (
     <div>
       <button onClick={() => increment(20)}>+</button>
+      <button onClick={() => increment_async(20)}>异步+</button>
       <span>{count}</span>
       <button onClick={() => decrement(5)}>-</button>
     </div>
