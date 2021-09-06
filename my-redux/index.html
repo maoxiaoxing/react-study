@@ -7,9 +7,9 @@
   <title>Document</title>
 </head>
 <body>
-  <button>+1</button>
-  <span>0</span>
-  <button>-1</button>
+  <button id="increment">+1</button>
+  <span id="count">0</span>
+  <button id="decrement">-1</button>
 
   <script src="./redux.js"></script>
   <script>
@@ -26,6 +26,18 @@
 
     const store = createStore(reducer, 0)
     console.log(store.getState())
+
+    store.subscribe(function() {
+      document.getElementById('count').innerHTML = store.getState()
+    })
+
+    document.getElementById('increment').onclick = function () {
+      store.dispatch({type: 'increment'})
+    }
+
+    document.getElementById('decrement').onclick = function () {
+      store.dispatch({type: 'decrement'})
+    }
   </script>
 </body>
 </html>
