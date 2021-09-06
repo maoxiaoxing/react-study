@@ -16,7 +16,8 @@ function createStore(reducer, preloadedState) {
   // 触发action
   function dispatch(action) {
     // 判断 action 是否是对象
-    // 
+    if(!isPlainObject(action)) throw new Error('action必须为对象')
+    // 对象中是否有 type 属性
     // 计算新的状态
     currentState = reducer(currentState, action)
 
