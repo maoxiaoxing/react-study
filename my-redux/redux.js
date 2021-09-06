@@ -24,7 +24,13 @@ function createStore(reducer, preloadedState) {
   }
 
   // 订阅状态
-  function subscrbe(listener) {
+  function subscribe(listener) {
     currentListeners.push(listener)
+  }
+
+  return {
+    getState,
+    dispatch,
+    subscribe,
   }
 }
