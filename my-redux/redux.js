@@ -1,5 +1,8 @@
 
 function createStore(reducer, preloadedState) {
+  // 约束 reducer 参数类型
+  if (typeof reducer !== 'function') throw new Error('reducer必须是函数')
+
   // store 对象存储的状态
   let currentState = preloadedState
   // 存放订阅者
