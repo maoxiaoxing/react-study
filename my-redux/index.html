@@ -24,7 +24,24 @@
       }
     }
 
-    const store = createStore(reducer, 0)
+    function enhancer (createStore) {
+      return function (reducer, preloadedState) {
+        var store = createStore(reducer, preloadedState);
+        var dispatch = store.dispatch;
+        function _dispatch (action) {
+          if (typeof action === 'function') {
+            return action(dispatch)
+          }
+          dispatch(action);
+        }
+        return {
+          ...store,
+          dispatch: _dispatch
+        }
+      }
+    }
+
+    const store = createStore(reducer, 0, enhancer)
     console.log(store.getState())
 
     store.subscribe(function() {
