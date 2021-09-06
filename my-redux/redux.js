@@ -1,7 +1,16 @@
 
-function createStore(reducer, preloadedState) {
+function createStore(reducer, preloadedState, enhancer) {
   // 约束 reducer 参数类型
   if (typeof reducer !== 'function') throw new Error('reducer必须是函数')
+
+  // 处理可选参数 enhancer
+  if (typeof enhancer !== 'undefined') {
+    if (typeof enhancer !== 'function') {
+      throw new Error('enhancer必须是一个函数')
+    }
+
+    return enhancer(createStore)(reducer, preloadedState)
+  }
 
   // store 对象存储的状态
   let currentState = preloadedState
