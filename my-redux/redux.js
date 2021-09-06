@@ -15,6 +15,8 @@ function createStore(reducer, preloadedState) {
 
   // 触发action
   function dispatch(action) {
+    // 判断 action 是否是对象
+    // 
     // 计算新的状态
     currentState = reducer(currentState, action)
 
@@ -36,4 +38,17 @@ function createStore(reducer, preloadedState) {
     dispatch,
     subscribe,
   }
+}
+
+// 判断参数是否为对象
+function isPlainObject (obj) {
+  // 排除基本类型和null
+  if (typeof obj !== 'object' || obj === null) return false
+
+  // 区分数组和对象
+  let proto = obj
+  while(Object.getPrototypeOf(proto !== null)) {
+    proto = Object.getPrototypeOf(proto)
+  }
+  return Object.getPrototypeOf(obj) === proto
 }
