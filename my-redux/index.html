@@ -12,6 +12,8 @@
   <button id="decrement">-1</button>
 
   <script src="./redux.js"></script>
+  <script src="./middlewares/logger.js"></script>
+  <script src="./middlewares/thunk.js"></script>
   <script>
     function reducer(state, action) {
       switch(action.type) {
@@ -41,7 +43,7 @@
       }
     }
 
-    const store = createStore(reducer, 0, enhancer)
+    const store = createStore(reducer, 0, applyMiddleware(logger, thunk))
     console.log(store.getState())
 
     store.subscribe(function() {
