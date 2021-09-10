@@ -63,3 +63,23 @@ function isPlainObject (obj) {
   }
   return Object.getPrototypeOf(obj) === proto
 }
+
+function applyMiddleware(...middlewares) {
+  // 返回 enhancer 函数
+  return function (createStore) {
+    return function(reducer, preloadeState) {
+      // 创建 stroe
+      const {
+        getState,
+        dispatch,
+      } = createStore(reducer, preloadeState)
+      // 简化版store
+      const middlewareAPI = {
+        getState,
+        dispatch,
+      }
+      const chain = middlewares.map(middleware => middleware(middlewareAPI))
+      
+    }
+  }
+}
