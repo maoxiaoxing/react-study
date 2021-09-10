@@ -69,17 +69,30 @@ function applyMiddleware(...middlewares) {
   return function (createStore) {
     return function(reducer, preloadeState) {
       // 创建 stroe
-      const {
-        getState,
-        dispatch,
-      } = createStore(reducer, preloadeState)
+      const store = createStore(reducer, preloadeState)
       // 简化版store
       const middlewareAPI = {
-        getState,
-        dispatch,
+        getState: store.getState,
+        dispatch: store.dispatch,
       }
       const chain = middlewares.map(middleware => middleware(middlewareAPI))
-      
+      const getDispatch = compose(...chain)
+      const dispatch = getDispatch(store.dispatch)
+
+      return {
+        ...store,
+        dispatch,
+      }
+    }
+  }
+}
+
+function compose() {
+  const funcs = [...arguments]
+  return function (dispatch) {
+    for(let i = funcs.length - 1; i >= 0; i--) {
+      const func = funcs[i]
+      func && (dispatch = func(dispatch))
     }
   }
 }
