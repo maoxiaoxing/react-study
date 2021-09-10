@@ -94,5 +94,6 @@ function compose() {
       const func = funcs[i]
       func && (dispatch = func(dispatch))
     }
+    return dispatch
   }
 }

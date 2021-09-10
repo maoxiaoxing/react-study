@@ -51,12 +51,12 @@
     })
 
     document.getElementById('increment').onclick = function () {
-      // store.dispatch({type: 'increment'})
-      store.dispatch(function(dispatch) {
-        setTimeout(function() {
-          dispatch({type: 'increment'})
-        }, 1000)
-      })
+      store.dispatch({type: 'increment'})
+      // store.dispatch(function(dispatch) {
+      //   setTimeout(function() {
+      //     dispatch({type: 'increment'})
+      //   }, 1000)
+      // })
     }
 
     document.getElementById('decrement').onclick = function () {
