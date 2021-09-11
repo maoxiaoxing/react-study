@@ -50,6 +50,16 @@
       document.getElementById('count').innerHTML = store.getState()
     })
 
+    bindActionCreators({ increment, decrement })
+
+    function increment() {
+      return { type: 'increment' }
+    }
+
+    function decrement () {
+      return { type: 'decrement' }
+    }
+
     document.getElementById('increment').onclick = function () {
       store.dispatch({type: 'increment'})
       // store.dispatch(function(dispatch) {
