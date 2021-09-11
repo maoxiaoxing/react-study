@@ -50,7 +50,7 @@
       document.getElementById('count').innerHTML = store.getState()
     })
 
-    bindActionCreators({ increment, decrement })
+    const actions = bindActionCreators({ increment, decrement }, store.dispatch)
 
     function increment() {
       return { type: 'increment' }
@@ -60,8 +60,10 @@
       return { type: 'decrement' }
     }
 
+
     document.getElementById('increment').onclick = function () {
-      store.dispatch({type: 'increment'})
+      actions.increment()
+      // store.dispatch({type: 'increment'})
       // store.dispatch(function(dispatch) {
       //   setTimeout(function() {
       //     dispatch({type: 'increment'})
@@ -70,7 +72,8 @@
     }
 
     document.getElementById('decrement').onclick = function () {
-      store.dispatch({type: 'decrement'})
+      // store.dispatch({type: 'decrement'})
+      actions.decrement()
     }
   </script>
 </body>

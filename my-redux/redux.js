@@ -97,3 +97,15 @@ function compose() {
     return dispatch
   }
 }
+
+function bindActionCreators(actionCreators, dispatch) {
+  const boundActionsCreators = {}
+
+  for(const key in actionCreators) {
+    boundActionsCreators[key] = function () {
+      dispatch(actionCreators[key]())
+    }
+  }
+
+  return boundActionsCreators
+}
