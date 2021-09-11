@@ -118,6 +118,13 @@ function combineReducers(reducers) {
   }
 
   return function (state, action) {
-    
+    const nextState = {}
+    for(let i = 0; i < reducerKeys.length; i++) {
+      const key = reducerKeys[i]
+      const reducer = reducers[key]
+      const previousStateForKey = state[key]
+      nextState[key] = reducer(previousStateForKey, action)
+    }
+    return nextState
   }
 }

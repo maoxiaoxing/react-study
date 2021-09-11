@@ -49,7 +49,7 @@
     console.log(store.getState())
 
     store.subscribe(function() {
-      document.getElementById('count').innerHTML = store.getState()
+      document.getElementById('count').innerHTML = store.getState().counter
     })
 
     const actions = bindActionCreators({ increment, decrement }, store.dispatch)
