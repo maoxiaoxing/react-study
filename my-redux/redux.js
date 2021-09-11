@@ -109,3 +109,15 @@ function bindActionCreators(actionCreators, dispatch) {
 
   return boundActionsCreators
 }
+
+function combineReducers(reducers) {
+  const reducerKeys = Reflect.ownKeys(reducers)
+  for(let i = 0; i < reducerKeys.length; i++) {
+    const key = reducerKeys[i]
+    if (typeof reducers[key] !== 'function') throw new Error('reducer必须是函数')
+  }
+
+  return function (state, action) {
+    
+  }
+}
