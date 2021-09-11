@@ -43,7 +43,9 @@
       }
     }
 
-    const store = createStore(reducer, 0, applyMiddleware(logger, thunk))
+    const routerReducer = combineReducers({ counter: reducer })
+
+    const store = createStore(routerReducer, { counter: 100 }, applyMiddleware(logger, thunk))
     console.log(store.getState())
 
     store.subscribe(function() {
