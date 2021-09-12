@@ -33,8 +33,17 @@ View 即视图，HTML 页面
 
 ## Redux 的基本使用
 
-了解了 Redux 的基本工作流程，下面我们来看看怎样在项目中使用 Redux，由于本篇文章不是讲解 React 怎样搭建的，所以你需要准备一个 React 项目
+了解了 Redux 的基本工作流程，下面我们来看看怎样在项目中使用 Redux，由于本篇文章不是讲解 React 怎样搭建的，所以你需要准备一个 React 项目，接下来我们需要下载 redux 和 react-redux，react-redux 能够让 React 和 Redux 更完美的结合起来。
 
 ```bash
 npm install redux react-redux --save
 ```
+
+在 React 中使用 Redux，我们每次改变数据肯定就不能像上面那样去通过 subscribe 去通过给视图，因为这样太麻烦了。在每次改变数据之后，react-redux 实际上就帮助我们去更新视图，我们来看看简化之后的 Redux 工作流程。
+
+![](https://img2020.cnblogs.com/blog/1575596/202109/1575596-20210912194231293-1123017682.png)
+
+1. 首先组件需要通过 dispatch 去触发 Action
+2. Store 接收 Action 并将 Action 分发给 Reducer
+3. Reducer 根据 Action 中的 type 对状态进行处理，并将处理后的状态返回给 Store
+4. 组件订阅了 Store 中的状态，Store 中的状态更新会通过 react-redux 同步到组件
