@@ -52,13 +52,13 @@ npm install redux react-redux --save
 
 我们下载好了 redux 之后，可以尝试用 redux 去实现一个简单的计数器案例，即我们在 store 中保存一个 count，然后使用 redux 对其进行加减。
 
-### 创建 Action
-
 store 都是通过 redux 中的一个 api createStore 去创建的，它必须接受一个 reducer 作为参数
 
 reducer 有两个参数：
 - 第一个是初始化的状态 initialState
 - 第二个保存怎样操作 state 的 action
+
+### 定义 Action 常量
 
 我们首先将 Action 的 type 的常量提取出来，方便我们统一管理，我们定义一个 increment 代表对 count 的增操作，decrement 代表对 count 的减操作
 
@@ -69,5 +69,38 @@ export const INCREMENT = 'increment';
 export const DECREMENT = 'decrement';
 ```
 
+### 创建 Action
 
+```js
+// src/store/reducer/count.js
+
+const initialState = {
+  count: 0
+}
+
+const CounterReducer = (state = initialState, action) => {
+  switch(action.type) {
+    case INCREMENT:
+      return {
+        ...state,
+        count: state.count + action.payload,
+      }
+    case DECREMENT:
+      return {
+        ...state,
+        count: state.count - action.payload
+      }
+    default: 
+      return state;
+  }
+}
+
+export default CounterReducer
+```
+
+```js
+import { createStore } from 'redux'
+import AllReducer from './reducers'
+
+export const store = createStore(AllReducer)
 ```
