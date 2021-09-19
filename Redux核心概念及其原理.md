@@ -128,3 +128,30 @@ import CounterReducer from './reducers/count'
 
 export const store = createStore(CounterReducer)
 ```
+
+### Provider 和 connnect
+
+正常我们在改变了 redux 中的值时，需要使用 store.substrict 去订阅通知视图改变，例如像下面这样
+
+```jsx
+// src\index.js
+
+import React from 'react';
+import './index.css';
+import { store } from './store'
+import Counter from './pages/redux-demo/count'
+
+store.subscribe(() => {
+  ReactDOM.render(
+    <Counter />,
+    document.getElementById('root')
+  );
+})
+
+ReactDOM.render(
+  <Counter />,
+  document.getElementById('root')
+);
+```
+
+上面这样通过手动订阅改变视图会有几个问题，很难订阅多个组件，而且写起来很不优雅。为了解决这些问题，redux-react 为了提供了更方便的解决方案
