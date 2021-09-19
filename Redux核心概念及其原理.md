@@ -222,5 +222,18 @@ export default connect(mapStateToProps, mapDispatchToProps)(Counter)
 
 而 bindActionCreators 实际就帮助我们去创建 一个函数，它内部会自动调用 dispatch 帮助我们将 action 传入 Reducer
 
+### 拆分合并 Reducer
 
+上面的 Reducer 文件中，我们使用了 switch 语句对不同的 state 的操作做了区分，但是一旦我们状态多了起来，我们的 case 就需要维护很多条件，这显然是不好的。或者我们想通过不同的 Reducer 去处理不同的状态，目前这种写法是没法做到的，redux 提供的 combineReducers 方法能够帮助我们合并 Reducer，这样就解决了上面的问题。
+
+```js
+// src\store\reducers\index.js
+
+import { combineReducers } from 'redux'
+import CounterReducer from '../reducers/count'
+
+export default combineReducers({
+  counter: CounterReducer,
+})
+```
 
