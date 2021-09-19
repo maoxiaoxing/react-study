@@ -71,7 +71,7 @@ export const DECREMENT = 'decrement';
 
 ### 创建 Action
 
-接下来我们开始定义 Action，action 有一个参数即传进来的状态值，它需要返回一个记录操作 state 的对象
+接下来我们开始定义 Action，action 有一个参数 payload 即传进来的操作状态值，它需要返回一个记录操作 state 的对象
 
 ```js
 // src\store\actions\count.js
