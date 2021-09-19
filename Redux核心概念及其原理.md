@@ -245,6 +245,7 @@ npm install redux-actions -S
 ```
 
 ```js
+// src\store\reducers\count.js
 import { handleActions as createReducer } from 'redux-actions'
 import { increment, decrement } from '../actions/count'
 
@@ -265,3 +266,16 @@ export default CounterReducer
 
 这样代码是不是就看起来简洁多了
 
+redux-actions 还同样提供了简化 action 的 api
+
+```js
+import { INCREMENT, DECREMENT, INCREMENT_ASYNC } from "../const";
+import { createAction } from 'redux-actions'
+
+// export const increment = payload => ({type: INCREMENT, payload});
+// export const decrement = payload => ({type: DECREMENT, payload});
+export const increment = createAction(INCREMENT)
+export const decrement = createAction(DECREMENT)
+```
+
+这样在创建 action 的时候，代码也简洁了不少
