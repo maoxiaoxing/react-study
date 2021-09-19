@@ -155,3 +155,34 @@ ReactDOM.render(
 ```
 
 上面这样通过手动订阅改变视图会有几个问题，很难订阅多个组件，而且写起来很不优雅。为了解决这些问题，redux-react 为了提供了更方便的解决方案
+
+```js
+// src\index.js
+
+import React from 'react';
+import ReactDOM from 'react-dom';
+import './index.css';
+import App from './App';
+import MyLayout from './components/Layout'
+import { BrowserRouter } from 'react-router-dom'
+import { Provider } from 'react-redux'
+import { store } from './store'
+
+ReactDOM.render(
+  // <React.StrictMode>
+  //   <App />
+  // </React.StrictMode>,
+  <BrowserRouter>
+    <Provider store={store}>
+      <MyLayout></MyLayout>
+    </Provider>
+  </BrowserRouter>,
+  document.getElementById('root')
+);
+```
+
+我们将 store 通过 react-redux 提供的 Provider 组件全局注入，这样我们就能在下面所有的组件中使用 store 了，当然到这一步还没完，在 Counter 组件中我们还需要做一些改动，才能获取到 store 中的内容
+
+```js
+
+```
