@@ -81,6 +81,8 @@ export const increment = payload => ({type: INCREMENT, payload});
 export const decrement = payload => ({type: DECREMENT, payload});
 ```
 
+### 创建 Reducer
+
 ```js
 // src/store/reducer/count.js
 
