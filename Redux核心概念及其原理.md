@@ -47,3 +47,27 @@ npm install redux react-redux --save
 2. Store 接收 Action 并将 Action 分发给 Reducer
 3. Reducer 根据 Action 中的 type 对状态进行处理，并将处理后的状态返回给 Store
 4. 组件订阅了 Store 中的状态，Store 中的状态更新会通过 react-redux 同步到组件
+
+## 使用 redux 实现计数器
+
+我们下载好了 redux 之后，可以尝试用 redux 去实现一个简单的计数器案例，即我们在 store 中保存一个 count，然后使用 redux 对其进行加减。
+
+### 创建 Action
+
+store 都是通过 redux 中的一个 api createStore 去创建的，它必须接受一个 reducer 作为参数
+
+reducer 有两个参数：
+- 第一个是初始化的状态 initialState
+- 第二个保存怎样操作 state 的 action
+
+我们首先将 Action 的 type 的常量提取出来，方便我们统一管理，我们定义一个 increment 代表对 count 的增操作，decrement 代表对 count 的减操作
+
+```js
+// \src\store\const\index.js
+
+export const INCREMENT = 'increment';
+export const DECREMENT = 'decrement';
+```
+
+
+```
