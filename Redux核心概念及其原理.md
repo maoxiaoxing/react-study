@@ -71,6 +71,16 @@ export const DECREMENT = 'decrement';
 
 ### 创建 Action
 
+接下来我们开始定义 Action，action 有一个参数即传进来的状态值，它需要返回一个记录操作 state 的对象
+
+```js
+// src\store\actions\count.js
+import { INCREMENT, DECREMENT } from "../const";
+
+export const increment = payload => ({type: INCREMENT, payload});
+export const decrement = payload => ({type: DECREMENT, payload});
+```
+
 ```js
 // src/store/reducer/count.js
 
