@@ -83,6 +83,12 @@ export const decrement = payload => ({type: DECREMENT, payload});
 
 ### 创建 Reducer
 
+Reducer 是用来计算或处理状态的，它接收两个参数：
+- 第一个参数是初始化的 state
+- 第二个是 action
+
+你可以在 Reducer 根据 action 中的 type 属性对 state 进行不同的处理，但是最后一定要返回所有的状态。
+
 ```js
 // src/store/reducer/count.js
 
