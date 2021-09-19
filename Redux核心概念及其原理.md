@@ -234,6 +234,34 @@ import CounterReducer from '../reducers/count'
 
 export default combineReducers({
   counter: CounterReducer,
+  ...其他 Reducer
 })
 ```
+
+Reducer 中的 switch 语句看起来显得有些繁琐，所以我们可以通过 [redux-actions](https://www.npmjs.com/package/redux-actions) 这个插件来简化一下
+
+```bash
+npm install redux-actions -S
+```
+
+```js
+import { handleActions as createReducer } from 'redux-actions'
+import { increment, decrement } from '../actions/count'
+
+const initialState = {
+  count: 0
+}
+
+const handleIncrement = (state, action) => ({count: state.count + action.payload})
+const handleDecrement = (state, action) => ({count: state.count - action.payload})
+
+const CounterReducer = createReducer({
+  [increment]: handleIncrement,
+  [decrement]: handleDecrement,
+}, initialState)
+
+export default CounterReducer
+```
+
+这样代码是不是就看起来简洁多了
 
