@@ -184,5 +184,43 @@ ReactDOM.render(
 我们将 store 通过 react-redux 提供的 Provider 组件全局注入，这样我们就能在下面所有的组件中使用 store 了，当然到这一步还没完，在 Counter 组件中我们还需要做一些改动，才能获取到 store 中的内容
 
 ```js
+import React from 'react'
+import { connect } from 'react-redux'
+import { bindActionCreators } from 'redux';
+import * as couterActions from '../../store/actions/count'
 
+const Counter = (props) => {
+  const {
+    count,
+    increment,
+    decrement,
+  } = props
+
+  return (
+    <div>
+      <button onClick={() => increment(10)}>+</button>
+      <span>{count}</span>
+      <button onClick={() => decrement(10)}>-</button>
+    </div>
+  )
+}
+
+const mapStateToProps = state => ({
+  count: state.counter.count
+});
+
+const mapDispatchToProps = dispatch => bindActionCreators(couterActions, dispatch)
+
+export default connect(mapStateToProps, mapDispatchToProps)(Counter)
 ```
+
+上面我们将 Counter 组件通过 connect 改造了一下，那么 connect 有什么作用呢？
+
+- connect 会帮助我们自动订阅 store， 当 store 中的状态发生改变的时候，会自动重新渲染组件
+- connect 可以获取 store 中的状态，将状态通过 props 属性映射给组件
+- connect 可以让我们在组件中获取 dispatch
+
+而 bindActionCreators 实际就帮助我们去创建 一个函数，它内部会自动调用 dispatch 帮助我们将 action 传入 Reducer
+
+
+
