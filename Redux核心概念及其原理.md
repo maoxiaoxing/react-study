@@ -90,7 +90,7 @@ Reducer 是用来计算或处理状态的，它接收两个参数：
 你可以在 Reducer 根据 action 中的 type 属性对 state 进行不同的处理，但是最后一定要返回所有的状态。
 
 ```js
-// src/store/reducer/count.js
+// src\store\reducers\count.js
 
 const initialState = {
   count: 0
@@ -116,9 +116,15 @@ const CounterReducer = (state = initialState, action) => {
 export default CounterReducer
 ```
 
-```js
-import { createStore } from 'redux'
-import AllReducer from './reducers'
+### 创建 Store
 
-export const store = createStore(AllReducer)
+我们使用 redux 中的 createStore 来创建 store 容器，createStore 可以接收一个 Reducer 作为参数，调用 createStore 会返回 store
+
+```js
+// src\store\index.js
+
+import { createStore } from 'redux'
+import CounterReducer from './reducers/count'
+
+export const store = createStore(CounterReducer)
 ```
