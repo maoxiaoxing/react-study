@@ -330,3 +330,68 @@ export const store = createStore(AllReducer, applyMiddleware(
   LoggerMiddleware,
 ))
 ```
+
+这样我们就实现了一个简单的中间件
+
+#### 使用中间件实现异步
+
+在实际的开发中，我们常常需要在 Action 中进行异步处理，Redux 本身是不支持异步的，但是我们能通过中间件去实现异步处理
+正常的 Action 会返回一个对象，我们可以开发一个 thunk 中间件，那么我们就可以在中间件中判断 Action 如果是一个函数的话，那么就是异步函数
+
+首先我们在 const 文件新增一个异步常量
+
+```js
+// src\store\const\index.js
+export const INCREMENT = 'increment';
+export const DECREMENT = 'decrement';
+// 异步常量
+export const INCREMENT_ASYNC = 'increment_async';
+```
+
+然后我们在 action 文件中，新增一个异步 Action，我们用 setTimeout 来模拟异步函数调用，延迟两秒增加数字
+
+```js
+// src\store\actions\count.js
+import { INCREMENT, DECREMENT, INCREMENT_ASYNC } from "../const";
+import { createAction } from 'redux-actions'
+
+// export const increment = payload => ({type: INCREMENT, payload});
+// export const decrement = payload => ({type: DECREMENT, payload});
+export const increment = createAction(INCREMENT)
+export const decrement = createAction(DECREMENT)
+
+export const increment_async = (payload) => dispatch => {
+  setTimeout(() => {
+    dispatch(increment(payload))
+  }, 2000);
+}
+```
+
+接下来我们就可以编写 thunk 中间件了，判断 action 是否是一个 function，如果是的话，就直接执行 action，否则就正常执行下一个中间件
+
+```js
+// src\store\middleware\thunk.js
+
+export default store => next => action => {
+  if (typeof action === 'function') {
+    return action(store.dispatch)
+  }
+  next(action)
+}
+```
+
+最终我们将我们写的中间件注册一下就可以了
+
+```js
+import { createStore, applyMiddleware } from 'redux'
+import AllReducer from './reducers'
+import LoggerMiddleware from './middleware/logger'
+import ThunkMiddleware from './middleware/thunk'
+
+export const store = createStore(AllReducer, applyMiddleware(
+  LoggerMiddleware,
+  ThunkMiddleware,
+))
+```
+
+这样通过 thunk 中间件，我们就能实现一个异步 Action 了
