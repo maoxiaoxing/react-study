@@ -238,6 +238,15 @@ export default combineReducers({
 })
 ```
 
+合并完 Reducer 之后，我们还需要在 store/index.js 文件中做一些修改
+
+```js
+import { createStore, applyMiddleware } from 'redux'
+import AllReducer from './reducers'
+
+export const store = createStore(AllReducer)
+```
+
 Reducer 中的 switch 语句看起来显得有些繁琐，所以我们可以通过 [redux-actions](https://www.npmjs.com/package/redux-actions) 这个插件来简化一下
 
 ```bash
@@ -305,3 +314,17 @@ export default store => next => action => {
 - 第三层函数会接收一个 action 作为参数
 
 这样你就可以利用 store 和 action 去处理相应的逻辑
+
+#### 注册中间件
+
+```js
+// src\store\index.js
+
+import { createStore, applyMiddleware } from 'redux'
+import AllReducer from './reducers'
+import LoggerMiddleware from './middleware/logger'
+
+export const store = createStore(AllReducer, applyMiddleware(
+  LoggerMiddleware,
+))
+```
