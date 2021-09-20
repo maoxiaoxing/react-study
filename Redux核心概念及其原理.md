@@ -315,16 +315,16 @@ export default store => next => action => {
 
 这样你就可以利用 store 和 action 去处理相应的逻辑
 
-  #### 注册中间件
+#### 注册中间件
 
-  ```js
-  // src\store\index.js
+```js
+// src\store\index.js
 
-  import { createStore, applyMiddleware } from 'redux'
-  import AllReducer from './reducers'
-  import LoggerMiddleware from './middleware/logger'
+import { createStore, applyMiddleware } from 'redux'
+import AllReducer from './reducers'
+import LoggerMiddleware from './middleware/logger'
 
-  export const store = createStore(AllReducer, applyMiddleware(
-    LoggerMiddleware,
-  ))
-  ```
+export const store = createStore(AllReducer, applyMiddleware(
+  LoggerMiddleware,
+))
+```
