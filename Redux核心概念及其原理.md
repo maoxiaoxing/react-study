@@ -585,7 +585,51 @@ function isPlainObject (obj) {
 }
 ```
 
-createStore 其实也是运用了发布订阅模式，在 subscribe 中将订阅函数放入队列中，在我们通过 dispatch 去触发 Action 的时候，会执行所有的订阅函数，这样就是一个简单的 Redux 的工作流程，是不是很简单，其实 Redux 的源码量也不是很多，简化的版的概述了 Redux 的基本思想。值得一提的是，createStore 的第二个参数 preloadedState，我在这里变成了必填的，在真实的 Redux 源码中，实际上是可选的，而且 Redux 还做了判断，如果 preloadedState 不是一个方法的话，那么就是预存储的状态，如果是一个方法的话，那么它就是 enhancer 参数。enhancer 其实也就是 Redux 对中间件扩展的参数，不得不说 Redux 设计的还是非常精巧的。
+createStore 其实也是运用了发布订阅模式，在 subscribe 中将订阅函数放入队列中，在我们通过 dispatch 去触发 Action 的时候，会执行所有的订阅函数，这样就是一个简单的 Redux 的工作流程，是不是很简单，其实 Redux 的源码量也不是很多，简化的版的概述了 Redux 的基本思想。值得一提的是，createStore 的第二个参数 preloadedState，我在这里变成了必填的，是为了写起来比较方便，在真实的 Redux 源码中，实际上是可选的参数，而且 Redux 还做了判断，如果 preloadedState 不是一个方法的话，那么就是预存储的状态，如果是一个方法的话，那么它就是 enhancer 参数。enhancer 其实也就是 Redux 对中间件扩展的参数，不得不说 Redux 设计的还是非常精巧的。
 
+### applyMiddleware
 
+Redux 最强的功能就是中间件，在我们通过 dispatch 去触发 Action
+的时候，本来 Action 会直接被 Reducer 去获取到，但是当我们使用的中间件之后，Action 就会先被中间件获取到。本质上 Redux 中间件就是对 dispatch 这个方法进行增强，在 Redux 中给我们提供了一个 applyMiddleware 的 api，applyMiddleware 最主要的功能就是接收多个中间件函数，然后按顺序执行中间件函数。
+
+```js
+function applyMiddleware(...middlewares) {
+  // 返回 enhancer 函数
+  return function (createStore) {
+    return function(reducer, preloadeState) {
+      // 创建 stroe
+      const store = createStore(reducer, preloadeState)
+      // 简化版store
+      const middlewareAPI = {
+        getState: store.getState,
+        dispatch: store.dispatch,
+      }
+      // 调用中间件的第一层函数，同时传入 简化版 store
+      const chain = middlewares.map(middleware => middleware(middlewareAPI))
+      const getDispatch = compose(...chain)
+      const dispatch = getDispatch(store.dispatch)
+
+      return {
+        ...store,
+        dispatch,
+      }
+    }
+  }
+}
+
+// 中间件函数管道组合
+function compose() {
+  const funcs = [...arguments]
+  return function (dispatch) {
+    for(let i = funcs.length - 1; i >= 0; i--) {
+      const func = funcs[i]
+      // 将下一个中间件传给上一个中间件
+      func && (dispatch = func(dispatch))
+    }
+    return dispatch
+  }
+}
+```
+
+在 compose 中会发现在循环 funcs 是倒序的，这时因为 Redux 的中间件是正序执行的。我们知道中间件的第二层函数会有一个 next 参数，实际上这个 next 参数就是下一个中间件函数，所以为了保证中间件的执行顺序，我们需要将下一个中间件函数传给上一个中间件函数，这样在上一个中间件函数调用 next 的时候，就会链式调用下面所有的中间件函数了。
 
