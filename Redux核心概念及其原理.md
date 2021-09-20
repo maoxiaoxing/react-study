@@ -396,7 +396,7 @@ export const store = createStore(AllReducer, applyMiddleware(
 
 这样通过 thunk 中间件，我们就能实现一个异步 Action 了
 
-#### redux-thunk
+#### redux-thunk 中间件
 
 redux-thunk 和我们所写的 thunk 中间件是一样的，它是可以在 Redux 的工作流程中使用异步的，首先我们需要下载 redux-thunk
 
@@ -419,3 +419,7 @@ export const store = createStore(AllReducer, applyMiddleware(
 ```
 
 这个效果会和我们自己写的 thunk 中间件的效果是一样的
+
+<!-- #### redux-saga 中间件 -->
+
+
