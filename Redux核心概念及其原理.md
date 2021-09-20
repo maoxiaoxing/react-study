@@ -633,3 +633,25 @@ function compose() {
 
 在 compose 中会发现在循环 funcs 是倒序的，这时因为 Redux 的中间件是正序执行的。我们知道中间件的第二层函数会有一个 next 参数，实际上这个 next 参数就是下一个中间件函数，所以为了保证中间件的执行顺序，我们需要将下一个中间件函数传给上一个中间件函数，这样在上一个中间件函数调用 next 的时候，就会链式调用下面所有的中间件函数了。
 
+### bindActionCreators
+
+bindActionCreators 的作用就是将 Action Creator 函数转换成能够触发 Action
+的函数，实际上就是将触发 dispatch 的动作保存起来，它的实现也比较简单
+
+```js
+function bindActionCreators(actionCreators, dispatch) {
+  const boundActionsCreators = {}
+
+  // 循环将所有传进来的 Action Creator 函数执行
+  // 并将结果传给 dispatch 函数，并将 dispatch 的调用保存在函数对象中
+  for(const key in actionCreators) {
+    boundActionsCreators[key] = function () {
+      // 调用 dispatch
+      dispatch(actionCreators[key]())
+    }
+  }
+
+  return boundActionsCreators
+}
+```
+
