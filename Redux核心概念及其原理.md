@@ -395,3 +395,27 @@ export const store = createStore(AllReducer, applyMiddleware(
 ```
 
 这样通过 thunk 中间件，我们就能实现一个异步 Action 了
+
+#### redux-thunk
+
+redux-thunk 和我们所写的 thunk 中间件是一样的，它是可以在 Redux 的工作流程中使用异步的，首先我们需要下载 redux-thunk
+
+```bash
+npm install redux-thunk -S
+```
+
+然后基于上面的代码，我们只需要在注册中间件的时候将我们自己写的 thunk 中间件替换成 redux-thunk 即可
+
+```js
+import { createStore, applyMiddleware } from 'redux'
+import AllReducer from './reducers'
+import LoggerMiddleware from './middleware/logger'
+import thunk from 'redux-thunk'
+
+export const store = createStore(AllReducer, applyMiddleware(
+  LoggerMiddleware,
+  thunk,
+))
+```
+
+这个效果会和我们自己写的 thunk 中间件的效果是一样的
