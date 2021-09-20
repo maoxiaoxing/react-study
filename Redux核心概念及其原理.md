@@ -317,7 +317,7 @@ export default store => next => action => {
 
 #### 注册中间件
 
-createStore 的第一个参数接收 Reducer 的，它还有第二个参数，是用来接收中间件的
+createStore 的第一个参数接收 Reducer 的，它还有第二个参数，是用来接收中间件的，而 redux 提供的 applyMiddleware 就是用来注册中间件的
 
 ```js
 // src\store\index.js
