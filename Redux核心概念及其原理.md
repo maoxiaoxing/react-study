@@ -506,3 +506,86 @@ export const store = createStore(AllReducer, applyMiddleware(
 sagaMiddleware.run(rootSaga)
 ```
 
+## 实现一个简易版的 Redux
+
+了解了怎样使用 Redux 之后，我们来通过实现一个简易版的 Redux 来深入了解一下 Redux 的工作原理
+
+### createStore
+
+createStore 是 Redux 最核心的 api，它接收三个参数
+
+- reducer 根据传入的 Action 的 type 对不同的状态进行处理的函数
+- preloadedState 是预存储的状态
+- enhancer 它是一个功能增强函数
+
+```js
+function createStore(reducer, preloadedState, enhancer) {
+  // 约束 reducer 参数类型
+  if (typeof reducer !== 'function') throw new Error('reducer必须是函数')
+
+  // 处理可选参数 enhancer
+  if (typeof enhancer !== 'undefined') {
+    if (typeof enhancer !== 'function') {
+      throw new Error('enhancer必须是一个函数')
+    }
+
+    return enhancer(createStore)(reducer, preloadedState)
+  }
+
+  // store 对象存储的状态
+  let currentState = preloadedState
+  // 存放订阅者
+  const currentListeners = []
+
+  // 获取状态
+  function getState() {
+    return currentState
+  }
+
+  // 触发action
+  function dispatch(action) {
+    // 判断 action 是否是对象
+    if (!isPlainObject(action)) throw new Error('action必须为对象')
+    // 对象中是否有 type 属性
+    if (!action.type) throw new Error('action对象中必须有type属性')
+    // 计算新的状态
+    currentState = reducer(currentState, action)
+
+    // 调用所有订阅者
+    for(let i = 0; i < currentListeners.length; i++) {
+      // 获取订阅者
+      const listener = currentListeners[i]
+      listener()
+    }
+  }
+
+  // 订阅状态
+  function subscribe(listener) {
+    currentListeners.push(listener)
+  }
+
+  return {
+    getState,
+    dispatch,
+    subscribe,
+  }
+}
+
+// 判断参数是否为对象
+function isPlainObject (obj) {
+  // 排除基本类型和null
+  if (typeof obj !== 'object' || obj === null) return false
+
+  // 区分数组和对象
+  var proto = obj
+  while (Object.getPrototypeOf(proto) !== null) {
+    proto = Object.getPrototypeOf(proto)
+  }
+  return Object.getPrototypeOf(obj) === proto
+}
+```
+
+createStore 其实也是运用了发布订阅模式，在 subscribe 中将订阅函数放入队列中，在我们通过 dispatch 去触发 Action 的时候，会执行所有的订阅函数，这样就是一个简单的 Redux 的工作流程，是不是很简单，其实 Redux 的源码量也不是很多，简化的版的概述了 Redux 的基本思想。值得一提的是，createStore 的第二个参数 preloadedState，我在这里变成了必填的，在真实的 Redux 源码中，实际上是可选的，而且 Redux 还做了判断，如果 preloadedState 不是一个方法的话，那么就是预存储的状态，如果是一个方法的话，那么它就是 enhancer 参数。enhancer 其实也就是 Redux 对中间件扩展的参数，不得不说 Redux 设计的还是非常精巧的。
+
+
+

@@ -75,6 +75,7 @@ function applyMiddleware(...middlewares) {
         getState: store.getState,
         dispatch: store.dispatch,
       }
+      // 调用中间件的第一层函数，同时传入 简化版 store
       const chain = middlewares.map(middleware => middleware(middlewareAPI))
       const getDispatch = compose(...chain)
       const dispatch = getDispatch(store.dispatch)
@@ -87,11 +88,13 @@ function applyMiddleware(...middlewares) {
   }
 }
 
+// 中间件函数管道组合
 function compose() {
   const funcs = [...arguments]
   return function (dispatch) {
     for(let i = funcs.length - 1; i >= 0; i--) {
       const func = funcs[i]
+      // 将下一个中间件传给上一个中间件
       func && (dispatch = func(dispatch))
     }
     return dispatch
