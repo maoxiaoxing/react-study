@@ -285,3 +285,23 @@ export const decrement = createAction(DECREMENT)
 Redux 的中间件能够扩展 Redux 应用程序，中间件其实就是一个函数，之前我们的 Action 都是直接被 Reducer 去处理的，而加入了中间件之后，Action 就会首先被中间件接收到，当中间件处理完这个 Action 之后，再将 Action 交给 Reducer 去处理。
 
 ![](https://img2020.cnblogs.com/blog/1575596/202109/1575596-20210920081901627-829861461.png)
+
+#### 开发 Redux 中间件
+
+Redux 中间件其实是一个比较简单的概念，下面就是一个 logger 的中间件，用来打印 store 和 action 信息的
+
+```js
+// src\store\middleware\logger.js
+
+export default store => next => action => {
+  console.log(store, action)
+  next(action)
+}
+```
+
+中间件其实就是一个柯里化的函数
+- 中间件的第一层函数会接收一个 store 为参数，然后会返回一个函数
+- 第二层函数会接收一个 next 函数作为参数，其实 next 就是下一个中间件函数或者 reducer 函数，然后还会返回一个函数
+- 第三层函数会接收一个 action 作为参数
+
+这样你就可以利用 store 和 action 去处理相应的逻辑
