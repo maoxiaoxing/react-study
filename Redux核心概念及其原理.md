@@ -279,3 +279,9 @@ export const decrement = createAction(DECREMENT)
 ```
 
 这样在创建 action 的时候，代码也简洁了不少
+
+### Redux 中间件
+
+Redux 的中间件能够扩展 Redux 应用程序，中间件其实就是一个函数，之前我们的 Action 都是直接被 Reducer 去处理的，而加入了中间件之后，Action 就会首先被中间件接收到，当中间件处理完这个 Action 之后，再将 Action 交给 Reducer 去处理。
+
+![](https://img2020.cnblogs.com/blog/1575596/202109/1575596-20210920081901627-829861461.png)
