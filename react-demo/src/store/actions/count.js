@@ -6,12 +6,12 @@ import { createAction } from 'redux-actions'
 export const increment = createAction(INCREMENT)
 export const decrement = createAction(DECREMENT)
 
-export const increment_async = (payload) => dispatch => {
-  setTimeout(() => {
-    dispatch(increment(payload))
-  }, 2000);
-}
+// export const increment_async = (payload) => dispatch => {
+//   setTimeout(() => {
+//     dispatch(increment(payload))
+//   }, 2000);
+// }
 
 
 
-// export const increment_async = payload => ({type: INCREMENT_ASYNC, payload});
+export const increment_async = payload => ({type: INCREMENT_ASYNC, payload});

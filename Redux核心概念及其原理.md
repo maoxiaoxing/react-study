@@ -420,6 +420,89 @@ export const store = createStore(AllReducer, applyMiddleware(
 
 这个效果会和我们自己写的 thunk 中间件的效果是一样的
 
-<!-- #### redux-saga 中间件 -->
+#### redux-saga 中间件
 
+redux-saga 的作用和 redux-thunk 的作用基本一样，都可以在 Redux 的工作流程中加入异步代码。但是 redux-saga 的功能更加强大，它能将 Action 中的异步代码抽离出来
+
+```js
+npm install redux-saga -S
+```
+
+首先我们需要对 Action 中的代码进行修改，因为我们不需要在 Action 中去写异步代码了
+
+```js
+// src\store\actions\count.js
+
+import { INCREMENT, DECREMENT, INCREMENT_ASYNC } from "../const";
+import { createAction } from 'redux-actions'
+
+// export const increment = payload => ({type: INCREMENT, payload});
+// export const decrement = payload => ({type: DECREMENT, payload});
+export const increment = createAction(INCREMENT)
+export const decrement = createAction(DECREMENT)
+// 修改过后的异步 Action
+export const increment_async = payload => ({type: INCREMENT_ASYNC, payload});
+
+```
+
+接下来我们要在 store 下面创建 sagas 文件夹来写我们的 saga 中间件逻辑
+我们需要在 redux-saga 中引入几个方法
+
+- takeEvery 当组件去触发一个 Action 的时候，我们可以通过 takeEvery 去接收这个 Action 
+- put 使用来触发另外一个 Action，当异步操作返回结果后，我们需要 put 去触发 Action 将这个异步的结果传递给 Reducer，put 的作用基本和 dispatch 是一样的
+- delay 就是延迟效果
+
+redux-saga 必须导出 Generator 函数，加下来我们定义 counterSaga 函数
+
+```js
+// src\store\sagas\counter.js
+
+import { takeEvery, put, delay } from 'redux-saga/effects'
+import { increment } from '../actions/count'
+import { INCREMENT_ASYNC } from '../const'
+
+function* increment_async_fn(action) {
+  yield delay(2000)
+  yield put(increment(action.payload))
+}
+
+export default function* counterSaga() {
+  // 接收 action
+  yield takeEvery(INCREMENT_ASYNC, increment_async_fn)
+}
+```
+
+saga 也可以支持注册多个 saga，通过 redux-saga 提供的 all 方法，来注册所有的 saga
+
+```js
+// src\store\sagas\index.js
+
+import ConunterSaga from './counter'
+import { all } from 'redux-saga/effects'
+
+export default function* rootSaga () {
+  yield all([
+    ConunterSaga(),
+  ])
+}
+```
+
+最后我们需要在 store 中注册 saga
+
+```js
+import { createStore, applyMiddleware } from 'redux'
+import AllReducer from './reducers'
+import LoggerMiddleware from './middleware/logger'
+import createSagaMidddleware from 'redux-saga';
+import rootSaga from './sagas'
+
+const sagaMiddleware = createSagaMidddleware();
+
+export const store = createStore(AllReducer, applyMiddleware(
+  LoggerMiddleware,
+  sagaMiddleware,
+))
+
+sagaMiddleware.run(rootSaga)
+```
 
