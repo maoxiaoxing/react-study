@@ -655,3 +655,34 @@ function bindActionCreators(actionCreators, dispatch) {
 }
 ```
 
+### combineReducers
+
+combineReducers 的作用很简单，实际上就是将一个个小的 Reducer 组合成一个大的 Reducer
+
+```js
+function combineReducers(reducers) {
+  const reducerKeys = Reflect.ownKeys(reducers)
+  for(let i = 0; i < reducerKeys.length; i++) {
+    const key = reducerKeys[i]
+    if (typeof reducers[key] !== 'function') throw new Error('reducer必须是函数')
+  }
+
+  return function (state, action) {
+    const nextState = {}
+    for(let i = 0; i < reducerKeys.length; i++) {
+      const key = reducerKeys[i]
+      const reducer = reducers[key]
+      const previousStateForKey = state[key]
+      nextState[key] = reducer(previousStateForKey, action)
+    }
+    return nextState
+  }
+}
+```
+
+combineReducers 循环将小的 Reducer 执行，然后将 Reducer 执行的结果存储在新的 state 对象中，然后再返回一个新的 Reducer 函数，新的 Reducer 再将新的 state 返回，这样就实现了一个合并 Reducer 的功能。
+
+## 总结
+
+其实 Redux 的设计非常精巧，很难想象这是 Dan 赶出来的作品，Redux 很优秀，但是最让人诟病的可能就是它的使用比较复杂，但是我个人觉得还好，只要了解了 Redux 的工作原理，很多东西并没有想象的那么复杂。
+
